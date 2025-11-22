@@ -31,44 +31,50 @@
                   <v-radio label="Kappa" value="kappa"></v-radio>
                   <v-radio label="Alpha" value="alpha"></v-radio>
                 </v-radio-group>
-
-                <v-slider
+                <v-number-input
                   v-model="lambda"
                   :disabled="selectedConst === 'lambda'"
-                  :min="-2"
-                  :max="3"
-                  step="0.0001"
                   label="Lambda"
-                  thumb-label
-                ></v-slider>
-                <v-slider
+                  :precision="null"
+                  :step="0.05"
+                  control-variant="split"
+                  density="compact"
+                  variant="outlined"
+                  class="mb-2"
+                ></v-number-input>
+                <v-number-input
                   v-model="omega"
                   :disabled="selectedConst === 'omega'"
-                  :min="0.0001"
-                  :max="3"
-                  step="0.0001"
                   label="Omega"
-                  thumb-label
-                ></v-slider>
-                <v-slider
+                  :precision="null"
+                  :step="0.05"
+                  control-variant="split"
+                  density="compact"
+                  variant="outlined"
+                  class="mb-2"
+                ></v-number-input>
+                <v-number-input
                   v-model="kappa"
                   :disabled="selectedConst === 'kappa'"
-                  :min="-2"
-                  :max="3"
-                  step="0.0001"
                   label="Kappa"
-                  thumb-label
-                ></v-slider>
-                <v-slider
+                  :precision="null"
+                  :step="0.05"
+                  control-variant="split"
+                  density="compact"
+                  variant="outlined"
+                  class="mb-2"
+                ></v-number-input>
+                <v-number-input
                   v-model="alpha"
                   :disabled="selectedConst === 'alpha'"
-                  :min="-2"
-                  :max="3"
-                  step="0.0001"
                   label="Alpha"
-                  thumb-label
-                ></v-slider>
-
+                  :precision="null"
+                  :step="0.05"
+                  control-variant="split"
+                  density="compact"
+                  variant="outlined"
+                  class="mb-2"
+                ></v-number-input>
                 <div class="d-flex justify-space-between text-caption">
                   <span>Sum: {{ sumConsts.toFixed(5) }}</span>
                   <span
@@ -249,6 +255,7 @@ function onFileChange(event) {
 }
 
 // Logic Updates
+
 function updateEnvironmentConstants() {
   try {
     Environment.setCosmoConsts(lambda.value, omega.value, kappa.value, alpha.value)
