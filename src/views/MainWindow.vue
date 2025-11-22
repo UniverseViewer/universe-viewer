@@ -102,6 +102,13 @@
                   density="compact"
                   hide-details
                 ></v-checkbox>
+                <v-switch
+                  v-model="selectionMode"
+                  label="Selection Mode"
+                  density="compact"
+                  color="primary"
+                  hide-details
+                ></v-switch>
 
                 <v-divider class="my-3"></v-divider>
 
@@ -201,6 +208,7 @@ const beta = ref(0)
 const comovingSpace = ref(false)
 const precision = ref(false)
 const showRefMarks = ref(true)
+const selectionMode = ref(false)
 const isSkyMode = ref(false)
 
 const quasarsCount = ref(0)
@@ -269,7 +277,6 @@ function forceUpdate() {
 
     // Update viewer specific toggles
     if (viewer.value) {
-      viewer.value.setModePublic(0) // Always Universe Mode for now
       viewer.value.setShowReferencesMarksPublic(showRefMarks.value)
     }
   } catch (e) {
@@ -368,6 +375,10 @@ watch([ra1, dec1, beta], () => {
   Environment.setUserBeta(beta.value)
   // We might want to auto-update view if it's fast enough
   Environment.update(Environment.UPDATE_VIEW)
+})
+
+watch(selectionMode, (val) => {
+  if (viewer.value) viewer.value.enableSelectionMode(val)
 })
 
 watch([comovingSpace, precision], () => {

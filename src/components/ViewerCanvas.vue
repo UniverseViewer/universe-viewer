@@ -111,7 +111,9 @@ export default {
       }
     })
 
+    // World <-> Screen helpers
     function setMode(m) {
+      console.log('ViewerCanvas: setMode called with', m)
       if (m === state.UNIVERSE_MODE) {
         state.xMin = -1
         state.yMin = -1
@@ -143,10 +145,18 @@ export default {
       // map to -1..1 normalized inside current view
       const u = (2.0 * localX - rect.width) / rect.width
       const v = -(2.0 * localY - rect.height) / rect.height
-      const x0 = (state.xMax - state.xMin) / 2 + state.xMin
-      const y0 = (state.yMax - state.yMin) / 2 + state.yMin
-      const worldX = x0 + u * (x0 - state.xMin)
-      const worldY = y0 + v * (y0 - state.yMin)
+
+      // Center of the view in world coords
+      const cx = (state.xMax + state.xMin) / 2.0 + state.posX
+      const cy = (state.yMax + state.yMin) / 2.0 + state.posY
+
+      // Half-span of the view in world coords (adjusted by zoom)
+      const spanX = (state.xMax - state.xMin) / 2.0 / state.zoom
+      const spanY = (state.yMax - state.yMin) / 2.0 / state.zoom
+
+      const worldX = cx + u * spanX
+      const worldY = cy + v * spanY
+
       return { worldX, worldY, pixelX: localX, pixelY: localY }
     }
 
@@ -393,6 +403,7 @@ export default {
         return
       }
       if (e.button === 0) {
+        state.isDragging = true
         const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
         state.mouseX = e.clientX
         state.mouseY = e.clientY
@@ -421,28 +432,17 @@ export default {
         render() // Allow selection box overlay to draw on top (HTML overlay)
       } else {
         // Moving mode (pan)
-        if (e.buttons === 1 && !state.selectionEnabled) {
+        if (state.isDragging && !state.selectionEnabled) {
           // compute world offsets similar to Java mouseDragged behaviour:
           const prev = pixelToWorld(state.mouseX, state.mouseY)
           const curr = pixelToWorld(e.clientX, e.clientY)
 
-          // In UNIVERSE_MODE:
-          let offsetX, offsetY
-          if (state.mode === state.UNIVERSE_MODE) {
-            offsetX = curr.worldX - prev.worldX
-            offsetY = curr.worldY - prev.worldY
-          } else {
-            // SKY_MODE scaling differs: division by pi factors for offsets
-            offsetX = (curr.worldX - prev.worldX) / Math.PI
-            offsetY = (curr.worldY - prev.worldY) / (Math.PI / 2.0)
-          }
+          // We want to shift the camera so that the point under mouse remains constant.
+          const offsetX = prev.worldX - curr.worldX
+          const offsetY = prev.worldY - curr.worldY
 
           state.posX += offsetX
           state.posY += offsetY
-          state.xMin -= offsetX
-          state.yMin -= offsetY
-          state.xMax -= offsetX
-          state.yMax -= offsetY
 
           state.mouseX = e.clientX
           state.mouseY = e.clientY
@@ -452,6 +452,9 @@ export default {
     }
 
     function onMouseUp(e) {
+      if (e.button === 0) {
+        state.isDragging = false
+      }
       if (e.button !== 0) return
       if (!Environment.isSomethingToShow()) return
       if (!state.selectionEnabled) return
@@ -469,12 +472,11 @@ export default {
       let selY1 = Math.min(p1.worldY, p2.worldY)
       let selY2 = Math.max(p1.worldY, p2.worldY)
 
-      if (state.mode === state.SKY_MODE) {
-        selX1 *= Math.PI
-        selX2 *= Math.PI
-        selY1 *= Math.PI / 2.0
-        selY2 *= Math.PI / 2.0
-      } else if (Environment.getKappa() < 0 && Environment.getView() <= 3) {
+      if (
+        state.mode === state.UNIVERSE_MODE &&
+        Environment.getKappa() < 0 &&
+        Environment.getView() <= 3
+      ) {
         selX1 += 2
         selX2 += 2
       }
