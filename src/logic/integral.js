@@ -2,7 +2,7 @@
  * Integral computation (slow, high precision)
  */
 
-import * as Environment from '@/logic/environment.js';
+import * as Environment from '@/logic/environment.js'
 
 export function poly(a) {
   return (
@@ -10,11 +10,11 @@ export function poly(a) {
     Environment.getKappa() * a * a +
     Environment.getOmega() * a +
     Environment.getAlpha()
-  );
+  )
 }
 
 export function funcToIntegrate(x) {
-  return 1.0 / Math.sqrt(poly(x));
+  return 1.0 / Math.sqrt(poly(x))
 }
 
 /**
@@ -25,17 +25,17 @@ export function funcToIntegrate(x) {
  * @returns {number}
  */
 export function integrate(limitA, limitB, stepH) {
-  let sum = 0;
+  let sum = 0
 
-  for (let temp = limitA + stepH; temp < limitB; temp += stepH) {
-    sum += funcToIntegrate(temp);
+  // Calculate number of steps to cover the interval exactly
+  const n = Math.ceil(Math.abs(limitB - limitA) / stepH)
+  const realStep = (limitB - limitA) / n
+
+  for (let i = 1; i < n; i++) {
+    sum += funcToIntegrate(limitA + i * realStep)
   }
 
-  sum *= stepH;
+  sum *= realStep
 
-  return (
-    (stepH / 2) * (funcToIntegrate(limitA) + funcToIntegrate(limitB)) +
-    sum
-  );
+  return (realStep / 2) * (funcToIntegrate(limitA) + funcToIntegrate(limitB)) + sum
 }
-
