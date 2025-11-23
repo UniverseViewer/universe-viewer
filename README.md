@@ -1,23 +1,10 @@
-# universe-viewer
+# Universe Viewer
 
-This template should help get you started developing with Vue 3 in Vite.
+Interactive software for visualization and geodesic processing of astronomical objects. \
+It makes it possible to produce a conformal mapping of cosmological structures, particularly quasars, taking into account the curvature of the universe.
 
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
+Universe Viewer is intended to be a working tool for researchers in cosmology; it relies on concepts from astronomy and general relativity.
+It must produce a conformal map of the universe and make it possible to identify large-scale structures in reference or comoving space.
 
 ## Project Setup
 
@@ -42,3 +29,7 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## References
+
+[Framework for cosmography at high redshift](https://amu.hal.science/hal-01431981/document) (R. Triay, L. Spinelli and R. Lafaye, 1996).
