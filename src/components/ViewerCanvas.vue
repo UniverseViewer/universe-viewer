@@ -22,7 +22,7 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vue'
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
-import { useUniverseStore } from '@/stores/universe.js'
+import { useUniverseStore, UPDATE_VIEWER } from '@/stores/universe.js'
 
 export default {
   name: 'ViewerCanvas',
@@ -34,8 +34,6 @@ export default {
     const { quasars, kappa, view, ascension_max, somethingToShow, selectionModeType } = storeToRefs(store)
 
     const state = reactive({
-      SIZE_X: 500,
-      SIZE_Y: 500,
       zoom: 1.0,
       zoomChanged: false,
       posX: 0.0,
@@ -86,57 +84,98 @@ export default {
       }
     })
 
+    let resizeObserver = null;
+
+    function onResize() {
+      if (!root.value || !state.renderer || !state.camera) return;
+
+      const width = root.value.clientWidth;
+      const height = root.value.clientHeight;
+
+      state.renderer.setSize(width, height);
+
+      let contentWorldWidth;
+      let contentWorldHeight;
+
+      if (state.mode === state.UNIVERSE_MODE) {
+        contentWorldWidth = state.xMax - state.xMin; // 2 units
+        contentWorldHeight = state.yMax - state.yMin; // 2 units
+      } else { // SKY_MODE
+        contentWorldWidth = state.xMax - state.xMin; // 2 * Math.PI units
+        contentWorldHeight = state.yMax - state.yMin; // Math.PI units
+      }
+
+      const viewAspectRatio = width / height;
+      const contentAspectRatio = contentWorldWidth / contentWorldHeight;
+
+      let halfVisibleWorldWidth;
+      let halfVisibleWorldHeight;
+
+      if (viewAspectRatio >= contentAspectRatio) {
+        halfVisibleWorldHeight = contentWorldHeight / 2;
+        halfVisibleWorldWidth = halfVisibleWorldHeight * viewAspectRatio;
+      } else {
+        halfVisibleWorldWidth = contentWorldWidth / 2;
+        halfVisibleWorldHeight = halfVisibleWorldWidth / viewAspectRatio;
+      }
+
+      state.camera.left = -halfVisibleWorldWidth;
+      state.camera.right = halfVisibleWorldWidth;
+      state.camera.top = halfVisibleWorldHeight;
+      state.camera.bottom = -halfVisibleWorldHeight;
+      
+      updateCameraBounds(); // This will apply state.posX, state.posY, state.zoom
+      store.update(UPDATE_VIEWER);
+    }
+
     function setMode(m) {
       if (m === state.UNIVERSE_MODE) {
         state.xMin = -1
         state.yMin = -1
         state.xMax = 1
         state.yMax = 1
-        state.posX = 0
-        state.posY = 0
+        state.posX = 0 // Center of -1 to 1
+        state.posY = 0 // Center of -1 to 1
       } else if (m === state.SKY_MODE) {
         state.xMin = 0
         state.yMin = -Math.PI / 2
         state.xMax = 2 * Math.PI
         state.yMax = Math.PI / 2
-        state.posX = 0
-        state.posY = 0
+        state.posX = Math.PI // Center of 0 to 2*PI
+        state.posY = 0 // Center of -Math.PI/2 to Math.PI/2
       } else {
         return
       }
       state.zoom = 1
       state.mode = m
-      updateCameraBounds()
-    }
-
+          onResize() // Trigger full recalculation of viewSpans and camera bounds
+        }
     function pixelToWorld(clientX, clientY) {
       const rect = root.value.getBoundingClientRect()
       const localX = clientX - rect.left
       const localY = clientY - rect.top
-      const u = (2.0 * localX - rect.width) / rect.width
-      const v = -(2.0 * localY - rect.height) / rect.height
+      const u = (2.0 * localX - rect.width) / rect.width  // -1 to 1 in normalized device coords
+      const v = -(2.0 * localY - rect.height) / rect.height // -1 to 1 in normalized device coords
 
-      const cx = (state.xMax + state.xMin) / 2.0 + state.posX
-      const cy = (state.yMax + state.yMin) / 2.0 + state.posY
+      // Current center of camera view is camera.position
+      const cx = state.camera.position.x;
+      const cy = state.camera.position.y;
 
-      const spanX = (state.xMax - state.xMin) / 2.0 / state.zoom
-      const spanY = (state.yMax - state.yMin) / 2.0 / state.zoom
+      // Calculate half-width/height of the currently visible world area
+      const halfVisibleWorldWidth = (state.camera.right - state.camera.left) / 2 / state.camera.zoom;
+      const halfVisibleWorldHeight = (state.camera.top - state.camera.bottom) / 2 / state.camera.zoom;
 
-      const worldX = cx + u * spanX
-      const worldY = cy + v * spanY
+      const worldX = cx + u * halfVisibleWorldWidth;
+      const worldY = cy + v * halfVisibleWorldHeight;
 
       return { worldX, worldY, pixelX: localX, pixelY: localY }
     }
 
     function createOrthoCamera() {
-      const left = state.xMin + state.posX
-      const right = state.xMax + state.posX
-      const bottom = state.yMin + state.posY
-      const top = state.yMax + state.posY
       const near = -1000
       const far = 1000
 
-      const cam = new THREE.OrthographicCamera(left, right, top, bottom, near, far)
+      const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, near, far) // Dummy values
       cam.zoom = state.zoom
       cam.updateProjectionMatrix()
       cam.position.set(0, 0, 10)
@@ -145,22 +184,17 @@ export default {
     }
 
     function updateCameraBounds() {
-      if (!state.camera) return
-      const left = state.xMin + state.posX
-      const right = state.xMax + state.posX
-      const bottom = state.yMin + state.posY
-      const top = state.yMax + state.posY
-      state.camera.left = left
-      state.camera.right = right
-      state.camera.top = top
-      state.camera.bottom = bottom
-      state.camera.zoom = state.zoom
-      state.camera.updateProjectionMatrix()
+      if (!state.camera) return;
+
+      state.camera.position.x = state.posX;
+      state.camera.position.y = state.posY;
+      state.camera.zoom = state.zoom;
+      state.camera.updateProjectionMatrix();
     }
 
     function initThree() {
-      const width = root.value.clientWidth || state.SIZE_X
-      const height = root.value.clientHeight || state.SIZE_Y
+      const width = root.value.clientWidth
+      const height = root.value.clientHeight
 
       state.renderer = markRaw(new THREE.WebGLRenderer({ antialias: true }))
       state.renderer.setSize(width, height)
@@ -168,7 +202,8 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
-      state.camera = markRaw(createOrthoCamera(width, height))
+      state.camera = markRaw(createOrthoCamera())
+      onResize(); // Set initial camera projection based on current size
 
       state.geometry = markRaw(new THREE.BufferGeometry())
       state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
@@ -471,6 +506,11 @@ export default {
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)
 
+      resizeObserver = new ResizeObserver(() => onResize());
+      if (root.value) {
+        resizeObserver.observe(root.value);
+      }
+
       store.setViewerCanvas({
         updateCanvas,
         enableSelectionMode: (s) => {
@@ -497,6 +537,10 @@ export default {
       }
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
+
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
 
       if (state.renderer) {
         state.renderer.dispose()
