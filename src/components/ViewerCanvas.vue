@@ -31,7 +31,7 @@ export default {
     const overlay = ref(null)
 
     const store = useUniverseStore()
-    const { quasars, kappa, view, ascension_max, somethingToShow } = storeToRefs(store)
+    const { quasars, kappa, view, ascension_max, somethingToShow, selectionModeType } = storeToRefs(store)
 
     const state = reactive({
       SIZE_X: 500,
@@ -394,46 +394,60 @@ export default {
       const q = quasars.value || []
       let nbSelected = 0
 
+      // Pre-capture selected state for intersection mode
+      const previouslySelected = new Set();
+      if (selectionModeType.value === 'intersection') {
+        q.forEach(qi => {
+          if (qi.isSelected()) {
+            previouslySelected.add(qi);
+          }
+        });
+      }
+
+      // Initial deselection for 'replace' and 'intersection' modes
+      // For 'additive', existing selections outside the new rectangle remain selected.
+      if (selectionModeType.value === 'replace' || selectionModeType.value === 'intersection') {
+        q.forEach(qi => qi.setSelected(false));
+      }
+
       for (let i = 0; i < q.length; i++) {
         const qi = q[i]
+        let x, y
         if (state.mode === state.UNIVERSE_MODE) {
-          const x = qi.getx()
-          const y = qi.gety()
-          if (x > selX1 && x < selX2 && y > selY1 && y < selY2) {
-            if (store.selectedCount !== 0 && !store.multipleSelection) {
-              if (qi.isSelected()) {
-                qi.setSelected(true)
-                nbSelected += 1
-              } else {
-                qi.setSelected(false)
-              }
-            } else {
-              qi.setSelected(true)
-              nbSelected += 1
-            }
-          } else {
-            if (!store.multipleSelection) qi.setSelected(false)
-            else if (qi.isSelected()) nbSelected += 1
-          }
+          x = qi.getx()
+          y = qi.gety()
         } else {
           const asc = qi.getAscension()
           const dec = qi.getDeclination()
-          if (asc > selX1 && asc < selX2 && dec > selY1 && dec < selY2) {
-            if (store.selectedCount !== 0 && !store.multipleSelection) {
-              if (qi.isSelected()) {
-                qi.setSelected(true)
-                nbSelected += 1
-              } else {
-                qi.setSelected(false)
-              }
-            } else {
-              qi.setSelected(true)
-              nbSelected += 1
+          x = asc
+          y = dec
+        }
+
+        const isInsideRectangle = (x > selX1 && x < selX2 && y > selY1 && y < selY2);
+
+        switch (selectionModeType.value) {
+          case 'additive':
+            if (isInsideRectangle) {
+              qi.setSelected(true);
             }
-          } else {
-            if (!store.multipleSelection) qi.setSelected(false)
-            else if (qi.isSelected()) nbSelected += 1
-          }
+            // If not inside, its state remains unchanged (additive)
+            break;
+          case 'replace':
+            if (isInsideRectangle) {
+              qi.setSelected(true);
+            }
+            // If not inside, it was already deselected above
+            break;
+          case 'intersection':
+            if (isInsideRectangle && previouslySelected.has(qi)) {
+              qi.setSelected(true);
+            }
+            // If not inside or not previously selected, it was already deselected above
+            break;
+        }
+
+        if (qi.isSelected()) {
+          nbSelected += 1;
         }
       }
 

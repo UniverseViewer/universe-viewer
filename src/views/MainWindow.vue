@@ -126,6 +126,19 @@
                   Reset Selection
                 </v-btn>
 
+                <v-radio-group
+                  v-if="selectionMode"
+                  v-model="selectionModeType"
+                  density="compact"
+                  hide-details
+                  class="mt-3"
+                  @update:modelValue="store.setSelectionModeType(selectionModeType)"
+                >
+                  <v-radio label="Additive Selection" value="additive"></v-radio>
+                  <v-radio label="Replace Selection" value="replace"></v-radio>
+                  <v-radio label="Intersection Selection" value="intersection"></v-radio>
+                </v-radio-group>
+
                 <v-divider class="my-3"></v-divider>
 
                 <div class="text-subtitle-2 mb-2">Projection</div>
@@ -221,6 +234,7 @@ const {
   userBeta,
   comovingSpaceFlag,
   precisionEnabled,
+  selectionModeType,
 } = storeToRefs(store)
 
 // Viewer Ref

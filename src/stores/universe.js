@@ -19,7 +19,7 @@ export const UPDATE_VIEWER = 3
 
 export const useUniverseStore = defineStore('universe', () => {
   const selectedCount = ref(0)
-  const multipleSelection = ref(true)
+  const selectionModeType = ref('additive') // 'additive', 'replace', 'intersection'
 
   const quasars = shallowRef(null)
   const ascension_max = ref(0)
@@ -53,8 +53,12 @@ export const useUniverseStore = defineStore('universe', () => {
     selectedCount.value = n
   }
 
-  function setMultipleSelection(flag) {
-    multipleSelection.value = flag
+  function setSelectionModeType(type) {
+    if (['additive', 'replace', 'intersection'].includes(type)) {
+      selectionModeType.value = type
+    } else {
+      console.warn(`Invalid selection mode type: ${type}`)
+    }
   }
 
   function initEnvironment() {
@@ -417,7 +421,7 @@ export const useUniverseStore = defineStore('universe', () => {
 
   return {
     selectedCount,
-    multipleSelection,
+    selectionModeType,
     quasars,
     ascension_max,
     lambda,
@@ -440,7 +444,7 @@ export const useUniverseStore = defineStore('universe', () => {
     userDec1Deg,
     userBetaHours,
     setSelectedCount,
-    setMultipleSelection,
+    setSelectionModeType,
     initEnvironment,
     setQuasars,
     setAscensionMax,
