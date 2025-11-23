@@ -2,14 +2,15 @@
  * Integral computation (slow, high precision)
  */
 
-import * as Environment from '@/logic/environment.js'
+import { useUniverseStore } from '@/stores/universe.js'
 
 export function poly(a) {
+  const store = useUniverseStore()
   return (
-    Environment.getLambda() * Math.pow(a, 4) -
-    Environment.getKappa() * a * a +
-    Environment.getOmega() * a +
-    Environment.getAlpha()
+    store.lambda * Math.pow(a, 4) -
+    store.kappa * a * a +
+    store.omega * a +
+    store.alpha
   )
 }
 

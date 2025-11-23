@@ -17,7 +17,7 @@
                   variant="outlined"
                   prepend-icon="mdi-file-upload"
                 ></v-file-input>
-                <div class="text-caption">Loaded: {{ quasarsCount }} quasars</div>
+                <div class="text-caption">Loaded: {{ quasars ? quasars.length : 0 }} quasars</div>
               </v-card-text>
             </v-card>
 
@@ -91,13 +91,13 @@
               <v-card-title class="text-h6">View Settings</v-card-title>
               <v-card-text>
                 <v-checkbox
-                  v-model="comovingSpace"
+                  v-model="comovingSpaceFlag"
                   label="Comoving Space"
                   density="compact"
                   hide-details
                 ></v-checkbox>
                 <v-checkbox
-                  v-model="precision"
+                  v-model="precisionEnabled"
                   label="High Precision Integration"
                   density="compact"
                   hide-details
@@ -128,7 +128,7 @@
                   {{ isSkyMode ? 'Exit Sky View' : 'Sky View' }}
                 </v-btn>
                 <v-btn-toggle
-                  v-model="currentView"
+                  v-model="view"
                   mandatory
                   density="compact"
                   class="mb-4 d-flex flex-wrap"
@@ -192,33 +192,50 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
-import * as Environment from '@/logic/environment.js'
+import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
 import { readTxtFileContent } from '@/logic/readFile.js'
+
+// Store setup
+const store = useUniverseStore()
+const {
+  quasars,
+  lambda,
+  omega,
+  kappa,
+  alpha,
+  view,
+  userRA1,
+  userDec1,
+  userBeta,
+  comovingSpaceFlag,
+  precisionEnabled,
+} = storeToRefs(store)
 
 // Viewer Ref
 const viewer = ref(null)
 
-// State
-const lambda = ref(1.2)
-const omega = ref(0.2)
-const kappa = ref(0.40005)
-const alpha = ref(0.00005)
+// Local State
 const selectedConst = ref('kappa')
-
-const currentView = ref(1)
-const ra1 = ref(0)
-const dec1 = ref(0)
-const beta = ref(0)
-
-const comovingSpace = ref(false)
-const precision = ref(false)
 const showRefMarks = ref(true)
 const selectionMode = ref(false)
 const isSkyMode = ref(false)
-
-const quasarsCount = ref(0)
 const infoLabel = ref('Ready.')
+
+// ra1, dec1, beta need to be computed to convert from rad to hours/deg for sliders
+const ra1 = computed({
+  get: () => (12 * userRA1.value) / Math.PI,
+  set: (val) => store.setUserRa1(val),
+})
+const dec1 = computed({
+  get: () => (180 * userDec1.value) / Math.PI,
+  set: (val) => store.setUserDec1(val),
+})
+const beta = computed({
+  get: () => (12 * userBeta.value) / Math.PI,
+  set: (val) => store.setUserBeta(val),
+})
 
 // Computed
 const sumConsts = computed(() => lambda.value - kappa.value + omega.value + alpha.value)
@@ -226,15 +243,12 @@ const isConstraintValid = computed(() => Math.abs(sumConsts.value - 1.0) < 1e-4)
 
 // Initialization
 onMounted(() => {
-  // Initialize Environment with defaults
   try {
-    Environment.initEnvironment()
-    // Sync local state with Environment defaults if needed,
-    // but we set our refs to match Environment.initEnvironment defaults roughly
-    // Environment defaults: 1.2, 0.2, 0.40005, 0.00005
-    updateEnvironmentConstants()
+    store.initEnvironment()
+    store.setMainWindow(viewer.value) // Pass viewer component ref to store
   } catch (e) {
     console.error(e)
+    infoLabel.value = `Error: ${e.message}`
   }
 })
 
@@ -245,47 +259,25 @@ function onFileChange(event) {
 
   const reader = new FileReader()
   reader.onload = (e) => {
-    const content = e.target.result
-    const count = readTxtFileContent(content)
-    quasarsCount.value = count
-    infoLabel.value = `Loaded ${count} quasars.`
-    forceUpdate()
+    try {
+      const content = e.target.result
+      const count = readTxtFileContent(content)
+      infoLabel.value = `Loaded ${count} quasars.`
+      forceUpdate()
+    } catch (err) {
+      console.error(err)
+      infoLabel.value = `Error: ${err.message}`
+    }
   }
   reader.readAsText(file)
 }
 
 // Logic Updates
 
-function updateEnvironmentConstants() {
-  try {
-    Environment.setCosmoConsts(lambda.value, omega.value, kappa.value, alpha.value)
-    infoLabel.value = 'Constants updated.'
-  } catch (e) {
-    console.error('MainWindow: updateEnvironmentConstants error:', e)
-    infoLabel.value = 'Error: ' + e.message
-  }
-}
 
 function forceUpdate() {
   try {
-    // Push all params to Environment
-    updateEnvironmentConstants()
-    Environment.setUserRa1(ra1.value)
-    Environment.setUserDec1(dec1.value)
-    Environment.setUserBeta(beta.value)
-    Environment.setView(currentView.value)
-
-    // Checkboxes
-    Environment.setComovingSpace(comovingSpace.value)
-    Environment.enablePrecision(precision.value)
-
-    // Trigger calculation
-    Environment.update(Environment.UPDATE_ALL)
-
-    // Update viewer specific toggles
-    if (viewer.value) {
-      viewer.value.setShowReferencesMarksPublic(showRefMarks.value)
-    }
+    store.update(UPDATE_ALL)
   } catch (e) {
     console.error(e)
     infoLabel.value = 'Update Error: ' + e.message
@@ -295,12 +287,10 @@ function forceUpdate() {
 function toggleSkyMode() {
   if (viewer.value) {
     if (isSkyMode.value) {
-      // Exit Sky Mode
       viewer.value.setModePublic(0) // UNIVERSE_MODE
       isSkyMode.value = false
       infoLabel.value = 'Universe Mode'
     } else {
-      // Enter Sky Mode
       viewer.value.setModePublic(1) // SKY_MODE
       isSkyMode.value = true
       infoLabel.value = 'Sky Mode'
@@ -308,40 +298,33 @@ function toggleSkyMode() {
   }
 }
 
-// Watchers for automatic updates (optional, can rely on button)
+// Watchers
+let cosmoUpdateQueued = false
 watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
-  // Auto-balance
-  const sum = lambda.value - kappa.value + omega.value + alpha.value
-  // console.log('Watcher: sum diff', Math.abs(sum - 1))
-  if (Math.abs(sum - 1) < 1e-5) return // already balanced
+  if (Math.abs(sumConsts.value - 1) < 1e-5) return
 
-  console.log('Watcher: balancing...', selectedConst.value)
+  let newLambda = lambda.value,
+    newOmega = omega.value,
+    newKappa = kappa.value,
+    newAlpha = alpha.value
 
-  // Simple balancing logic from Java port
-  if (selectedConst.value === 'lambda') lambda.value = 1 + kappa.value - omega.value - alpha.value
+  if (selectedConst.value === 'lambda')
+    newLambda = 1 + newKappa - newOmega - newAlpha
   else if (selectedConst.value === 'omega')
-    omega.value = 1 - lambda.value + kappa.value - alpha.value
+    newOmega = 1 - newLambda + newKappa - newAlpha
   else if (selectedConst.value === 'kappa')
-    kappa.value = lambda.value + alpha.value + omega.value - 1
+    newKappa = newLambda + newAlpha + newOmega - 1
   else if (selectedConst.value === 'alpha')
-    alpha.value = 1 - lambda.value + kappa.value - omega.value
+    newAlpha = 1 - newLambda + newKappa - newOmega
 
-  console.log('Watcher: balanced kappa to', kappa.value)
-
-  // Check constraints
-  const L = lambda.value
-  const O = omega.value
-  const K = kappa.value
-
-  const lhs = (27.0 / 4.0) * L * O * O
-  const rhs = K * K * K
-
-  let broken = false
-  if (O <= 0) broken = true
-  if (lhs <= rhs) broken = true
-
-  if (broken) {
-    // Revert to previous valid state
+  try {
+    store.setCosmoConsts(newLambda, newOmega, newKappa, newAlpha)
+    // Update the ref that was not selected
+    if (selectedConst.value !== 'lambda') lambda.value = newLambda
+    if (selectedConst.value !== 'omega') omega.value = newOmega
+    if (selectedConst.value !== 'kappa') kappa.value = newKappa
+    if (selectedConst.value !== 'alpha') alpha.value = newAlpha
+  } catch (e) {
     if (oldVals) {
       lambda.value = oldVals[0]
       omega.value = oldVals[1]
@@ -352,43 +335,40 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
     return
   }
 
-  // Debounced update
-  if (window.updateTimeout) clearTimeout(window.updateTimeout)
-  window.updateTimeout = setTimeout(() => {
-    forceUpdate()
-  }, 200)
+  if (!cosmoUpdateQueued) {
+    cosmoUpdateQueued = true
+    requestAnimationFrame(() => {
+      store.update(UPDATE_ALL)
+      cosmoUpdateQueued = false
+    })
+  }
 })
 
-watch(currentView, (newVal) => {
-  // Auto update view type
-  if (viewer.value) {
-    // Update viewer mode: Always Universe Mode (0)
-    viewer.value.setModePublic(0)
-    isSkyMode.value = false // Reset Sky Mode when changing projection view
-
-    Environment.setView(newVal)
-    Environment.update(Environment.UPDATE_VIEW)
-  }
+watch(view, (newVal) => {
+  store.setView(newVal)
+  store.update(UPDATE_VIEW)
 })
 
 watch(showRefMarks, (val) => {
   if (viewer.value) viewer.value.setShowReferencesMarksPublic(val)
 })
 
-watch([ra1, dec1, beta], () => {
-  // Update projection params
-  Environment.setUserRa1(ra1.value)
-  Environment.setUserDec1(dec1.value)
-  Environment.setUserBeta(beta.value)
-  // We might want to auto-update view if it's fast enough
-  Environment.update(Environment.UPDATE_VIEW)
+let viewUpdateQueued = false
+watch([userRA1, userDec1, userBeta], () => {
+  if (!viewUpdateQueued) {
+    viewUpdateQueued = true
+    requestAnimationFrame(() => {
+      store.update(UPDATE_VIEW)
+      viewUpdateQueued = false
+    })
+  }
 })
 
 watch(selectionMode, (val) => {
   if (viewer.value) viewer.value.enableSelectionMode(val)
 })
 
-watch([comovingSpace, precision], () => {
+watch([comovingSpaceFlag, precisionEnabled], () => {
   forceUpdate()
 })
 </script>

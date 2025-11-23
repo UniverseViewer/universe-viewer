@@ -5,11 +5,11 @@
  */
 
 import Quasar from './quasar.js'
-import * as Environment from './environment.js'
 import { useUniverseStore } from '@/stores/universe.js'
 
 export function readTxtFileContent(content) {
-  console.log('Reading file content, length:', content.length)
+  const store = useUniverseStore()
+
   const lines = content.split(/\r?\n/)
   const quasars = []
   let maxAsc = 0
@@ -46,14 +46,13 @@ export function readTxtFileContent(content) {
     quasars.push(q)
   }
 
-  console.log('Parsed quasars:', quasars.length)
 
-  // Update Environment
-  Environment.setQuasars(quasars)
-  Environment.setAscensionMax(maxAsc)
+
+  // Update Store
+  store.setQuasars(quasars)
+  store.setAscensionMax(maxAsc)
 
   // Reset selection count
-  const store = useUniverseStore()
   store.setSelectedCount(0)
 
   return quasars.length
