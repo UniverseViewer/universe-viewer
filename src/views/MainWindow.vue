@@ -195,7 +195,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
-import { readTxtFileContent } from '@/logic/readFile.js'
+import { loadCatalogADR } from '@/tools/catalog.js'
 
 // Store setup
 const store = useUniverseStore()
@@ -261,7 +261,7 @@ function onFileChange(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const count = readTxtFileContent(content)
+      const count = loadCatalogADR(content)
       infoLabel.value = `Loaded ${count} quasars.`
       forceUpdate()
     } catch (err) {

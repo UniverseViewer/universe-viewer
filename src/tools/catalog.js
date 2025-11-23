@@ -1,13 +1,16 @@
 /**
- * Reads a text content (from file) and parses it into Quasar objects.
+ * Load quasars catalog from file, parsing it to Quasar objects.
+ */
+
+import Quasar from '@/logic/quasar.js'
+import { useUniverseStore } from '@/stores/universe.js'
+
+/*
+ * Load catalog from custom ADR format.
  * Expected format per line: Ascension Declination Redshift
  * @param {string} content - The raw file content
  */
-
-import Quasar from './quasar.js'
-import { useUniverseStore } from '@/stores/universe.js'
-
-export function readTxtFileContent(content) {
+export function loadCatalogADR(content) {
   const store = useUniverseStore()
 
   const lines = content.split(/\r?\n/)
@@ -45,8 +48,6 @@ export function readTxtFileContent(content) {
 
     quasars.push(q)
   }
-
-
 
   // Update Store
   store.setQuasars(quasars)
