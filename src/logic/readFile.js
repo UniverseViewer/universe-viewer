@@ -6,6 +6,7 @@
 
 import Quasar from './quasar.js'
 import * as Environment from './environment.js'
+import { useUniverseStore } from '@/stores/universe.js'
 
 export function readTxtFileContent(content) {
   console.log('Reading file content, length:', content.length)
@@ -52,7 +53,8 @@ export function readTxtFileContent(content) {
   Environment.setAscensionMax(maxAsc)
 
   // Reset selection count
-  Quasar.setSelectedCount(0)
+  const store = useUniverseStore()
+  store.setSelectedCount(0)
 
   return quasars.length
 }

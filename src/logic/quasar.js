@@ -1,6 +1,3 @@
-let selectedCount = 0
-let multipleSelection = true
-
 export default class Quasar {
   constructor({
     ascension = 0,
@@ -82,19 +79,5 @@ export default class Quasar {
 
   setSelected(v) {
     this.selected = v
-  }
-
-  static getSelectedCount() {
-    return selectedCount
-  }
-  static setSelectedCount(n) {
-    selectedCount = n
-  }
-
-  static isMultipleSelectionEnabled() {
-    return multipleSelection
-  }
-  static setMultipleSelection(v) {
-    multipleSelection = v
   }
 }

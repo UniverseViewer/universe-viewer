@@ -30,7 +30,8 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vue'
 import * as THREE from 'three'
 import * as Environment from '@/logic/environment.js'
-import Quasar from '@/logic/quasar.js'
+
+import { useUniverseStore } from '@/stores/universe.js'
 
 export default {
   name: 'ViewerCanvas',
@@ -458,6 +459,7 @@ export default {
       if (e.button !== 0) return
       if (!Environment.isSomethingToShow()) return
       if (!state.selectionEnabled) return
+      if (!state.selecting) return
 
       // Get selection rectangle in world coords
       const rect = root.value.getBoundingClientRect()
@@ -484,6 +486,8 @@ export default {
       // Now iterate quasars and apply selection logic
       const q = Environment.getQuasars() || []
       let nbSelected = 0
+      const store = useUniverseStore()
+
       for (let i = 0; i < q.length; i++) {
         const qi = q[i]
         if (state.mode === state.UNIVERSE_MODE) {
@@ -491,7 +495,7 @@ export default {
           const y = qi.gety()
           if (x > selX1 && x < selX2 && y > selY1 && y < selY2) {
             // SelectQuasar logic
-            if (Quasar.getSelectedCount() !== 0 && !Quasar.isMultipleSelectionEnabled()) {
+            if (store.selectedCount !== 0 && !store.multipleSelection) {
               if (qi.isSelected()) {
                 qi.setSelected(true)
                 nbSelected += 1
@@ -503,7 +507,7 @@ export default {
               nbSelected += 1
             }
           } else {
-            if (!Quasar.isMultipleSelectionEnabled()) qi.setSelected(false)
+            if (!store.multipleSelection) qi.setSelected(false)
             else if (qi.isSelected()) nbSelected += 1
           }
         } else {
@@ -511,7 +515,7 @@ export default {
           const asc = qi.getAscension()
           const dec = qi.getDeclination()
           if (asc > selX1 && asc < selX2 && dec > selY1 && dec < selY2) {
-            if (Quasar.getSelectedCount() !== 0 && !Quasar.isMultipleSelectionEnabled()) {
+            if (store.selectedCount !== 0 && !store.multipleSelection) {
               if (qi.isSelected()) {
                 qi.setSelected(true)
                 nbSelected += 1
@@ -523,13 +527,13 @@ export default {
               nbSelected += 1
             }
           } else {
-            if (!Quasar.isMultipleSelectionEnabled()) qi.setSelected(false)
+            if (!store.multipleSelection) qi.setSelected(false)
             else if (qi.isSelected()) nbSelected += 1
           }
         }
       }
 
-      Quasar.setSelectedCount(nbSelected)
+      store.setSelectedCount(nbSelected)
 
       // Cleanup selection UI
       state.selecting = false

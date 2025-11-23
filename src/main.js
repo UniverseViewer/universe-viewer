@@ -20,4 +20,6 @@ const vuetify = createVuetify({
   },
 })
 
-createApp(App).use(vuetify).mount('#app')
+import { createPinia } from 'pinia'
+
+createApp(App).use(vuetify).use(createPinia()).mount('#app')
