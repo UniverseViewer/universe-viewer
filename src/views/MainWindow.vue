@@ -116,6 +116,16 @@
                   hide-details
                 ></v-switch>
 
+                <v-btn
+                  v-if="selectionMode"
+                  block
+                  class="mt-3"
+                  color="warning"
+                  @click="store.resetSelection()"
+                >
+                  Reset Selection
+                </v-btn>
+
                 <v-divider class="my-3"></v-divider>
 
                 <div class="text-subtitle-2 mb-2">Projection</div>

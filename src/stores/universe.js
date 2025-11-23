@@ -407,6 +407,14 @@ export const useUniverseStore = defineStore('universe', () => {
     }
   }
 
+  function resetSelection() {
+    selectedCount.value = 0
+    if (quasars.value) {
+      quasars.value.forEach(q => q.setSelected(false))
+    }
+    update(UPDATE_VIEWER);
+  }
+
   return {
     selectedCount,
     multipleSelection,
@@ -450,5 +458,6 @@ export const useUniverseStore = defineStore('universe', () => {
     calcQuasarsPos,
     calcQuasarsProj,
     update,
+    resetSelection,
   }
 })
