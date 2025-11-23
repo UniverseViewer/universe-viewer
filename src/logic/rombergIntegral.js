@@ -2,25 +2,9 @@
  * Integral computation (fast, low precision)
  */
 
-import { useUniverseStore } from '@/stores/universe.js'
-
 let width = 0
 
-export function poly(a) {
-  const store = useUniverseStore()
-  return (
-    store.lambda * Math.pow(a, 4) -
-    store.kappa * a * a +
-    store.omega * a +
-    store.alpha
-  )
-}
-
-function funcToIntegrate(x) {
-  return 1.0 / Math.sqrt(poly(x))
-}
-
-function ff(x, limitA) {
+function ff(x, limitA, funcToIntegrate) {
   return funcToIntegrate(limitA + width * x)
 }
 
@@ -29,8 +13,9 @@ function ff(x, limitA) {
  * @param {number} limitA - interval start
  * @param {number} limitB - interval end
  * @param {number} n - number of refinement steps
+ * @param {function} funcToIntegrate - the function to integrate
  */
-export function integrate(limitA, limitB, n) {
+export function integrate(limitA, limitB, n, funcToIntegrate) {
   const maximum = 15
   let t = new Array(maximum).fill(0)
 
@@ -40,7 +25,7 @@ export function integrate(limitA, limitB, n) {
   let e = 1
 
   // Initial trapezoidal estimate
-  t[0] = 0.5 * (ff(0, limitA) + ff(1, limitA))
+  t[0] = 0.5 * (ff(0, limitA, funcToIntegrate) + ff(1, limitA, funcToIntegrate))
 
   // First loop
   for (let j = 1; j < n; j++) {
@@ -48,7 +33,7 @@ export function integrate(limitA, limitB, n) {
     t[j] = 0
 
     for (let k = 1; k < e; k++) {
-      t[j] += ff(s * (2 * k - 1), limitA)
+      t[j] += ff(s * (2 * k - 1), limitA, funcToIntegrate)
     }
 
     t[j] = s * t[j] + 0.5 * t[j - 1]

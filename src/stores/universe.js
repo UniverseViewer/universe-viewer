@@ -3,8 +3,10 @@ import { ref, computed, shallowRef, triggerRef } from 'vue'
 
 import Vect3d from '@/logic/vect3d.js'
 import Vect4d from '@/logic/vect4d.js'
-import * as Integral from '@/logic/integral.js'
-import * as Integral2 from '@/logic/integral2.js'
+import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
+import * as rombergIntegral from '@/logic/rombergIntegral.js'
+import { polynomialP } from '@/logic/cosmologicalPolynomial.js'
+import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 
 function roundTo(n, digits) {
   const factor = Math.pow(10, digits)
@@ -198,9 +200,9 @@ export const useUniverseStore = defineStore('universe', () => {
   function comovingDist(i) {
     const zInv = 1.0 / (1.0 + quasars.value[i].getRedshift())
     if (precisionEnabled.value) {
-      return Integral.integrate(zInv, 1.0, 0.01)
+      return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, evolutionIntegrand)
     } else {
-      return Integral2.integrate(zInv, 1.0, 6)
+      return rombergIntegral.integrate(zInv, 1.0, 6, evolutionIntegrand)
     }
   }
 
