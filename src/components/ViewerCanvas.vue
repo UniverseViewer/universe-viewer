@@ -345,8 +345,8 @@ export default {
       const before = pixelToWorld(e.clientX, e.clientY)
       updateCameraBounds()
       const after = pixelToWorld(e.clientX, e.clientY)
-      state.posX += -(before.worldX - after.worldX)
-      state.posY += -(before.worldY - after.worldY)
+      state.posX += (before.worldX - after.worldX)
+      state.posY += (before.worldY - after.worldY)
       updateCanvas()
     }
 
