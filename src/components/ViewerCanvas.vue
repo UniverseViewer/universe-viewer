@@ -123,7 +123,7 @@ export default {
       state.camera.right = halfVisibleWorldWidth;
       state.camera.top = halfVisibleWorldHeight;
       state.camera.bottom = -halfVisibleWorldHeight;
-      
+
       updateCameraBounds(); // This will apply state.posX, state.posY, state.zoom
       store.update(UPDATE_VIEWER);
     }
