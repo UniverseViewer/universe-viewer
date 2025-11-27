@@ -320,8 +320,8 @@ export default {
           const ptsBot = []
           for (let x = 1; x < ascMax; x += 0.02) {
             const y = Math.sqrt(Math.max(0, x * x - 1))
-            ptsTop.push(new THREE.Vector3(x - 2.0, y, 0))
-            ptsBot.push(new THREE.Vector3(x - 2.0, -y, 0))
+            ptsTop.push(new THREE.Vector3(x, y, 0))
+            ptsBot.push(new THREE.Vector3(x, -y, 0))
           }
           const mat = new THREE.LineBasicMaterial({ color: 0x0000ff })
           const geomTop = new THREE.BufferGeometry().setFromPoints(ptsTop)
