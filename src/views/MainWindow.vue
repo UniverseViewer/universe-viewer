@@ -188,6 +188,16 @@
                   step="0.1"
                   thumb-label
                 ></v-slider>
+
+                <v-divider class="my-3"></v-divider>
+                <v-slider
+                  label="Quasar Point Size"
+                  v-model="quasarPointSize"
+                  :max="10"
+                  :min="1"
+                  step="1"
+                  thumb-label
+                ></v-slider>
               </v-card-text>
               <v-card-actions>
                 <v-btn block color="primary" @click="forceUpdate">Update Calculation</v-btn>
@@ -235,6 +245,7 @@ const {
   comovingSpaceFlag,
   precisionEnabled,
   selectionModeType,
+  pointSize,
 } = storeToRefs(store)
 
 // Viewer Ref
@@ -259,6 +270,10 @@ const dec1 = computed({
 const beta = computed({
   get: () => (12 * userBeta.value) / Math.PI,
   set: (val) => store.setUserBeta(val),
+})
+const quasarPointSize = computed({
+  get: () => pointSize.value,
+  set: (val) => store.setPointSize(val),
 })
 
 // Computed

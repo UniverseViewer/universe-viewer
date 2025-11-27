@@ -23,6 +23,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vu
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import { useUniverseStore, UPDATE_VIEWER } from '@/stores/universe.js'
+import { watch } from 'vue';
 
 export default {
   name: 'ViewerCanvas',
@@ -31,7 +32,8 @@ export default {
     const overlay = ref(null)
 
     const store = useUniverseStore()
-    const { quasars, kappa, view, ascension_max, somethingToShow, selectionModeType } = storeToRefs(store)
+    const { quasars, kappa, view, ascension_max, somethingToShow, selectionModeType, pointSize } =
+      storeToRefs(store)
 
     const state = reactive({
       zoom: 1.0,
@@ -211,7 +213,7 @@ export default {
 
       state.material = markRaw(
         new THREE.PointsMaterial({
-          size: 2.0,
+          size: pointSize.value,
           vertexColors: true,
           sizeAttenuation: false,
         }),
@@ -227,6 +229,14 @@ export default {
       populatePoints()
       render()
     }
+
+    watch(pointSize, (newValue) => {
+      if (state.material) {
+        state.material.size = newValue
+        render()
+      }
+    })
+
 
     function populatePoints() {
       const q = quasars.value || []

@@ -43,12 +43,17 @@ export const useUniverseStore = defineStore('universe', () => {
   const comovingSpaceFlag = ref(false)
   const somethingToShow = ref(false)
   const mainWin = ref(null)
+  const pointSize = ref(2.0)
 
   // Getters (as computed properties)
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
 
   // Actions
+  function setPointSize(size) {
+    pointSize.value = size
+  }
+
   function setSelectedCount(n) {
     selectedCount.value = n
   }
@@ -441,10 +446,12 @@ export const useUniverseStore = defineStore('universe', () => {
     comovingSpaceFlag,
     somethingToShow,
     mainWin,
+    pointSize,
     userDec1Deg,
     userBetaHours,
     setSelectedCount,
     setSelectionModeType,
+    setPointSize,
     initEnvironment,
     setQuasars,
     setAscensionMax,
