@@ -5,7 +5,7 @@ import Vect3d from '@/logic/vect3d.js'
 import Vect4d from '@/logic/vect4d.js'
 import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
-import { polynomialP } from '@/logic/cosmologicalPolynomial.js'
+
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 
 function roundTo(n, digits) {
@@ -48,6 +48,15 @@ export const useUniverseStore = defineStore('universe', () => {
   // Getters (as computed properties)
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
+
+  const horizon = computed(() => {
+    /* The horizon is the distance to z=infinity, i.e., a=0. So we integrate from 0.0 to 1.0. */
+    if (precisionEnabled.value) {
+      return trapezoidalIntegral.integrate(0.0, 1.0, 0.001, evolutionIntegrand)
+    } else {
+      return rombergIntegral.integrate(0.0, 1.0, 10, evolutionIntegrand)
+    }
+  })
 
   // Actions
   function setPointSize(size) {
@@ -465,5 +474,6 @@ export const useUniverseStore = defineStore('universe', () => {
     calcQuasarsProj,
     update,
     resetSelection,
+    horizon,
   }
 })
