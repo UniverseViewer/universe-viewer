@@ -23,7 +23,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vu
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import { useUniverseStore, UPDATE_VIEWER } from '@/stores/universe.js'
-import { watch } from 'vue';
+import { watch } from 'vue'
 
 export default {
   name: 'ViewerCanvas',
@@ -81,48 +81,49 @@ export default {
       }
     })
 
-    let resizeObserver = null;
+    let resizeObserver = null
 
     function onResize() {
-      if (!root.value || !state.renderer || !state.camera) return;
+      if (!root.value || !state.renderer || !state.camera) return
 
-      const width = root.value.clientWidth;
-      const height = root.value.clientHeight;
+      const width = root.value.clientWidth
+      const height = root.value.clientHeight
 
-      state.renderer.setSize(width, height);
+      state.renderer.setSize(width, height)
 
-      let contentWorldWidth;
-      let contentWorldHeight;
+      let contentWorldWidth
+      let contentWorldHeight
 
       if (state.mode === state.UNIVERSE_MODE) {
-        contentWorldWidth = state.xMax - state.xMin; // 2 units
-        contentWorldHeight = state.yMax - state.yMin; // 2 units
-      } else { // SKY_MODE
-        contentWorldWidth = state.xMax - state.xMin; // 2 * Math.PI units
-        contentWorldHeight = state.yMax - state.yMin; // Math.PI units
+        contentWorldWidth = state.xMax - state.xMin // 2 units
+        contentWorldHeight = state.yMax - state.yMin // 2 units
+      } else {
+        // SKY_MODE
+        contentWorldWidth = state.xMax - state.xMin // 2 * Math.PI units
+        contentWorldHeight = state.yMax - state.yMin // Math.PI units
       }
 
-      const viewAspectRatio = width / height;
-      const contentAspectRatio = contentWorldWidth / contentWorldHeight;
+      const viewAspectRatio = width / height
+      const contentAspectRatio = contentWorldWidth / contentWorldHeight
 
-      let halfVisibleWorldWidth;
-      let halfVisibleWorldHeight;
+      let halfVisibleWorldWidth
+      let halfVisibleWorldHeight
 
       if (viewAspectRatio >= contentAspectRatio) {
-        halfVisibleWorldHeight = contentWorldHeight / 2;
-        halfVisibleWorldWidth = halfVisibleWorldHeight * viewAspectRatio;
+        halfVisibleWorldHeight = contentWorldHeight / 2
+        halfVisibleWorldWidth = halfVisibleWorldHeight * viewAspectRatio
       } else {
-        halfVisibleWorldWidth = contentWorldWidth / 2;
-        halfVisibleWorldHeight = halfVisibleWorldWidth / viewAspectRatio;
+        halfVisibleWorldWidth = contentWorldWidth / 2
+        halfVisibleWorldHeight = halfVisibleWorldWidth / viewAspectRatio
       }
 
-      state.camera.left = -halfVisibleWorldWidth;
-      state.camera.right = halfVisibleWorldWidth;
-      state.camera.top = halfVisibleWorldHeight;
-      state.camera.bottom = -halfVisibleWorldHeight;
+      state.camera.left = -halfVisibleWorldWidth
+      state.camera.right = halfVisibleWorldWidth
+      state.camera.top = halfVisibleWorldHeight
+      state.camera.bottom = -halfVisibleWorldHeight
 
-      updateCameraBounds(); // This will apply state.posX, state.posY, state.zoom
-      store.update(UPDATE_VIEWER);
+      updateCameraBounds() // This will apply state.posX, state.posY, state.zoom
+      store.update(UPDATE_VIEWER)
     }
 
     function setMode(m) {
@@ -145,25 +146,26 @@ export default {
       }
       state.zoom = 1
       state.mode = m
-          onResize() // Trigger full recalculation of viewSpans and camera bounds
-        }
+      onResize() // Trigger full recalculation of viewSpans and camera bounds
+    }
     function pixelToWorld(clientX, clientY) {
       const rect = root.value.getBoundingClientRect()
       const localX = clientX - rect.left
       const localY = clientY - rect.top
-      const u = (2.0 * localX - rect.width) / rect.width  // -1 to 1 in normalized device coords
+      const u = (2.0 * localX - rect.width) / rect.width // -1 to 1 in normalized device coords
       const v = -(2.0 * localY - rect.height) / rect.height // -1 to 1 in normalized device coords
 
       // Current center of camera view is camera.position
-      const cx = state.camera.position.x;
-      const cy = state.camera.position.y;
+      const cx = state.camera.position.x
+      const cy = state.camera.position.y
 
       // Calculate half-width/height of the currently visible world area
-      const halfVisibleWorldWidth = (state.camera.right - state.camera.left) / 2 / state.camera.zoom;
-      const halfVisibleWorldHeight = (state.camera.top - state.camera.bottom) / 2 / state.camera.zoom;
+      const halfVisibleWorldWidth = (state.camera.right - state.camera.left) / 2 / state.camera.zoom
+      const halfVisibleWorldHeight =
+        (state.camera.top - state.camera.bottom) / 2 / state.camera.zoom
 
-      const worldX = cx + u * halfVisibleWorldWidth;
-      const worldY = cy + v * halfVisibleWorldHeight;
+      const worldX = cx + u * halfVisibleWorldWidth
+      const worldY = cy + v * halfVisibleWorldHeight
 
       return { worldX, worldY, pixelX: localX, pixelY: localY }
     }
@@ -181,12 +183,12 @@ export default {
     }
 
     function updateCameraBounds() {
-      if (!state.camera) return;
+      if (!state.camera) return
 
-      state.camera.position.x = state.posX;
-      state.camera.position.y = state.posY;
-      state.camera.zoom = state.zoom;
-      state.camera.updateProjectionMatrix();
+      state.camera.position.x = state.posX
+      state.camera.position.y = state.posY
+      state.camera.zoom = state.zoom
+      state.camera.updateProjectionMatrix()
     }
 
     function initThree() {
@@ -199,9 +201,9 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
-      state.scene.background = new THREE.Color(0x000010);
+      state.scene.background = new THREE.Color(0x000010)
       state.camera = markRaw(createOrthoCamera())
-      onResize(); // Set initial camera projection based on current size
+      onResize() // Set initial camera projection based on current size
 
       state.geometry = markRaw(new THREE.BufferGeometry())
       state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
@@ -232,7 +234,6 @@ export default {
         render()
       }
     })
-
 
     function populatePoints() {
       const q = quasars.value || []
@@ -345,8 +346,8 @@ export default {
       const before = pixelToWorld(e.clientX, e.clientY)
       updateCameraBounds()
       const after = pixelToWorld(e.clientX, e.clientY)
-      state.posX += (before.worldX - after.worldX)
-      state.posY += (before.worldY - after.worldY)
+      state.posX += before.worldX - after.worldX
+      state.posY += before.worldY - after.worldY
       updateCanvas()
     }
 
@@ -430,19 +431,19 @@ export default {
       let nbSelected = 0
 
       // Pre-capture selected state for intersection mode
-      const previouslySelected = new Set();
+      const previouslySelected = new Set()
       if (selectionModeType.value === 'intersection') {
-        q.forEach(qi => {
+        q.forEach((qi) => {
           if (qi.isSelected()) {
-            previouslySelected.add(qi);
+            previouslySelected.add(qi)
           }
-        });
+        })
       }
 
       // Initial deselection for 'replace' and 'intersection' modes
       // For 'additive', existing selections outside the new rectangle remain selected.
       if (selectionModeType.value === 'replace' || selectionModeType.value === 'intersection') {
-        q.forEach(qi => qi.setSelected(false));
+        q.forEach((qi) => qi.setSelected(false))
       }
 
       for (let i = 0; i < q.length; i++) {
@@ -458,31 +459,31 @@ export default {
           y = dec
         }
 
-        const isInsideRectangle = (x > selX1 && x < selX2 && y > selY1 && y < selY2);
+        const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
 
         switch (selectionModeType.value) {
           case 'additive':
             if (isInsideRectangle) {
-              qi.setSelected(true);
+              qi.setSelected(true)
             }
             // If not inside, its state remains unchanged (additive)
-            break;
+            break
           case 'replace':
             if (isInsideRectangle) {
-              qi.setSelected(true);
+              qi.setSelected(true)
             }
             // If not inside, it was already deselected above
-            break;
+            break
           case 'intersection':
             if (isInsideRectangle && previouslySelected.has(qi)) {
-              qi.setSelected(true);
+              qi.setSelected(true)
             }
             // If not inside or not previously selected, it was already deselected above
-            break;
+            break
         }
 
         if (qi.isSelected()) {
-          nbSelected += 1;
+          nbSelected += 1
         }
       }
 
@@ -506,9 +507,9 @@ export default {
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)
 
-      resizeObserver = new ResizeObserver(() => onResize());
+      resizeObserver = new ResizeObserver(() => onResize())
       if (root.value) {
-        resizeObserver.observe(root.value);
+        resizeObserver.observe(root.value)
       }
 
       store.setViewerCanvas({
@@ -539,7 +540,7 @@ export default {
       window.removeEventListener('mouseup', onMouseUp)
 
       if (resizeObserver) {
-        resizeObserver.disconnect();
+        resizeObserver.disconnect()
       }
 
       if (state.renderer) {

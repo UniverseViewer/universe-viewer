@@ -167,7 +167,11 @@ export const useUniverseStore = defineStore('universe', () => {
     E0.value.setX(0.0)
     E0.value.setY(0.0)
     E0.value.setZ(0.0)
-    E0.value.setT(1.0)
+    if (comovingSpaceFlag.value && kappa.value !== 0) {
+      E0.value.setT(Math.sqrt(Math.abs(kappa.value)))
+    } else {
+      E0.value.setT(1.0)
+    }
     E1.value.setX(P1.getX())
     E1.value.setY(P1.getY())
     E1.value.setZ(P1.getZ())
@@ -392,25 +396,16 @@ export const useUniverseStore = defineStore('universe', () => {
       calcQuasarsAngularDist()
       calcQuasarsPos()
       calcQuasarsProj()
-      if (
-        viewerCanvas.value &&
-        typeof viewerCanvas.value.updateCanvas === 'function'
-      ) {
+      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
         viewerCanvas.value.updateCanvas()
       }
     } else if (flag === UPDATE_VIEW) {
       calcQuasarsProj()
-      if (
-        viewerCanvas.value &&
-        typeof viewerCanvas.value.updateCanvas === 'function'
-      ) {
+      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
         viewerCanvas.value.updateCanvas()
       }
     } else if (flag === UPDATE_VIEWER) {
-      if (
-        viewerCanvas.value &&
-        typeof viewerCanvas.value.updateCanvas === 'function'
-      ) {
+      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
         viewerCanvas.value.updateCanvas()
       }
     }
@@ -419,9 +414,9 @@ export const useUniverseStore = defineStore('universe', () => {
   function resetSelection() {
     selectedCount.value = 0
     if (quasars.value) {
-      quasars.value.forEach(q => q.setSelected(false))
+      quasars.value.forEach((q) => q.setSelected(false))
     }
-    update(UPDATE_VIEWER);
+    update(UPDATE_VIEWER)
   }
 
   return {
