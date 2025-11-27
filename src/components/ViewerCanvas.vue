@@ -74,15 +74,10 @@ export default {
       const w = Math.abs(state.selectX2 - state.selectX1)
       const h = Math.abs(state.selectY2 - state.selectY1)
       return {
-        position: 'absolute',
         left: `${x}px`,
         top: `${y}px`,
         width: `${w}px`,
         height: `${h}px`,
-        border: '2px solid rgba(0,255,0,0.9)',
-        background: 'rgba(0,255,0,0.08)',
-        pointerEvents: 'none',
-        zIndex: 10,
       }
     })
 
@@ -204,6 +199,7 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
+      state.scene.background = new THREE.Color(0x000010);
       state.camera = markRaw(createOrthoCamera())
       onResize(); // Set initial camera projection based on current size
 
@@ -261,19 +257,13 @@ export default {
 
         const selected = qi.isSelected ? qi.isSelected() : false
         if (selected) {
+          colors[3 * i + 0] = 0.0
+          colors[3 * i + 1] = 1.0
+          colors[3 * i + 2] = 0.0
+        } else {
           colors[3 * i + 0] = 1.0
           colors[3 * i + 1] = 1.0
           colors[3 * i + 2] = 1.0
-        } else {
-          if (state.mode === state.SKY_MODE) {
-            colors[3 * i + 0] = 251 / 255
-            colors[3 * i + 1] = 255 / 255
-            colors[3 * i + 2] = 0 / 255
-          } else {
-            colors[3 * i + 0] = 1.0
-            colors[3 * i + 1] = 0.0
-            colors[3 * i + 2] = 0.0
-          }
         }
       }
 
@@ -312,7 +302,7 @@ export default {
             const cy = Math.cos(ang) * 1
             circlePts.push(new THREE.Vector3(cx, cy, 0))
           }
-          const mat = new THREE.LineBasicMaterial({ color: 0x0000ff })
+          const mat = new THREE.LineBasicMaterial({ color: 0x888888 })
           const geom = new THREE.BufferGeometry().setFromPoints(circlePts)
           state.refGroup.add(new THREE.Line(geom, mat))
         }
@@ -594,6 +584,11 @@ export default {
 
 .selection-rect {
   box-sizing: border-box;
+  position: absolute;
+  border: 2px solid rgba(0, 255, 0, 0.9);
+  background: rgba(0, 255, 0, 0.08);
+  pointer-events: none;
+  z-index: 10;
 }
 .hud {
   position: absolute;
