@@ -270,34 +270,9 @@ export default {
           colors[3 * i + 1] = 1.0
           colors[3 * i + 2] = 0.0
         } else {
-          let isOutsideHorizon = false
-
-          // In comoving space mode, check if point is outside the visible universe sphere (3D)
-          // The visible universe is a 3D sphere, so we check the 3D spatial distance
-          if (comovingSpaceFlag.value && state.mode === state.UNIVERSE_MODE) {
-            const pos = qi.getPos()
-            const spatialX = pos.getX()
-            const spatialY = pos.getY()
-            const spatialZ = pos.getZ()
-            const spatialDist = Math.sqrt(
-              spatialX * spatialX + spatialY * spatialY + spatialZ * spatialZ,
-            )
-
-            // The visible universe sphere has radius 1 in the projection coordinate system
-            if (spatialDist > 1.0) {
-              isOutsideHorizon = true
-            }
-          }
-
-          if (isOutsideHorizon) {
-            colors[3 * i + 0] = 1.0
-            colors[3 * i + 1] = 0.0
-            colors[3 * i + 2] = 0.0
-          } else {
-            colors[3 * i + 0] = 1.0
-            colors[3 * i + 1] = 1.0
-            colors[3 * i + 2] = 1.0
-          }
+          colors[3 * i + 0] = 1.0
+          colors[3 * i + 1] = 1.0
+          colors[3 * i + 2] = 1.0
         }
       }
 

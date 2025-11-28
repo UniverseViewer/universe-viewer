@@ -57,6 +57,15 @@ export const useUniverseStore = defineStore('universe', () => {
       return rombergIntegral.integrate(0.0, 1.0, 10, evolutionIntegrand)
     }
   })
+  const horizonAngularDistance = computed(() => {
+    if (kappa.value > 0) {
+      return Math.sqrt(kappa.value) * horizon.value;
+    } else if (kappa.value < 0) {
+      return Math.sqrt(-kappa.value) * horizon.value;
+    } else { // kappa = 0
+      return horizon.value;
+    }
+  })
 
   // Actions
   function setPointSize(size) {
@@ -229,15 +238,15 @@ export const useUniverseStore = defineStore('universe', () => {
   }
 
   function calcQuasarsAngularDist() {
-    if (kappa.value === 0) return false
     if (!quasars.value) return false
 
-    let sqrt_kappa
-    if (kappa.value < 0.0) sqrt_kappa = Math.sqrt(-kappa.value)
-    else sqrt_kappa = Math.sqrt(kappa.value)
+    let multiplier
+    if (kappa.value === 0) multiplier = 1
+    else if (kappa.value < 0.0) multiplier = Math.sqrt(-kappa.value)
+    else multiplier = Math.sqrt(kappa.value)
 
     for (let i = 0; i < quasars.value.length; i++) {
-      quasars.value[i].setAngularDist(sqrt_kappa * comovingDist(i))
+      quasars.value[i].setAngularDist(multiplier * comovingDist(i))
     }
     triggerRef(quasars)
     return true
@@ -475,5 +484,6 @@ export const useUniverseStore = defineStore('universe', () => {
     update,
     resetSelection,
     horizon,
+    horizonAngularDistance,
   }
 })
