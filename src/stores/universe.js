@@ -59,11 +59,12 @@ export const useUniverseStore = defineStore('universe', () => {
   })
   const horizonAngularDistance = computed(() => {
     if (kappa.value > 0) {
-      return Math.sqrt(kappa.value) * horizon.value;
+      return Math.sqrt(kappa.value) * horizon.value
     } else if (kappa.value < 0) {
-      return Math.sqrt(-kappa.value) * horizon.value;
-    } else { // kappa = 0
-      return horizon.value;
+      return Math.sqrt(-kappa.value) * horizon.value
+    } else {
+      // kappa = 0
+      return horizon.value
     }
   })
 

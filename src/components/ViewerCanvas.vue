@@ -41,6 +41,7 @@ export default {
       selectionModeType,
       pointSize,
       comovingSpaceFlag,
+      horizonAngularDistance,
     } = storeToRefs(store)
 
     const state = reactive({
@@ -209,7 +210,7 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
-      state.scene.background = new THREE.Color(0x000010)
+      state.scene.background = new THREE.Color(0x000000)
       state.camera = markRaw(createOrthoCamera())
       onResize() // Set initial camera projection based on current size
 
@@ -285,37 +286,89 @@ export default {
 
     function drawReferenceMarks() {
       while (state.refGroup.children.length) state.refGroup.remove(state.refGroup.children[0])
-
       if (!state.showReferencesMarks) return
-
+      const shapePts = []
       if (state.mode === state.UNIVERSE_MODE) {
-        if (kappa.value < 0 && view.value <= 3) {
-          const ascMax = ascension_max.value || 6
-          const ptsTop = []
-          const ptsBot = []
-          for (let x = 1; x < ascMax; x += 0.02) {
-            const y = Math.sqrt(Math.max(0, x * x - 1))
-            ptsTop.push(new THREE.Vector3(x, y, 0))
-            ptsBot.push(new THREE.Vector3(x, -y, 0))
-          }
-          const mat = new THREE.LineBasicMaterial({ color: 0x0000ff })
-          const geomTop = new THREE.BufferGeometry().setFromPoints(ptsTop)
-          const geomBot = new THREE.BufferGeometry().setFromPoints(ptsBot)
-          state.refGroup.add(new THREE.Line(geomTop, mat))
-          state.refGroup.add(new THREE.Line(geomBot, mat))
-        } else {
-          const circlePts = []
+        if (view.value > 3) {
+          // Front views
           const step = Math.PI / 100
-          for (let ang = 0; ang <= Math.PI * 2 + step; ang += step) {
-            const cx = Math.sin(ang) * 1
-            const cy = Math.cos(ang) * 1
-            circlePts.push(new THREE.Vector3(cx, cy, 0))
+          let radius
+          if (comovingSpaceFlag.value === false) {
+            radius = 1.0
+          } else if (kappa.value > 0) {
+            // Spherical - cap at PI/2 to avoid sin() oscillation
+            const chi = Math.min(horizonAngularDistance.value, Math.PI / 2)
+            radius = Math.sin(chi) / Math.sqrt(kappa.value)
+          } else if (kappa.value < 0) {
+            // Hyperbolic
+            radius = Math.sinh(horizonAngularDistance.value) / Math.sqrt(-kappa.value)
+          } else {
+            // Flat
+            radius = horizonAngularDistance.value
           }
-          const mat = new THREE.LineBasicMaterial({ color: 0x888888 })
-          const geom = new THREE.BufferGeometry().setFromPoints(circlePts)
-          state.refGroup.add(new THREE.Line(geom, mat))
+          for (let ang = 0; ang <= Math.PI * 2 + step; ang += step) {
+            const cx = Math.sin(ang) * radius
+            const cy = Math.cos(ang) * radius
+            shapePts.push(new THREE.Vector3(cx, cy, 0))
+          }
+        } else {
+          // Edge views
+          const step = Math.PI / 100
+          // Use the actual horizon distance as the limit
+          const maxDist = horizonAngularDistance.value
+          // Calculate Y-scale factor for comoving space
+          let yScale
+          if (comovingSpaceFlag.value === false) {
+            yScale = 1.0
+          } else {
+            if (kappa.value !== 0) {
+              yScale = 1.0 / Math.sqrt(Math.abs(kappa.value))
+            }
+          }
+          for (let dist = 0; dist <= maxDist; dist += step) {
+            let cx, cy
+            if (kappa.value > 0) {
+              // Spherical
+              // Earth is at (1,0) in projection (u0 axis).
+              // u0 = cos(chi), ui = sin(chi)
+              cx = Math.cos(dist) // Horizontal axis (Time/Radial)
+              cy = Math.sin(dist) * yScale // Vertical axis (Transverse)
+            } else if (kappa.value < 0) {
+              // Hyperbolic
+              // Earth is at (1,0). u0 = cosh(chi), ui = sinh(chi)
+              cx = Math.cosh(dist)
+              cy = Math.sinh(dist) * yScale
+            } else {
+              // Flat
+              cx = 0
+              cy = dist
+            }
+            shapePts.push(new THREE.Vector3(cx, cy, 0))
+          }
+          // Mirror the shape for visual completeness (+/- y)
+          for (let i = shapePts.length - 1; i >= 0; i--) {
+            const p = shapePts[i]
+            shapePts.push(new THREE.Vector3(p.x, -p.y, 0))
+          }
+        }
+        // Create outline
+        const geom = new THREE.BufferGeometry().setFromPoints(shapePts)
+        const outlineMat = new THREE.LineBasicMaterial({ color: 0xaaaaaa })
+        state.refGroup.add(new THREE.Line(geom, outlineMat))
+        // Create filled area using Shape
+        const shape = new THREE.Shape()
+        if (shapePts.length > 0) {
+          shape.moveTo(shapePts[0].x, shapePts[0].y)
+          for (let i = 1; i < shapePts.length; i++) {
+            shape.lineTo(shapePts[i].x, shapePts[i].y)
+          }
+          shape.closePath()
+          const shapeGeom = new THREE.ShapeGeometry(shape)
+          const areaMat = new THREE.MeshBasicMaterial({ color: 0x000030 })
+          state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         }
       } else {
+        // SKY_MODE
         const pts = []
         pts.push(new THREE.Vector3(0, 0, 0))
         pts.push(new THREE.Vector3(2 * Math.PI, 0, 0))
