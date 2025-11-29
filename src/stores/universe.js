@@ -293,6 +293,19 @@ export const useUniverseStore = defineStore('universe', () => {
           v.setT(Math.cos(q.getAngularDist()))
           q.setPos(v)
         }
+      } else {
+        // kappa = 0 (Flat) in Reference Space
+        // Behaves same as Flat Comoving Space
+        for (let i = 0; i < quasars.value.length; i++) {
+          const q = quasars.value[i]
+          const cd = comovingDist(i)
+          const v = new Vect4d()
+          v.setX(cd * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()))
+          v.setY(cd * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()))
+          v.setZ(cd * Math.sin(q.getDeclination()))
+          v.setT(0)
+          q.setPos(v)
+        }
       }
     } else {
       if (kappa.value < 0.0) {

@@ -312,7 +312,7 @@ export default {
               radius = Math.sinh(horizonAngularDistance.value)
             } else {
               // Flat
-              radius = 1.0
+              radius = horizonAngularDistance.value
             }
           } else {
             // Comoving space
