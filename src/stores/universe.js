@@ -40,7 +40,7 @@ export const useUniverseStore = defineStore('universe', () => {
 
   const viewerCanvas = ref(null)
   const precisionEnabled = ref(false)
-  const comovingSpaceFlag = ref(false)
+  const comovingSpaceFlag = ref(true)
   const somethingToShow = ref(false)
   const mainWin = ref(null)
   const pointSize = ref(2.0)
@@ -100,7 +100,7 @@ export const useUniverseStore = defineStore('universe', () => {
     userRA1.value = 0.0
     userDec1.value = 0.0
     userBeta.value = 0.0
-    comovingSpaceFlag.value = false
+    comovingSpaceFlag.value = true
     somethingToShow.value = false
   }
 

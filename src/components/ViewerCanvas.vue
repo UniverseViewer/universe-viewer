@@ -12,8 +12,7 @@
 
     <!-- HUD (mode, points count) -->
     <div class="hud">
-      <div>Mode: {{ modeName }}</div>
-      <div>Quasars: {{ quasars ? quasars.length : 0 }}</div>
+      <div>{{ modeName }}</div>
     </div>
   </div>
 </template>
@@ -75,7 +74,16 @@ export default {
       refGroup: null,
     })
 
-    const modeName = computed(() => (state.mode === state.UNIVERSE_MODE ? 'universe' : 'sky'))
+    const modeName = computed(() => {
+      let value
+      if (state.mode === state.UNIVERSE_MODE) {
+        value = 'Universe view, '
+        value += comovingSpaceFlag.value ? 'comoving space' : 'reference space'
+      } else {
+        value = 'Sky view'
+      }
+      return value
+    })
 
     const selectionStyle = computed(() => {
       const x = Math.min(state.selectX1, state.selectX2)
