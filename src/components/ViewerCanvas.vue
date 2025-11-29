@@ -302,17 +302,31 @@ export default {
           const step = Math.PI / 100
           let radius
           if (comovingSpaceFlag.value === false) {
-            radius = 1.0
-          } else if (kappa.value > 0) {
-            // Spherical - cap at PI/2 to avoid sin() oscillation
-            const chi = Math.min(horizonAngularDistance.value, Math.PI / 2)
-            radius = Math.sin(chi) / Math.sqrt(kappa.value)
-          } else if (kappa.value < 0) {
-            // Hyperbolic
-            radius = Math.sinh(horizonAngularDistance.value) / Math.sqrt(-kappa.value)
+            // Reference space
+            if (kappa.value > 0) {
+              // Spherical - cap at PI/2 to avoid sin() oscillation
+              const chi = Math.min(horizonAngularDistance.value, Math.PI / 2)
+              radius = Math.sin(chi)
+            } else if (kappa.value < 0) {
+              // Hyperbolic
+              radius = Math.sinh(horizonAngularDistance.value)
+            } else {
+              // Flat
+              radius = 1.0
+            }
           } else {
-            // Flat
-            radius = horizonAngularDistance.value
+            // Comoving space
+            if (kappa.value > 0) {
+              // Spherical - cap at PI/2 to avoid sin() oscillation
+              const chi = Math.min(horizonAngularDistance.value, Math.PI / 2)
+              radius = Math.sin(chi) / Math.sqrt(kappa.value)
+            } else if (kappa.value < 0) {
+              // Hyperbolic
+              radius = Math.sinh(horizonAngularDistance.value) / Math.sqrt(-kappa.value)
+            } else {
+              // Flat
+              radius = horizonAngularDistance.value
+            }
           }
           for (let ang = 0; ang <= Math.PI * 2 + step; ang += step) {
             const cx = Math.sin(ang) * radius
@@ -399,7 +413,7 @@ export default {
         state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         // Create X axis
         const xPts = []
-        const zOffset = 0.01;
+        const zOffset = 0.01
         xPts.push(new THREE.Vector3(0, 0, zOffset))
         xPts.push(new THREE.Vector3(2 * Math.PI, 0, zOffset))
         const geomX = new THREE.BufferGeometry().setFromPoints(xPts)
