@@ -355,7 +355,7 @@ export default {
         const geom = new THREE.BufferGeometry().setFromPoints(shapePts)
         const outlineMat = new THREE.LineBasicMaterial({ color: 0xaaaaaa })
         state.refGroup.add(new THREE.Line(geom, outlineMat))
-        // Create filled area using Shape
+        // Create filled area
         const shape = new THREE.Shape()
         if (shapePts.length > 0) {
           shape.moveTo(shapePts[0].x, shapePts[0].y)
@@ -369,17 +369,33 @@ export default {
         }
       } else {
         // SKY_MODE
-        const pts = []
-        pts.push(new THREE.Vector3(0, 0, 0))
-        pts.push(new THREE.Vector3(2 * Math.PI, 0, 0))
-        const geomX = new THREE.BufferGeometry().setFromPoints(pts)
-        const mat = new THREE.LineBasicMaterial({ color: 0xffffff })
+        const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa })
+        // Create outline
+        const borderPts = []
+        borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
+        borderPts.push(new THREE.Vector3(0, Math.PI / 2, 0))
+        borderPts.push(new THREE.Vector3(2 * Math.PI, Math.PI / 2, 0))
+        borderPts.push(new THREE.Vector3(2 * Math.PI, -Math.PI / 2, 0))
+        borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
+        const geomBorder = new THREE.BufferGeometry().setFromPoints(borderPts)
+        state.refGroup.add(new THREE.Line(geomBorder, mat))
+        // Create filled area
+        const shape = new THREE.Shape()
+        shape.moveTo(borderPts[0].x, borderPts[0].y)
+        for (let i = 1; i < borderPts.length; i++) {
+          shape.lineTo(borderPts[i].x, borderPts[i].y)
+        }
+        shape.closePath()
+        const shapeGeom = new THREE.ShapeGeometry(shape)
+        const areaMat = new THREE.MeshBasicMaterial({ color: 0x000030 })
+        state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
+        // Create X axis
+        const xPts = []
+        const zOffset = 0.01;
+        xPts.push(new THREE.Vector3(0, 0, zOffset))
+        xPts.push(new THREE.Vector3(2 * Math.PI, 0, zOffset))
+        const geomX = new THREE.BufferGeometry().setFromPoints(xPts)
         state.refGroup.add(new THREE.Line(geomX, mat))
-        const ptsY = []
-        ptsY.push(new THREE.Vector3(0, -Math.PI / 2, 0))
-        ptsY.push(new THREE.Vector3(0, Math.PI / 2, 0))
-        const geomY = new THREE.BufferGeometry().setFromPoints(ptsY)
-        state.refGroup.add(new THREE.Line(geomY, mat))
       }
     }
 
