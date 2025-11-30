@@ -15,8 +15,11 @@
               value="data"
             >
               <v-expansion-panel-text>
+                <CatalogBrowser v-model="catalogFile" />
+                or<br /><br />
                 <v-file-input
-                  label="Load catalog File"
+                  v-model="browsedFile"
+                  label="Browse catalog file"
                   accept=".dat,.txt"
                   @change="onFileChange"
                   prepend-icon="mdi-file-upload"
@@ -244,6 +247,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
+import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 
 // Store setup
@@ -310,6 +314,8 @@ onMounted(() => {
 })
 
 // File Loading
+const catalogFile = ref(undefined)
+const browsedFile = ref(null)
 function onFileChange(event) {
   const file = event.target.files[0]
   if (!file) return
@@ -326,12 +332,11 @@ function onFileChange(event) {
       infoLabel.value = `Error: ${err.message}`
     }
   }
+  catalogFile.value = undefined
   reader.readAsText(file)
 }
 
 // Logic Updates
-
-
 function forceUpdate() {
   try {
     store.update(UPDATE_ALL)
@@ -354,6 +359,19 @@ function toggleSkyMode() {
 }
 
 // Watchers
+watch(catalogFile, (newVal) => {
+  if (newVal === undefined || newVal === null) return
+  browsedFile.value = null
+  fetch('/catalogs/' + newVal)
+    .then(response => response.text())
+      .then(content => {
+        const count = loadCatalogADR(content)
+        infoLabel.value = `Loaded ${count} objects`
+        forceUpdate()
+      })
+    .catch(err => infoLabel.value = `Error: ${err.message}`)
+})
+
 let cosmoUpdateQueued = false
 watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
   if (Math.abs(sumConsts.value - 1) < 1e-5) return

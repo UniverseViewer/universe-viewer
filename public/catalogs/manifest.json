@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Hewitt & Burbidge QSO Catalog",
+    "year": 1993,
+    "file": "burbidge.dat"
+  },
+  {
+    "name": "2dF QSO Redshifr Survey",
+    "year": 2001,
+    "file": "2df.dat"
+  }
+]
