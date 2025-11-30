@@ -9,219 +9,219 @@
               multiple
               v-model="opened_panels"
             >
-            <!-- DATA LOADING -->
-            <v-expansion-panel
-              title="Data"
-              value="data"
-            >
-              <v-expansion-panel-text>
-                <CatalogBrowser v-model="catalogFile" />
-                or<br /><br />
-                <v-file-input
-                  v-model="browsedFile"
-                  label="Browse catalog file"
-                  accept=".dat,.txt"
-                  @change="onFileChange"
-                  prepend-icon="mdi-file-upload"
-                  density="compact"
-                ></v-file-input>
-                <div class="text-caption">Loaded: {{ quasars ? quasars.length : 0 }} objects</div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+              <!-- DATA LOADING -->
+              <v-expansion-panel
+                title="Data"
+                value="data"
+              >
+                <v-expansion-panel-text>
+                  <CatalogBrowser v-model="catalogFile" />
+                  or<br /><br />
+                  <v-file-input
+                    v-model="browsedFile"
+                    label="Browse catalog file"
+                    accept=".dat,.txt"
+                    @change="onFileChange"
+                    prepend-icon="mdi-file-upload"
+                    density="compact"
+                  ></v-file-input>
+                  <div class="text-caption">Loaded: {{ quasars ? quasars.length : 0 }} objects</div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
 
-            <!-- COSMOLOGICAL CONSTANTS -->
-            <v-expansion-panel
-              title="Cosmological constants"
-              value="constants"
-            >
-              <v-expansion-panel-text>
-                <v-radio-group v-model="selectedConst" density="compact">
-                  <v-row>
-                    <v-col cols="2" class="border-e">
-                      <v-tooltip text="Lambda as derived parameter">
-                        <template #activator="{ props }">
-                          <v-radio value="lambda" v-bind="props"></v-radio>
-                        </template>
-                      </v-tooltip>
-                    </v-col>
-                    <v-col cols="10">
-                      <v-number-input
-                        v-model="lambda"
-                        :disabled="selectedConst === 'lambda'"
-                        label="Lambda"
-                        :precision="null"
-                        :step="0.05"
-                        control-variant="split"
-                        density="compact"
-                      ></v-number-input>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="2" class="border-e">
-                      <v-tooltip text="Omega as derived parameter">
-                        <template #activator="{ props }">
-                          <v-radio value="omega" v-bind="props"></v-radio>
-                        </template>
-                      </v-tooltip>
-                    </v-col>
-                    <v-col cols="10">
-                      <v-number-input
-                        v-model="omega"
-                        :disabled="selectedConst === 'omega'"
-                        label="Omega"
-                        :precision="null"
-                        :step="0.05"
-                        control-variant="split"
-                        density="compact"
-                      ></v-number-input>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="2" class="border-e">
-                      <v-tooltip text="Kappa as derived parameter">
-                        <template #activator="{ props }">
-                          <v-radio value="kappa" v-bind="props"></v-radio>
-                        </template>
-                      </v-tooltip>
-                    </v-col>
-                    <v-col cols="10">
-                      <v-number-input
-                        v-model="kappa"
-                        :disabled="selectedConst === 'kappa'"
-                        label="Kappa"
-                        :precision="null"
-                        :step="0.05"
-                        control-variant="split"
-                        density="compact"
-                      ></v-number-input>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="2" class="border-e">
-                      <v-tooltip text="Alpha as derived parameter">
-                        <template #activator="{ props }">
-                          <v-radio value="alpha" v-bind="props"></v-radio>
-                        </template>
-                      </v-tooltip>
-                    </v-col>
-                    <v-col cols="10">
-                      <v-number-input
-                        v-model="alpha"
-                        :disabled="selectedConst === 'alpha'"
-                        label="Alpha"
-                        :precision="null"
-                        :step="0.05"
-                        control-variant="split"
-                        density="compact"
-                      ></v-number-input>
-                    </v-col>
-                  </v-row>
-                </v-radio-group>
-                <div class="d-flex justify-space-between text-caption">
-                  <span>Sum: {{ sumConsts.toFixed(5) }}</span>
-                  <span
-                    :class="{ 'text-error': !isConstraintValid, 'text-success': isConstraintValid }"
+              <!-- COSMOLOGICAL CONSTANTS -->
+              <v-expansion-panel
+                title="Cosmological constants"
+                value="constants"
+              >
+                <v-expansion-panel-text>
+                  <v-radio-group v-model="selectedConst" density="compact">
+                    <v-row>
+                      <v-col cols="2" class="border-e">
+                        <v-tooltip text="Lambda as derived parameter">
+                          <template #activator="{ props }">
+                            <v-radio value="lambda" v-bind="props"></v-radio>
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                      <v-col cols="10">
+                        <v-number-input
+                          v-model="lambda"
+                          :disabled="selectedConst === 'lambda'"
+                          label="Lambda"
+                          :precision="null"
+                          :step="0.05"
+                          control-variant="split"
+                          density="compact"
+                        ></v-number-input>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="2" class="border-e">
+                        <v-tooltip text="Omega as derived parameter">
+                          <template #activator="{ props }">
+                            <v-radio value="omega" v-bind="props"></v-radio>
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                      <v-col cols="10">
+                        <v-number-input
+                          v-model="omega"
+                          :disabled="selectedConst === 'omega'"
+                          label="Omega"
+                          :precision="null"
+                          :step="0.05"
+                          control-variant="split"
+                          density="compact"
+                        ></v-number-input>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="2" class="border-e">
+                        <v-tooltip text="Kappa as derived parameter">
+                          <template #activator="{ props }">
+                            <v-radio value="kappa" v-bind="props"></v-radio>
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                      <v-col cols="10">
+                        <v-number-input
+                          v-model="kappa"
+                          :disabled="selectedConst === 'kappa'"
+                          label="Kappa"
+                          :precision="null"
+                          :step="0.05"
+                          control-variant="split"
+                          density="compact"
+                        ></v-number-input>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="2" class="border-e">
+                        <v-tooltip text="Alpha as derived parameter">
+                          <template #activator="{ props }">
+                            <v-radio value="alpha" v-bind="props"></v-radio>
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                      <v-col cols="10">
+                        <v-number-input
+                          v-model="alpha"
+                          :disabled="selectedConst === 'alpha'"
+                          label="Alpha"
+                          :precision="null"
+                          :step="0.05"
+                          control-variant="split"
+                          density="compact"
+                        ></v-number-input>
+                      </v-col>
+                    </v-row>
+                  </v-radio-group>
+                  <div class="d-flex justify-space-between text-caption">
+                    <span>Sum: {{ sumConsts.toFixed(5) }}</span>
+                    <span
+                      :class="{ 'text-error': !isConstraintValid, 'text-success': isConstraintValid }"
+                    >
+                      {{ isConstraintValid ? 'Valid' : 'Invalid' }}
+                    </span>
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+
+              <!-- VIEW SETTINGS -->
+              <v-expansion-panel
+                title="View settings"
+                value="view"
+              >
+                <v-expansion-panel-text>
+                  <v-switch
+                    v-model="comovingSpaceFlag"
+                    label="Comoving space"
+                    color="success"
+                    density="compact"
+                  ></v-switch>
+                  <v-switch
+                    v-model="showRefMarks"
+                    label="Show reference marks"
+                    color="success"
+                    density="compact"
+                  ></v-switch>
+                  <v-btn
+                    block
+                    class="mb-2"
+                    :color="isSkyMode ? 'primary' : 'secondary'"
+                    @click="toggleSkyMode"
                   >
-                    {{ isConstraintValid ? 'Valid' : 'Invalid' }}
-                  </span>
-                </div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-
-            <!-- VIEW SETTINGS -->
-            <v-expansion-panel
-              title="View settings"
-              value="view"
-            >
-              <v-expansion-panel-text>
-                <v-switch
-                  v-model="comovingSpaceFlag"
-                  label="Comoving space"
-                  color="success"
-                  density="compact"
-                ></v-switch>
-                <v-switch
-                  v-model="showRefMarks"
-                  label="Show reference marks"
-                  color="success"
-                  density="compact"
-                ></v-switch>
-                <v-btn
-                  block
-                  class="mb-2"
-                  :color="isSkyMode ? 'primary' : 'secondary'"
-                  @click="toggleSkyMode"
-                >
-                  {{ isSkyMode ? 'Exit Sky View' : 'Sky View' }}
-                </v-btn>
-                <v-divider class="my-3"></v-divider>
-                <div class="text-subtitle-2 mb-2">Projection</div>
-                <v-btn-toggle
-                  v-model="view"
-                  mandatory
-                  class="mb-4 views"
-                >
-                  <v-btn :value="4">Front 1</v-btn>
-                  <v-btn :value="5">Front 2</v-btn>
-                  <v-btn :value="6">Front 3</v-btn>
-                  <v-btn :value="1">Edge 1</v-btn>
-                  <v-btn :value="2">Edge 2</v-btn>
-                  <v-btn :value="3">Edge 3</v-btn>
-                </v-btn-toggle>
-                <v-slider
-                  label="RA1"
-                  v-model="ra1"
-                  :max="24"
-                  :min="0"
-                  step="0.1"
-                >
-                  <template v-slot:append>
-                    {{ ra1.toFixed(1) }}h
-                  </template>
-                </v-slider>
-                <v-slider
-                  label="Dec1"
-                  v-model="dec1"
-                  :max="90"
-                  :min="-90"
-                  step="0.1"
-                >
-                  <template v-slot:append>
-                    {{ dec1.toFixed(1) }}°
-                  </template>
-                </v-slider>
-                <v-slider
-                  label="Beta"
-                  v-model="beta"
-                  :max="24"
-                  :min="0"
-                  step="0.1"
-                >
-                  <template v-slot:append>
-                    {{ beta.toFixed(1) }}h
-                  </template>
-                </v-slider>
-                <v-divider class="my-3"></v-divider>
-                <v-slider
-                  label="Quasar point size"
-                  v-model="quasarPointSize"
-                  :max="10"
-                  :min="1"
-                  step="0.5"
-                >
-                  <template v-slot:append>
-                    {{ quasarPointSize.toFixed(1) }}
-                  </template>
-                </v-slider>
-                <v-checkbox
-                  v-model="precisionEnabled"
-                  label="High precision integration"
-                  density="compact"
-                  hide-details
-                ></v-checkbox>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
+                    {{ isSkyMode ? 'Exit Sky View' : 'Sky View' }}
+                  </v-btn>
+                  <v-divider class="my-3"></v-divider>
+                  <div class="text-subtitle-2 mb-2">Projection</div>
+                  <v-btn-toggle
+                    v-model="view"
+                    mandatory
+                    class="mb-4 views"
+                  >
+                    <v-btn :value="4">Front 1</v-btn>
+                    <v-btn :value="5">Front 2</v-btn>
+                    <v-btn :value="6">Front 3</v-btn>
+                    <v-btn :value="1">Edge 1</v-btn>
+                    <v-btn :value="2">Edge 2</v-btn>
+                    <v-btn :value="3">Edge 3</v-btn>
+                  </v-btn-toggle>
+                  <v-slider
+                    label="RA1"
+                    v-model="ra1"
+                    :max="24"
+                    :min="0"
+                    step="0.1"
+                  >
+                    <template v-slot:append>
+                      {{ ra1.toFixed(1) }}h
+                    </template>
+                  </v-slider>
+                  <v-slider
+                    label="Dec1"
+                    v-model="dec1"
+                    :max="90"
+                    :min="-90"
+                    step="0.1"
+                  >
+                    <template v-slot:append>
+                      {{ dec1.toFixed(1) }}°
+                    </template>
+                  </v-slider>
+                  <v-slider
+                    label="Beta"
+                    v-model="beta"
+                    :max="24"
+                    :min="0"
+                    step="0.1"
+                  >
+                    <template v-slot:append>
+                      {{ beta.toFixed(1) }}h
+                    </template>
+                  </v-slider>
+                  <v-divider class="my-3"></v-divider>
+                  <v-slider
+                    label="Quasar point size"
+                    v-model="quasarPointSize"
+                    :max="10"
+                    :min="1"
+                    step="0.5"
+                  >
+                    <template v-slot:append>
+                      {{ quasarPointSize.toFixed(1) }}
+                    </template>
+                  </v-slider>
+                  <v-checkbox
+                    v-model="precisionEnabled"
+                    label="High precision integration"
+                    density="compact"
+                    hide-details
+                  ></v-checkbox>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </v-col>
 
           <!-- MAIN VIEWER -->
