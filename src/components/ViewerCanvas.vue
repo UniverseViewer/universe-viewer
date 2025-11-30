@@ -11,7 +11,7 @@
     <div v-show="isSelecting" :style="selectionStyle" class="selection-rect"></div>
 
     <!-- HUD (mode, points count) -->
-    <div class="hud">
+    <div :class="['hud', themeName]">
       <div>{{ modeName }}</div>
     </div>
   </div>
@@ -26,20 +26,18 @@ import { watch } from 'vue'
 
 export default {
   name: 'ViewerCanvas',
-  setup() {
+
+  props: {
+    darkMode: { type: Boolean, default: true },
+  },
+
+  setup(props) {
     const root = ref(null)
     const overlay = ref(null)
 
     const store = useUniverseStore()
-    const {
-      quasars,
-      kappa,
-      view,
-      ascension_max,
-      pointSize,
-      comovingSpaceFlag,
-      horizonAngularDistance,
-    } = storeToRefs(store)
+    const { quasars, kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance } =
+      storeToRefs(store)
 
     const state = reactive({
       zoom: 1.0,
@@ -72,7 +70,33 @@ export default {
       geometry: null,
       material: null,
       refGroup: null,
+      theme: {
+        dark: {
+          background: 0x000000,
+          markOutline: 0xaaaaaa,
+          horizonBackground: 0x000030,
+          pointR: 1.0,
+          pointG: 1.0,
+          pointB: 1.0,
+          pointSelectedR: 0.0,
+          pointSelectedG: 1.0,
+          pointSelectedB: 0.0,
+        },
+        light: {
+          background: 0xe4e4e4,
+          markOutline: 0x000000,
+          horizonBackground: 0xffffff,
+          pointR: 0.0,
+          pointG: 0.0,
+          pointB: 0.0,
+          pointSelectedR: 1.0,
+          pointSelectedG: 0.0,
+          pointSelectedB: 0.0,
+        },
+      },
     })
+
+    const themeName = computed(() => (props.darkMode ? 'dark' : 'light'))
 
     const modeName = computed(() => {
       let value
@@ -218,7 +242,7 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
-      state.scene.background = new THREE.Color(0x000000)
+      state.scene.background = new THREE.Color(state.theme[themeName.value].background)
       state.camera = markRaw(createOrthoCamera())
       onResize() // Set initial camera projection based on current size
 
@@ -252,6 +276,13 @@ export default {
       }
     })
 
+    watch(themeName, (newVal) => {
+      if (state.scene) {
+        state.scene.background = new THREE.Color(state.theme[newVal].background)
+        updateCanvas()
+      }
+    })
+
     function populatePoints() {
       const q = quasars.value || []
       const N = q.length
@@ -276,13 +307,13 @@ export default {
 
         const selected = qi.isSelected ? qi.isSelected() : false
         if (selected) {
-          colors[3 * i + 0] = 0.0
-          colors[3 * i + 1] = 1.0
-          colors[3 * i + 2] = 0.0
+          colors[3 * i + 0] = state.theme[themeName.value].pointSelectedR
+          colors[3 * i + 1] = state.theme[themeName.value].pointSelectedG
+          colors[3 * i + 2] = state.theme[themeName.value].pointSelectedB
         } else {
-          colors[3 * i + 0] = 1.0
-          colors[3 * i + 1] = 1.0
-          colors[3 * i + 2] = 1.0
+          colors[3 * i + 0] = state.theme[themeName.value].pointR
+          colors[3 * i + 1] = state.theme[themeName.value].pointG
+          colors[3 * i + 2] = state.theme[themeName.value].pointB
         }
       }
 
@@ -377,7 +408,7 @@ export default {
         }
         // Create outline
         const geom = new THREE.BufferGeometry().setFromPoints(shapePts)
-        const outlineMat = new THREE.LineBasicMaterial({ color: 0xaaaaaa })
+        const outlineMat = new THREE.LineBasicMaterial({ color: state.theme[themeName.value].markOutline })
         state.refGroup.add(new THREE.Line(geom, outlineMat))
         // Create filled area
         const shape = new THREE.Shape()
@@ -388,12 +419,12 @@ export default {
           }
           shape.closePath()
           const shapeGeom = new THREE.ShapeGeometry(shape)
-          const areaMat = new THREE.MeshBasicMaterial({ color: 0x000030 })
+          const areaMat = new THREE.MeshBasicMaterial({ color: state.theme[themeName.value].horizonBackground })
           state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         }
       } else {
         // SKY_MODE
-        const mat = new THREE.LineBasicMaterial({ color: 0xaaaaaa })
+        const mat = new THREE.LineBasicMaterial({ color: state.theme[themeName.value].markOutline })
         // Create outline
         const borderPts = []
         borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
@@ -411,7 +442,7 @@ export default {
         }
         shape.closePath()
         const shapeGeom = new THREE.ShapeGeometry(shape)
-        const areaMat = new THREE.MeshBasicMaterial({ color: 0x000030 })
+        const areaMat = new THREE.MeshBasicMaterial({ color: state.theme[themeName.value].horizonBackground })
         state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         // Create X axis
         const xPts = []
@@ -599,22 +630,22 @@ export default {
     }
 
     function onKeyDown(e) {
-      if (event.key === 'Shift') {
+      if (e.key === 'Shift') {
         state.shiftKeyPressed = true
-      } else if (event.key === 'Control') {
+      } else if (e.key === 'Control') {
         state.ctrlKeyPressed = true
-      } else if (event.key === 'Alt') {
+      } else if (e.key === 'Alt') {
         state.altKeyPressed = true
       }
       handlePressedKeys()
     }
 
     function onKeyUp(e) {
-      if (event.key === 'Shift') {
+      if (e.key === 'Shift') {
         state.shiftKeyPressed = false
-      } else if (event.key === 'Control') {
+      } else if (e.key === 'Control') {
         state.ctrlKeyPressed = false
-      } else if (event.key === 'Alt') {
+      } else if (e.key === 'Alt') {
         state.altKeyPressed = false
       }
       handlePressedKeys()
@@ -692,6 +723,7 @@ export default {
         drawReferenceMarks()
         render()
       },
+      themeName,
     }
   },
 }
@@ -719,5 +751,8 @@ export default {
   font-size: 13px;
   z-index: 5;
   pointer-events: none;
+}
+.hud.light {
+  color: black;
 }
 </style>

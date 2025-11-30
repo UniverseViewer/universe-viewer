@@ -219,6 +219,11 @@
                     density="compact"
                     hide-details
                   ></v-checkbox>
+                  <v-switch
+                    v-model="isDarkTheme"
+                    label="Dark mode theme"
+                    color="success"
+                  />
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
@@ -226,13 +231,16 @@
 
           <!-- MAIN VIEWER -->
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
-            <ViewerCanvas ref="viewer" />
+            <ViewerCanvas
+              ref="viewer"
+              :dark-mode="isDarkTheme"
+            />
           </v-col>
         </v-row>
       </v-container>
 
       <!-- BOTTOM INFO BAR -->
-      <v-footer app height="32" class="bg-grey-darken-4 text-white">
+      <v-footer app height="32">
         <v-row no-gutters class="px-4">
           <v-col class="text-caption">{{ infoLabel }}</v-col>
           <v-col class="text-right text-caption">Universe Viewer {{ version }}</v-col>
@@ -244,6 +252,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
+import { useTheme } from 'vuetify'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
@@ -359,6 +368,12 @@ function toggleSkyMode() {
 }
 
 // Watchers
+const theme = useTheme()
+const isDarkTheme = ref(theme.global.current.value.dark)
+watch(isDarkTheme, (val) => {
+  theme.change(val ? 'dark' : 'light')
+})
+
 watch(catalogFile, (newVal) => {
   if (newVal === undefined || newVal === null) return
   browsedFile.value = null
