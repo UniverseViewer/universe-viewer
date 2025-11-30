@@ -32,7 +32,7 @@ export function integrate(limitA, limitB, n, funcToIntegrate) {
     s = 0.5 * s
     t[j] = 0
 
-    for (let k = 1; k < e; k++) {
+    for (let k = 1; k <= e; k++) {
       t[j] += ff(s * (2 * k - 1), limitA, funcToIntegrate)
     }
 
@@ -49,7 +49,7 @@ export function integrate(limitA, limitB, n, funcToIntegrate) {
     kk = kk * (ee - 1)
 
     for (let k = 0; k < n - j; k++) {
-      t[k] = (ee * t[k + 1] - t[k])
+      t[k] = ee * t[k + 1] - t[k]
     }
   }
 
