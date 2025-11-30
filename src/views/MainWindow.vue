@@ -232,7 +232,7 @@
       <v-footer app height="32" class="bg-grey-darken-4 text-white">
         <v-row no-gutters class="px-4">
           <v-col class="text-caption">{{ infoLabel }}</v-col>
-          <v-col class="text-right text-caption">Universe Viewer</v-col>
+          <v-col class="text-right text-caption">Universe Viewer {{ version }}</v-col>
         </v-row>
       </v-footer>
     </v-main>
@@ -249,6 +249,7 @@ import { loadCatalogADR } from '@/tools/catalog.js'
 // Store setup
 const store = useUniverseStore()
 const {
+  version,
   quasars,
   lambda,
   omega,

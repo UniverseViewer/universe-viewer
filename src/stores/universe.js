@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import pkg from '../../package.json'
 import { ref, computed, shallowRef, triggerRef } from 'vue'
 
 import Vect3d from '@/logic/vect3d.js'
@@ -18,6 +19,8 @@ export const UPDATE_VIEW = 2
 export const UPDATE_VIEWER = 3
 
 export const useUniverseStore = defineStore('universe', () => {
+  const version = ref(pkg.version)
+
   const selectedCount = ref(0)
 
   const quasars = shallowRef(null)
@@ -435,6 +438,7 @@ export const useUniverseStore = defineStore('universe', () => {
   }
 
   return {
+    version,
     selectedCount,
     quasars,
     ascension_max,
