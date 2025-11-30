@@ -31,7 +31,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const kappa = ref(0)
   const alpha = ref(0)
 
-  const view = ref(1)
+  const view = ref(4)
   const userRA1 = ref(0.0) // radians
   const userDec1 = ref(0.0) // radians
   const userBeta = ref(0.0) // radians
@@ -90,7 +90,7 @@ export const useUniverseStore = defineStore('universe', () => {
       throw ex
     }
     precisionEnabled.value = false
-    view.value = 1
+    view.value = 4
     userRA1.value = 0.0
     userDec1.value = 0.0
     userBeta.value = 0.0

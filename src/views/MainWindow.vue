@@ -158,12 +158,12 @@
                   mandatory
                   class="mb-4 views"
                 >
-                  <v-btn :value="1">Edge 1</v-btn>
-                  <v-btn :value="2">Edge 2</v-btn>
-                  <v-btn :value="3">Edge 3</v-btn>
                   <v-btn :value="4">Front 1</v-btn>
                   <v-btn :value="5">Front 2</v-btn>
                   <v-btn :value="6">Front 3</v-btn>
+                  <v-btn :value="1">Edge 1</v-btn>
+                  <v-btn :value="2">Edge 2</v-btn>
+                  <v-btn :value="3">Edge 3</v-btn>
                 </v-btn-toggle>
                 <v-slider
                   label="RA1 (h)"
