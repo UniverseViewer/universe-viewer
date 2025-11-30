@@ -36,8 +36,6 @@ export default {
       kappa,
       view,
       ascension_max,
-      somethingToShow,
-      selectionModeType,
       pointSize,
       comovingSpaceFlag,
       horizonAngularDistance,
@@ -52,13 +50,15 @@ export default {
       yMin: -1,
       xMax: 1,
       yMax: 1,
-      selecting: false,
-      selectionEnabled: false,
       selectX1: 0,
       selectY1: 0,
       selectX2: 0,
       selectY2: 0,
       isSelecting: false,
+      selectionType: 'replace',
+      ctrlKeyPressed: false,
+      shiftKeyPressed: false,
+      altKeyPressed: false,
       mouseX: 0,
       mouseY: 0,
       mode: 0,
@@ -434,7 +434,6 @@ export default {
     }
 
     function onWheel(e) {
-      if (!somethingToShow.value) return
       e.preventDefault()
       const delta = e.deltaY || e.delta
       state.zoom += (-delta / 500.0) * state.zoom
@@ -455,62 +454,53 @@ export default {
     }
 
     function onMouseDown(e) {
-      if (!somethingToShow.value) return
-      if (e.button === 2) {
-        setMode(state.mode)
-        updateCanvas()
-        return
-      }
-      if (e.button === 0) {
+       if ((e.button === 0 && state.altKeyPressed) || e.button === 2) {
+        // Drag view
         state.isDragging = true
-        const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
         state.mouseX = e.clientX
         state.mouseY = e.clientY
+      } else if (e.button === 0) {
+        // Select
+        const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
         state.selectX1 = pixelX
         state.selectY1 = pixelY
         state.selectX2 = pixelX
         state.selectY2 = pixelY
-        if (state.selectionEnabled) {
-          state.selecting = true
-          state.isSelecting = true
-        }
+        state.isSelecting = true
+      } else if (e.button === 1) {
+        // Reset view
+        setMode(state.mode)
+        updateCanvas()
+        return
       }
     }
 
     function onMouseMove(e) {
-      if (!somethingToShow.value) return
       const rect = root.value.getBoundingClientRect()
       const localX = e.clientX - rect.left
       const localY = e.clientY - rect.top
       state.selectX2 = localX
       state.selectY2 = localY
 
-      if (state.selecting && state.selectionEnabled) {
-        state.isSelecting = true
+      if (state.isSelecting) {
         render()
-      } else {
-        if (state.isDragging && !state.selectionEnabled) {
-          const prev = pixelToWorld(state.mouseX, state.mouseY)
-          const curr = pixelToWorld(e.clientX, e.clientY)
-          const offsetX = prev.worldX - curr.worldX
-          const offsetY = prev.worldY - curr.worldY
-          state.posX += offsetX
-          state.posY += offsetY
-          state.mouseX = e.clientX
-          state.mouseY = e.clientY
-          updateCanvas()
-        }
+      } else if (state.isDragging) {
+        const prev = pixelToWorld(state.mouseX, state.mouseY)
+        const curr = pixelToWorld(e.clientX, e.clientY)
+        const offsetX = prev.worldX - curr.worldX
+        const offsetY = prev.worldY - curr.worldY
+        state.posX += offsetX
+        state.posY += offsetY
+        state.mouseX = e.clientX
+        state.mouseY = e.clientY
+        updateCanvas()
       }
     }
 
     function onMouseUp(e) {
-      if (e.button === 0) {
-        state.isDragging = false
-      }
+      state.isDragging = false
       if (e.button !== 0) return
-      if (!somethingToShow.value) return
-      if (!state.selectionEnabled) return
-      if (!state.selecting) return
+      if (!state.isSelecting) return
 
       const rect = root.value.getBoundingClientRect()
       const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
@@ -531,7 +521,7 @@ export default {
 
       // Pre-capture selected state for intersection mode
       const previouslySelected = new Set()
-      if (selectionModeType.value === 'intersection') {
+      if (state.selectionType === 'intersection') {
         q.forEach((qi) => {
           if (qi.isSelected()) {
             previouslySelected.add(qi)
@@ -541,7 +531,7 @@ export default {
 
       // Initial deselection for 'replace' and 'intersection' modes
       // For 'additive', existing selections outside the new rectangle remain selected.
-      if (selectionModeType.value === 'replace' || selectionModeType.value === 'intersection') {
+      if (state.selectionType === 'replace' || state.selectionType === 'intersection') {
         q.forEach((qi) => qi.setSelected(false))
       }
 
@@ -560,7 +550,7 @@ export default {
 
         const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
 
-        switch (selectionModeType.value) {
+        switch (state.selectionType) {
           case 'additive':
             if (isInsideRectangle) {
               qi.setSelected(true)
@@ -588,13 +578,44 @@ export default {
 
       store.setSelectedCount(nbSelected)
 
-      state.selecting = false
       state.isSelecting = false
 
       updateCanvas()
       if (store.mainWin && typeof store.mainWin.updateSelection === 'function') {
         store.mainWin.updateSelection()
       }
+    }
+
+    function handlePressedKeys() {
+      if (state.shiftKeyPressed) {
+        state.selectionType = 'additive'
+      } else if (state.ctrlKeyPressed) {
+        state.selectionType = 'intersection'
+      } else {
+        state.selectionType = 'replace'
+      }
+    }
+
+    function onKeyDown(e) {
+      if (event.key === "Shift") {
+        state.shiftKeyPressed = true
+      } else if (event.key === 'Control') {
+        state.ctrlKeyPressed = true
+      } else if (event.key === 'Alt') {
+        state.altKeyPressed = true
+      }
+      handlePressedKeys()
+    }
+
+    function onKeyUp(e) {
+      if (event.key === "Shift") {
+        state.shiftKeyPressed = false
+      } else if (event.key === 'Control') {
+        state.ctrlKeyPressed = false
+      } else if (event.key === 'Alt') {
+        state.altKeyPressed = false
+      }
+      handlePressedKeys()
     }
 
     onMounted(() => {
@@ -605,6 +626,8 @@ export default {
       dom.addEventListener('mousedown', onMouseDown)
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)
+      window.addEventListener('keyup', onKeyUp)
+      window.addEventListener('keydown', onKeyDown)
 
       resizeObserver = new ResizeObserver(() => onResize())
       if (root.value) {
@@ -613,9 +636,6 @@ export default {
 
       store.setViewerCanvas({
         updateCanvas,
-        enableSelectionMode: (s) => {
-          state.selectionEnabled = !!s
-        },
         setMode: (m) => {
           setMode(m)
           updateCanvas()
@@ -637,6 +657,8 @@ export default {
       }
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
+      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('keydown', onKeyDown)
 
       if (resizeObserver) {
         resizeObserver.disconnect()
@@ -659,9 +681,6 @@ export default {
       modeName,
       quasars,
       updateCanvas,
-      enableSelectionMode: (s) => {
-        state.selectionEnabled = !!s
-      },
       setModePublic: (m) => {
         setMode(m)
         updateCanvas()
@@ -685,8 +704,8 @@ export default {
 .selection-rect {
   box-sizing: border-box;
   position: absolute;
-  border: 2px solid rgba(0, 255, 0, 0.9);
-  background: rgba(0, 255, 0, 0.08);
+  border: 2px solid #aaaaaa;
+  background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
   z-index: 10;
 }

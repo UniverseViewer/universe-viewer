@@ -218,41 +218,6 @@
                 ></v-checkbox>
               </v-expansion-panel-text>
             </v-expansion-panel>
-
-            <!-- SELECTION -->
-            <v-expansion-panel
-              title="Selection"
-              value="select"
-            >
-              <v-expansion-panel-text>
-                <v-switch
-                  v-model="selectionMode"
-                  label="Selection Mode"
-                  color="success"
-                  density="compact"
-                ></v-switch>
-                <v-btn
-                  v-if="selectionMode"
-                  block
-                  class="mt-3"
-                  color="warning"
-                  @click="store.resetSelection()"
-                >
-                  Reset Selection
-                </v-btn>
-                <v-radio-group
-                  v-if="selectionMode"
-                  v-model="selectionModeType"
-                  class="mt-3"
-                  @update:modelValue="store.setSelectionModeType(selectionModeType)"
-                >
-                  <v-radio label="Additive Selection" value="additive"></v-radio>
-                  <v-radio label="Replace Selection" value="replace"></v-radio>
-                  <v-radio label="Intersection Selection" value="intersection"></v-radio>
-                </v-radio-group>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-
           </v-expansion-panels>
           </v-col>
 
@@ -295,12 +260,11 @@ const {
   userBeta,
   comovingSpaceFlag,
   precisionEnabled,
-  selectionModeType,
   pointSize,
 } = storeToRefs(store)
 
 // Side bar
-const opened_panels = ref(['data', 'constants', 'view', 'select'])
+const opened_panels = ref(['data', 'constants', 'view'])
 
 // Viewer Ref
 const viewer = ref(null)
@@ -308,7 +272,6 @@ const viewer = ref(null)
 // Local State
 const selectedConst = ref('kappa')
 const showRefMarks = ref(true)
-const selectionMode = ref(false)
 const isSkyMode = ref(false)
 const infoLabel = ref('Ready')
 
@@ -453,10 +416,6 @@ watch([userRA1, userDec1, userBeta], () => {
       viewUpdateQueued = false
     })
   }
-})
-
-watch(selectionMode, (val) => {
-  if (viewer.value) viewer.value.enableSelectionMode(val)
 })
 
 watch([comovingSpaceFlag, precisionEnabled], () => {
