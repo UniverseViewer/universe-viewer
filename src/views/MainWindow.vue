@@ -166,45 +166,45 @@
                   <v-btn :value="3">Edge 3</v-btn>
                 </v-btn-toggle>
                 <v-slider
-                  label="RA1 (h)"
+                  label="RA1"
                   v-model="ra1"
                   :max="24"
                   :min="0"
                   step="0.1"
                 >
                   <template v-slot:append>
-                    {{ ra1.toFixed(1) }}
+                    {{ ra1.toFixed(1) }}h
                   </template>
                 </v-slider>
                 <v-slider
-                  label="Dec1 (deg)"
+                  label="Dec1"
                   v-model="dec1"
                   :max="90"
                   :min="-90"
                   step="0.1"
                 >
                   <template v-slot:append>
-                    {{ dec1.toFixed(1) }}
+                    {{ dec1.toFixed(1) }}°
                   </template>
                 </v-slider>
                 <v-slider
-                  label="Beta (h)"
+                  label="Beta"
                   v-model="beta"
                   :max="24"
                   :min="0"
                   step="0.1"
                 >
                   <template v-slot:append>
-                    {{ beta.toFixed(1) }}
+                    {{ beta.toFixed(1) }}h
                   </template>
                 </v-slider>
                 <v-divider class="my-3"></v-divider>
                 <v-slider
-                  label="Quasar Point Size"
+                  label="Quasar point size"
                   v-model="quasarPointSize"
                   :max="10"
                   :min="1"
-                  step="1"
+                  step="0.5"
                 >
                   <template v-slot:append>
                     {{ quasarPointSize.toFixed(1) }}
@@ -212,7 +212,7 @@
                 </v-slider>
                 <v-checkbox
                   v-model="precisionEnabled"
-                  label="High Precision Integration"
+                  label="High precision integration"
                   density="compact"
                   hide-details
                 ></v-checkbox>
