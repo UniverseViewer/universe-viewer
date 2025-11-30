@@ -396,14 +396,10 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
     newKappa = kappa.value,
     newAlpha = alpha.value
 
-  if (selectedConst.value === 'lambda')
-    newLambda = 1 + newKappa - newOmega - newAlpha
-  else if (selectedConst.value === 'omega')
-    newOmega = 1 - newLambda + newKappa - newAlpha
-  else if (selectedConst.value === 'kappa')
-    newKappa = newLambda + newAlpha + newOmega - 1
-  else if (selectedConst.value === 'alpha')
-    newAlpha = 1 - newLambda + newKappa - newOmega
+  if (selectedConst.value === 'lambda') newLambda = 1 + newKappa - newOmega - newAlpha
+  else if (selectedConst.value === 'omega') newOmega = 1 - newLambda + newKappa - newAlpha
+  else if (selectedConst.value === 'kappa') newKappa = newLambda + newAlpha + newOmega - 1
+  else if (selectedConst.value === 'alpha') newAlpha = 1 - newLambda + newKappa - newOmega
 
   try {
     store.setCosmoConsts(newLambda, newOmega, newKappa, newAlpha)
@@ -412,7 +408,7 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
     if (selectedConst.value !== 'omega') omega.value = newOmega
     if (selectedConst.value !== 'kappa') kappa.value = newKappa
     if (selectedConst.value !== 'alpha') alpha.value = newAlpha
-  } catch (e) {
+  } catch {
     if (oldVals) {
       lambda.value = oldVals[0]
       omega.value = oldVals[1]
