@@ -255,6 +255,7 @@ export default {
     function populatePoints() {
       const q = quasars.value || []
       const N = q.length
+      if (N === 0) return
       const positions = new Float32Array(N * 3)
       const colors = new Float32Array(N * 3)
 
@@ -295,6 +296,7 @@ export default {
     function drawReferenceMarks() {
       while (state.refGroup.children.length) state.refGroup.remove(state.refGroup.children[0])
       if (!state.showReferencesMarks) return
+      if (!Number.isFinite(horizonAngularDistance.value)) return
       const shapePts = []
       if (state.mode === state.UNIVERSE_MODE) {
         if (view.value > 3) {
@@ -454,7 +456,7 @@ export default {
     }
 
     function onMouseDown(e) {
-       if ((e.button === 0 && state.altKeyPressed) || e.button === 2) {
+      if ((e.button === 0 && state.altKeyPressed) || e.button === 2) {
         // Drag view
         state.isDragging = true
         state.mouseX = e.clientX
@@ -597,7 +599,7 @@ export default {
     }
 
     function onKeyDown(e) {
-      if (event.key === "Shift") {
+      if (event.key === 'Shift') {
         state.shiftKeyPressed = true
       } else if (event.key === 'Control') {
         state.ctrlKeyPressed = true
@@ -608,7 +610,7 @@ export default {
     }
 
     function onKeyUp(e) {
-      if (event.key === "Shift") {
+      if (event.key === 'Shift') {
         state.shiftKeyPressed = false
       } else if (event.key === 'Control') {
         state.ctrlKeyPressed = false
