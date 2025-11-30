@@ -1,8 +1,9 @@
 <template>
   <v-app>
+    <About v-model="aboutOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
-        <v-row no-gutters style="height: 100%">
+        <v-row no-gutters style="height: calc(100%">
           <!-- LEFT SIDEBAR -->
           <v-col cols="3" class="pa-2 bg_surface left-panel">
             <v-expansion-panels
@@ -227,6 +228,13 @@
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
+            <v-container>
+              <v-btn
+                @click="aboutOpened = true"
+                icon="mdi-information"
+              >
+              </v-btn>
+            </v-container>
           </v-col>
 
           <!-- MAIN VIEWER -->
@@ -243,7 +251,7 @@
       <v-footer app height="32">
         <v-row no-gutters class="px-4">
           <v-col class="text-caption">{{ infoLabel }}</v-col>
-          <v-col class="text-right text-caption">Universe Viewer {{ version }}</v-col>
+          <v-col class="text-right text-caption">UniverseViewer {{ version }}</v-col>
         </v-row>
       </v-footer>
     </v-main>
@@ -258,6 +266,7 @@ import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
+import About from '@/components/About.vue'
 
 // Store setup
 const store = useUniverseStore()
@@ -344,6 +353,9 @@ function onFileChange(event) {
   catalogFile.value = undefined
   reader.readAsText(file)
 }
+
+// About
+const aboutOpened = ref(false)
 
 // Logic Updates
 function forceUpdate() {
@@ -456,7 +468,7 @@ watch([comovingSpaceFlag, precisionEnabled], () => {
 <style scoped>
 .left-panel {
   overflow-y: auto;
-  height: 100vh;
+  height: calc(100vh - 32px);
 }
 .viewer-col {
   background: black;

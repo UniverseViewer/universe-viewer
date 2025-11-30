@@ -14,4 +14,9 @@ body,
   margin: 0;
   overflow: hidden;
 }
+a,
+a:visited {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+}
 </style>
