@@ -43,7 +43,7 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 
 export default {
-  name: 'CatalogBrowser',
+  name: 'About',
 
   props: {
     modelValue: { type: Boolean, default: false }

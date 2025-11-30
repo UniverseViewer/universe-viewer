@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <Help v-model="helpOpened" />
     <About v-model="aboutOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
@@ -230,6 +231,11 @@
             </v-expansion-panels>
             <v-container>
               <v-btn
+                @click="helpOpened = true"
+                icon="mdi-help"
+              >
+              </v-btn>
+              <v-btn
                 @click="aboutOpened = true"
                 icon="mdi-information"
               >
@@ -267,6 +273,7 @@ import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
+import Help from '@/components/Help.vue'
 
 // Store setup
 const store = useUniverseStore()
@@ -354,7 +361,8 @@ function onFileChange(event) {
   reader.readAsText(file)
 }
 
-// About
+// Helo
+const helpOpened = ref(false)
 const aboutOpened = ref(false)
 
 // Logic Updates
