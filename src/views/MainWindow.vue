@@ -240,6 +240,14 @@
                 icon="mdi-information"
               >
               </v-btn>
+              <v-btn
+                href="https://github.com/UniverseViewer/universe-viewer"
+                target="_blank"
+                icon="mdi-github"
+                variant="tonal"
+                color="surface-variant"
+              >
+              </v-btn>
             </v-container>
           </v-col>
 
