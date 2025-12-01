@@ -40,7 +40,7 @@ export default {
       storeToRefs(store)
 
     const state = reactive({
-      zoom: 1.0,
+      zoom: 0.5,
       zoomChanged: false,
       posX: 0.0,
       posY: 0.0,
