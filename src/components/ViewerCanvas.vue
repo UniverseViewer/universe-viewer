@@ -408,7 +408,9 @@ export default {
         }
         // Create outline
         const geom = new THREE.BufferGeometry().setFromPoints(shapePts)
-        const outlineMat = new THREE.LineBasicMaterial({ color: state.theme[themeName.value].markOutline })
+        const outlineMat = new THREE.LineBasicMaterial({
+          color: state.theme[themeName.value].markOutline,
+        })
         state.refGroup.add(new THREE.Line(geom, outlineMat))
         // Create filled area
         const shape = new THREE.Shape()
@@ -419,7 +421,9 @@ export default {
           }
           shape.closePath()
           const shapeGeom = new THREE.ShapeGeometry(shape)
-          const areaMat = new THREE.MeshBasicMaterial({ color: state.theme[themeName.value].horizonBackground })
+          const areaMat = new THREE.MeshBasicMaterial({
+            color: state.theme[themeName.value].horizonBackground,
+          })
           state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         }
       } else {
@@ -442,7 +446,9 @@ export default {
         }
         shape.closePath()
         const shapeGeom = new THREE.ShapeGeometry(shape)
-        const areaMat = new THREE.MeshBasicMaterial({ color: state.theme[themeName.value].horizonBackground })
+        const areaMat = new THREE.MeshBasicMaterial({
+          color: state.theme[themeName.value].horizonBackground,
+        })
         state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         // Create X axis
         const xPts = []
