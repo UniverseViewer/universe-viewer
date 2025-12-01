@@ -184,11 +184,16 @@
                     density="compact"
                     hide-details
                   ></v-checkbox>
-                  <v-switch v-model="isDarkTheme" label="Dark mode theme" color="success" />
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
             <v-container>
+              <v-switch
+                v-model="isDarkTheme"
+                prepend-icon="mdi-theme-light-dark"
+                label="Dark mode theme"
+                color="success"
+              />
               <v-btn @click="helpOpened = true" icon="mdi-help"> </v-btn>
               <v-btn @click="aboutOpened = true" icon="mdi-information"> </v-btn>
               <v-btn
@@ -345,9 +350,27 @@ function toggleSkyMode() {
 
 // Watchers
 const theme = useTheme()
+
+// Initialize from localStorage
+const savedTheme = localStorage.getItem('theme_mode')
+if (savedTheme) {
+  theme.global.name.value = savedTheme
+}
+
 const isDarkTheme = ref(theme.global.current.value.dark)
+
+// Sync ref if theme changed externally (e.g. initial load)
+watch(
+  () => theme.global.current.value.dark,
+  (val) => {
+    isDarkTheme.value = val
+  },
+)
+
 watch(isDarkTheme, (val) => {
-  theme.change(val ? 'dark' : 'light')
+  const newTheme = val ? 'dark' : 'light'
+  theme.global.name.value = newTheme
+  localStorage.setItem('theme_mode', newTheme)
 })
 
 watch(catalogFile, (newVal) => {
