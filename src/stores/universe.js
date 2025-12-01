@@ -45,7 +45,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const comovingSpaceFlag = ref(true)
   const somethingToShow = ref(false)
   const mainWin = ref(null)
-  const pointSize = ref(2.0)
+  const pointSize = ref(1.5)
 
   // Getters (as computed properties)
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
