@@ -550,11 +550,6 @@ export default {
       let selY1 = Math.min(p1.worldY, p2.worldY)
       let selY2 = Math.max(p1.worldY, p2.worldY)
 
-      if (state.mode === state.UNIVERSE_MODE && kappa.value < 0 && view.value <= 3) {
-        selX1 += 2
-        selX2 += 2
-      }
-
       const q = quasars.value || []
       let nbSelected = 0
 
