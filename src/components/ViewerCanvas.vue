@@ -545,10 +545,54 @@ export default {
       const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
       const p2 = pixelToWorld(rect.left + state.selectX2, rect.top + state.selectY2)
 
-      let selX1 = Math.min(p1.worldX, p2.worldX)
-      let selX2 = Math.max(p1.worldX, p2.worldX)
-      let selY1 = Math.min(p1.worldY, p2.worldY)
-      let selY2 = Math.max(p1.worldY, p2.worldY)
+      // Calculate pixel-space dimensions of the selection
+      const pixelWidth = Math.abs(state.selectX2 - state.selectX1)
+      const pixelHeight = Math.abs(state.selectY2 - state.selectY1)
+      const isClick = pixelWidth < 5 && pixelHeight < 5
+
+      let selX1, selX2, selY1, selY2
+      let nearestQuasar = null
+
+      if (isClick) {
+        // Find the nearest quasar within a small threshold
+        const clickThresholdWorld = 0.01 / state.zoom // Small threshold in world coordinates
+        const clickX = p1.worldX
+        const clickY = p1.worldY
+
+        const q = quasars.value || []
+        let minDistance = clickThresholdWorld
+
+        for (let i = 0; i < q.length; i++) {
+          const qi = q[i]
+          let x, y
+          if (state.mode === state.UNIVERSE_MODE) {
+            x = qi.getx()
+            y = qi.gety()
+          } else {
+            x = qi.getAscension()
+            y = qi.getDeclination()
+          }
+
+          const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2))
+
+          if (distance <= minDistance) {
+            minDistance = distance
+            nearestQuasar = qi
+          }
+        }
+
+        // Create a tiny selection area for the logic below
+        selX1 = clickX - 0.0001
+        selX2 = clickX + 0.0001
+        selY1 = clickY - 0.0001
+        selY2 = clickY + 0.0001
+      } else {
+        // Regular rectangle selection
+        selX1 = Math.min(p1.worldX, p2.worldX)
+        selX2 = Math.max(p1.worldX, p2.worldX)
+        selY1 = Math.min(p1.worldY, p2.worldY)
+        selY2 = Math.max(p1.worldY, p2.worldY)
+      }
 
       const q = quasars.value || []
       let nbSelected = 0
@@ -564,49 +608,64 @@ export default {
       }
 
       // Initial deselection for 'replace' and 'intersection' modes
-      // For 'additive', existing selections outside the new rectangle remain selected.
       if (state.selectionType === 'replace' || state.selectionType === 'intersection') {
         q.forEach((qi) => qi.setSelected(false))
       }
 
-      for (let i = 0; i < q.length; i++) {
-        const qi = q[i]
-        let x, y
-        if (state.mode === state.UNIVERSE_MODE) {
-          x = qi.getx()
-          y = qi.gety()
-        } else {
-          const asc = qi.getAscension()
-          const dec = qi.getDeclination()
-          x = asc
-          y = dec
-        }
-
-        const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
-
+      if (isClick && nearestQuasar) {
+        // Select only the nearest quasar
         switch (state.selectionType) {
           case 'additive':
-            if (isInsideRectangle) {
-              qi.setSelected(true)
-            }
-            // If not inside, its state remains unchanged (additive)
+            nearestQuasar.setSelected(true)
             break
           case 'replace':
-            if (isInsideRectangle) {
-              qi.setSelected(true)
-            }
-            // If not inside, it was already deselected above
+            nearestQuasar.setSelected(true)
             break
           case 'intersection':
-            if (isInsideRectangle && previouslySelected.has(qi)) {
-              qi.setSelected(true)
+            if (previouslySelected.has(nearestQuasar)) {
+              nearestQuasar.setSelected(true)
             }
-            // If not inside or not previously selected, it was already deselected above
             break
         }
+        nbSelected = q.filter((qi) => qi.isSelected()).length
+      } else {
+        // Rectangle selection (including clicks with no nearby quasar)
+        for (let i = 0; i < q.length; i++) {
+          const qi = q[i]
+          let x, y
+          if (state.mode === state.UNIVERSE_MODE) {
+            x = qi.getx()
+            y = qi.gety()
+          } else {
+            const asc = qi.getAscension()
+            const dec = qi.getDeclination()
+            x = asc
+            y = dec
+          }
 
-        if (qi.isSelected()) {
-          nbSelected += 1
+          const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
+
+          switch (state.selectionType) {
+            case 'additive':
+              if (isInsideRectangle) {
+                qi.setSelected(true)
+              }
+              break
+            case 'replace':
+              if (isInsideRectangle) {
+                qi.setSelected(true)
+              }
+              break
+            case 'intersection':
+              if (isInsideRectangle && previouslySelected.has(qi)) {
+                qi.setSelected(true)
+              }
+              break
+          }
+
+          if (qi.isSelected()) {
+            nbSelected += 1
+          }
         }
       }
 
