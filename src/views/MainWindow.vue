@@ -7,15 +7,9 @@
         <v-row no-gutters style="height: calc(100%">
           <!-- LEFT SIDEBAR -->
           <v-col cols="3" class="pa-2 bg_surface left-panel">
-            <v-expansion-panels
-              multiple
-              v-model="opened_panels"
-            >
+            <v-expansion-panels multiple v-model="opened_panels">
               <!-- DATA LOADING -->
-              <v-expansion-panel
-                title="Data"
-                value="data"
-              >
+              <v-expansion-panel title="Data" value="data">
                 <v-expansion-panel-text>
                   <CatalogBrowser v-model="catalogFile" />
                   or<br /><br />
@@ -32,10 +26,7 @@
               </v-expansion-panel>
 
               <!-- COSMOLOGICAL CONSTANTS -->
-              <v-expansion-panel
-                title="Cosmological constants"
-                value="constants"
-              >
+              <v-expansion-panel title="Cosmological constants" value="constants">
                 <v-expansion-panel-text>
                   <v-radio-group v-model="selectedConst" density="compact">
                     <v-row>
@@ -122,7 +113,10 @@
                   <div class="d-flex justify-space-between text-caption">
                     <span>Sum: {{ sumConsts.toFixed(5) }}</span>
                     <span
-                      :class="{ 'text-error': !isConstraintValid, 'text-success': isConstraintValid }"
+                      :class="{
+                        'text-error': !isConstraintValid,
+                        'text-success': isConstraintValid,
+                      }"
                     >
                       {{ isConstraintValid ? 'Valid' : 'Invalid' }}
                     </span>
@@ -131,10 +125,7 @@
               </v-expansion-panel>
 
               <!-- VIEW SETTINGS -->
-              <v-expansion-panel
-                title="View settings"
-                value="view"
-              >
+              <v-expansion-panel title="View settings" value="view">
                 <v-expansion-panel-text>
                   <v-switch
                     v-model="comovingSpaceFlag"
@@ -158,11 +149,7 @@
                   </v-btn>
                   <v-divider class="my-3"></v-divider>
                   <div class="text-subtitle-2 mb-2">Projection</div>
-                  <v-btn-toggle
-                    v-model="view"
-                    mandatory
-                    class="mb-4 views"
-                  >
+                  <v-btn-toggle v-model="view" mandatory class="mb-4 views">
                     <v-btn :value="4">Front 1</v-btn>
                     <v-btn :value="5">Front 2</v-btn>
                     <v-btn :value="6">Front 3</v-btn>
@@ -170,38 +157,14 @@
                     <v-btn :value="2">Edge 2</v-btn>
                     <v-btn :value="3">Edge 3</v-btn>
                   </v-btn-toggle>
-                  <v-slider
-                    label="RA1"
-                    v-model="ra1"
-                    :max="24"
-                    :min="0"
-                    step="0.1"
-                  >
-                    <template v-slot:append>
-                      {{ ra1.toFixed(1) }}h
-                    </template>
+                  <v-slider label="RA1" v-model="ra1" :max="24" :min="0" step="0.1">
+                    <template v-slot:append> {{ ra1.toFixed(1) }}h </template>
                   </v-slider>
-                  <v-slider
-                    label="Dec1"
-                    v-model="dec1"
-                    :max="90"
-                    :min="-90"
-                    step="0.1"
-                  >
-                    <template v-slot:append>
-                      {{ dec1.toFixed(1) }}°
-                    </template>
+                  <v-slider label="Dec1" v-model="dec1" :max="90" :min="-90" step="0.1">
+                    <template v-slot:append> {{ dec1.toFixed(1) }}° </template>
                   </v-slider>
-                  <v-slider
-                    label="Beta"
-                    v-model="beta"
-                    :max="24"
-                    :min="0"
-                    step="0.1"
-                  >
-                    <template v-slot:append>
-                      {{ beta.toFixed(1) }}h
-                    </template>
+                  <v-slider label="Beta" v-model="beta" :max="24" :min="0" step="0.1">
+                    <template v-slot:append> {{ beta.toFixed(1) }}h </template>
                   </v-slider>
                   <v-divider class="my-3"></v-divider>
                   <v-slider
@@ -221,42 +184,27 @@
                     density="compact"
                     hide-details
                   ></v-checkbox>
-                  <v-switch
-                    v-model="isDarkTheme"
-                    label="Dark mode theme"
-                    color="success"
-                  />
+                  <v-switch v-model="isDarkTheme" label="Dark mode theme" color="success" />
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
             <v-container>
+              <v-btn @click="helpOpened = true" icon="mdi-help"> </v-btn>
+              <v-btn @click="aboutOpened = true" icon="mdi-information"> </v-btn>
               <v-btn
-                @click="helpOpened = true"
-                icon="mdi-help"
-              >
-              </v-btn>
-              <v-btn
-                @click="aboutOpened = true"
-                icon="mdi-information"
-              >
-              </v-btn>
-              <v-btn
+                icon="mdi-github"
+                variant="elevated"
+                :color="$vuetify.theme.current.dark ? 'surface' : 'white'"
                 href="https://github.com/UniverseViewer/universe-viewer"
                 target="_blank"
-                icon="mdi-github"
-                variant="tonal"
-                color="surface-variant"
-              >
-              </v-btn>
+                rel="noopener"
+              ></v-btn>
             </v-container>
           </v-col>
 
           <!-- MAIN VIEWER -->
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
-            <ViewerCanvas
-              ref="viewer"
-              :dark-mode="isDarkTheme"
-            />
+            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" />
           </v-col>
         </v-row>
       </v-container>
@@ -406,13 +354,13 @@ watch(catalogFile, (newVal) => {
   if (newVal === undefined || newVal === null) return
   browsedFile.value = null
   fetch('/catalogs/' + newVal)
-    .then(response => response.text())
-      .then(content => {
-        const count = loadCatalogADR(content)
-        infoLabel.value = `Loaded ${count} objects`
-        forceUpdate()
-      })
-    .catch(err => infoLabel.value = `Error: ${err.message}`)
+    .then((response) => response.text())
+    .then((content) => {
+      const count = loadCatalogADR(content)
+      infoLabel.value = `Loaded ${count} objects`
+      forceUpdate()
+    })
+    .catch((err) => (infoLabel.value = `Error: ${err.message}`))
 })
 
 let cosmoUpdateQueued = false
