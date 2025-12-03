@@ -10,7 +10,12 @@ It must produce a conformal map of the universe and make it possible to identify
 
 ![Screenshot](screenshot.webp)
 
-## Project Setup
+## Setup
+
+To setup Universe Viewer on your own web server, just get a release and unpack it in a served directory.
+Universe Viewer must be served at root of your domain.
+
+## Project Build
 
 ```sh
 npm install
