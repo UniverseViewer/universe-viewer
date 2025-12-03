@@ -25,8 +25,8 @@
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
-              <!-- COSMOLOGICAL CONSTANTS -->
-              <v-expansion-panel title="Cosmological constants" value="constants">
+              <!-- COSMOLOGICAL PARAMETERS -->
+              <v-expansion-panel title="Cosmological parameters" value="parameters">
                 <v-expansion-panel-text>
                   <v-radio-group v-model="selectedConst" density="compact">
                     <v-row>
@@ -255,7 +255,7 @@ const {
 } = storeToRefs(store)
 
 // Side bar
-const opened_panels = ref(['data', 'constants', 'view'])
+const opened_panels = ref(['data', 'parameters', 'view'])
 
 // Viewer Ref
 const viewer = ref(null)

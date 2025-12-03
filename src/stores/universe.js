@@ -85,7 +85,7 @@ export const useUniverseStore = defineStore('universe', () => {
     try {
       setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
     } catch (ex) {
-      console.error('Cosmological constants are incorrect!')
+      console.error('Cosmological parameters are incorrect!')
       console.error(ex && ex.message ? ex.message : ex)
       throw ex
     }
