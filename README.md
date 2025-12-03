@@ -8,6 +8,8 @@ It makes it possible to produce a conformal mapping of cosmological structures, 
 Universe Viewer is intended to be a working tool for researchers in cosmology; it relies on concepts from astronomy and general relativity.
 It must produce a conformal map of the universe and make it possible to identify large-scale structures in reference or comoving space.
 
+![Screenshot](screenshot.webp)
+
 ## Project Setup
 
 ```sh
