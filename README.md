@@ -1,6 +1,6 @@
 # Universe Viewer
 
-Interactive software for visualization and geodesic processing of astronomical objects. \
+Interactive software for the visualization and geodesic analysis of high-redshift astronomical objects.\
 It makes it possible to produce a conformal mapping of cosmological structures, particularly quasars, taking into account the curvature of the universe.
 
 [Try it from the official website !](https://universeviewer.com)
