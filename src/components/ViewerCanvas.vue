@@ -674,9 +674,6 @@ export default {
       state.isSelecting = false
 
       updateCanvas()
-      if (store.mainWin && typeof store.mainWin.updateSelection === 'function') {
-        store.mainWin.updateSelection()
-      }
     }
 
     function handlePressedKeys() {

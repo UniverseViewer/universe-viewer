@@ -291,8 +291,7 @@ const isConstraintValid = computed(() => Math.abs(sumConsts.value - 1.0) < 1e-4)
 // Initialization
 onMounted(() => {
   try {
-    store.initEnvironment()
-    store.setMainWindow(viewer.value) // Pass viewer component ref to store
+    store.initialize()
   } catch (e) {
     console.error(e)
     infoLabel.value = `Error: ${e.message}`

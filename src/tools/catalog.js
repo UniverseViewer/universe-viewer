@@ -15,7 +15,6 @@ export function loadCatalogADR(content) {
 
   const lines = content.split(/\r?\n/)
   const quasars = []
-  let maxAsc = 0
 
   for (let line of lines) {
     line = line.trim()
@@ -42,16 +41,11 @@ export function loadCatalogADR(content) {
     q.setDeclination(dec)
     q.setRedshift(redshift)
 
-    if (asc > maxAsc) {
-      maxAsc = asc
-    }
-
     quasars.push(q)
   }
 
   // Update Store
   store.setQuasars(quasars)
-  store.setAscensionMax(maxAsc)
 
   // Reset selection count
   store.setSelectedCount(0)

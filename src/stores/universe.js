@@ -24,7 +24,6 @@ export const useUniverseStore = defineStore('universe', () => {
   const selectedCount = ref(0)
 
   const quasars = shallowRef(null)
-  const ascension_max = ref(0)
 
   const lambda = ref(0)
   const omega = ref(0)
@@ -43,9 +42,8 @@ export const useUniverseStore = defineStore('universe', () => {
   const viewerCanvas = ref(null)
   const precisionEnabled = ref(false)
   const comovingSpaceFlag = ref(true)
-  const somethingToShow = ref(false)
-  const mainWin = ref(null)
   const pointSize = ref(1.5)
+  const computing = ref(false)
 
   // Getters (as computed properties)
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
@@ -79,9 +77,7 @@ export const useUniverseStore = defineStore('universe', () => {
     selectedCount.value = n
   }
 
-  function initEnvironment() {
-    quasars.value = null
-    ascension_max.value = 0
+  function initialize() {
     try {
       setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
     } catch (ex) {
@@ -89,21 +85,10 @@ export const useUniverseStore = defineStore('universe', () => {
       console.error(ex && ex.message ? ex.message : ex)
       throw ex
     }
-    precisionEnabled.value = false
-    view.value = 4
-    userRA1.value = 0.0
-    userDec1.value = 0.0
-    userBeta.value = 0.0
-    comovingSpaceFlag.value = true
-    somethingToShow.value = false
   }
 
   function setQuasars(qArray) {
     quasars.value = qArray
-  }
-
-  function setAscensionMax(v) {
-    ascension_max.value = v
   }
 
   function setCosmoConsts(newlambda, newomega, newkappa, newalpha) {
@@ -217,10 +202,6 @@ export const useUniverseStore = defineStore('universe', () => {
       if (kappa.value === 0) throw new Error('Cant disable comoving space option: Kappa = 0!')
     }
     comovingSpaceFlag.value = !!flag
-  }
-
-  function setMainWindow(windowRef) {
-    mainWin.value = windowRef
   }
 
   function comovingDist(i) {
@@ -410,21 +391,21 @@ export const useUniverseStore = defineStore('universe', () => {
         break
     }
     triggerRef(quasars)
-    somethingToShow.value = true
   }
 
   function update(flag) {
     if (flag !== UPDATE_ALL && flag !== UPDATE_VIEW && flag !== UPDATE_VIEWER) {
       throw new Error('Update accepted values are: UPDATE_ALL, UPDATE_VIEW, UPDATE_VIEWER')
     }
-
     if (flag === UPDATE_ALL) {
+      computing.value = true
       calcQuasarsAngularDist()
       calcQuasarsPos()
       calcQuasarsProj()
       if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
         viewerCanvas.value.updateCanvas()
       }
+      computing.value = false
     } else if (flag === UPDATE_VIEW) {
       calcQuasarsProj()
       if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
@@ -438,10 +419,10 @@ export const useUniverseStore = defineStore('universe', () => {
   }
 
   return {
+    initialize,
     version,
     selectedCount,
     quasars,
-    ascension_max,
     lambda,
     omega,
     kappa,
@@ -450,6 +431,8 @@ export const useUniverseStore = defineStore('universe', () => {
     userRA1,
     userDec1,
     userBeta,
+    userDec1Deg,
+    userBetaHours,
     E0,
     E1,
     E2,
@@ -457,16 +440,14 @@ export const useUniverseStore = defineStore('universe', () => {
     viewerCanvas,
     precisionEnabled,
     comovingSpaceFlag,
-    somethingToShow,
-    mainWin,
+    horizon,
+    horizonAngularDistance,
     pointSize,
-    userDec1Deg,
-    userBetaHours,
+    computing,
+    // Setters
     setSelectedCount,
     setPointSize,
-    initEnvironment,
     setQuasars,
-    setAscensionMax,
     setCosmoConsts,
     setUserRa1,
     setUserDec1,
@@ -476,12 +457,9 @@ export const useUniverseStore = defineStore('universe', () => {
     setViewerCanvas,
     enablePrecision,
     setComovingSpace,
-    setMainWindow,
     calcQuasarsAngularDist,
     calcQuasarsPos,
     calcQuasarsProj,
     update,
-    horizon,
-    horizonAngularDistance,
   }
 })
