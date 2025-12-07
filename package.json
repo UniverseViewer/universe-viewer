@@ -18,7 +18,7 @@
     "three": "^0.181.1",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3",
-    "vuetify": "^3.10.11"
+    "vuetify": "^3.11.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
