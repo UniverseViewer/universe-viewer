@@ -21,7 +21,7 @@
                     prepend-icon="mdi-file-upload"
                     density="compact"
                   ></v-file-input>
-                  <div class="text-caption">Loaded: {{ quasars ? quasars.length : 0 }} objects</div>
+                  <div class="text-caption">Loaded: {{ targets ? targets.length : 0 }} objects</div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
@@ -168,14 +168,14 @@
                   </v-slider>
                   <v-divider class="my-3"></v-divider>
                   <v-slider
-                    label="Quasar point size"
-                    v-model="quasarPointSize"
+                    label="Object point size"
+                    v-model="objectPointSize"
                     :max="10"
                     :min="1"
                     step="0.5"
                   >
                     <template v-slot:append>
-                      {{ quasarPointSize.toFixed(1) }}
+                      {{ objectPointSize.toFixed(1) }}
                     </template>
                   </v-slider>
                   <v-checkbox
@@ -231,7 +231,7 @@ import { useTheme } from 'vuetify'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
-import { useQuasarsStore } from '@/stores/quasars.js'
+import { useTargetsStore } from '@/stores/targets.js'
 import * as projection from '@/logic/projection.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
@@ -256,8 +256,8 @@ const {
   viewerCanvas,
 } = storeToRefs(store)
 
-const quasarsStore = useQuasarsStore()
-const { quasars } = storeToRefs(quasarsStore)
+const targetsStore = useTargetsStore()
+const { targets } = storeToRefs(targetsStore)
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -284,7 +284,7 @@ const beta = computed({
   get: () => (12 * userBeta.value) / Math.PI,
   set: (val) => store.setUserBeta(val),
 })
-const quasarPointSize = computed({
+const objectPointSize = computed({
   get: () => pointSize.value,
   set: (val) => store.setPointSize(val),
 })
@@ -314,10 +314,10 @@ function onFileChange(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const loadedQuasars = loadCatalogADR(content)
-      quasarsStore.setQuasars(loadedQuasars)
-      quasarsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedQuasars.length} objects`
+      const loadedTargets = loadCatalogADR(content)
+      targetsStore.setTargets(loadedTargets)
+      targetsStore.setSelectedCount(0)
+      infoLabel.value = `Loaded ${loadedTargets.length} objects`
       forceUpdate()
     } catch (err) {
       console.error(err)
@@ -336,7 +336,7 @@ const aboutOpened = ref(false)
 function forceUpdate() {
   try {
     projection.updateAll(
-      quasars.value,
+      targets.value,
       view.value,
       userRA1.value,
       userDec1.value,
@@ -395,10 +395,10 @@ watch(catalogFile, (newVal) => {
   fetch('/catalogs/' + newVal)
     .then((response) => response.text())
     .then((content) => {
-      const loadedQuasars = loadCatalogADR(content)
-      quasarsStore.setQuasars(loadedQuasars)
-      quasarsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedQuasars.length} objects`
+      const loadedTargets = loadCatalogADR(content)
+      targetsStore.setTargets(loadedTargets)
+      targetsStore.setSelectedCount(0)
+      infoLabel.value = `Loaded ${loadedTargets.length} objects`
       forceUpdate()
     })
     .catch((err) => (infoLabel.value = `Error: ${err.message}`))
@@ -440,7 +440,7 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
     cosmoUpdateQueued = true
     requestAnimationFrame(() => {
       projection.updateAll(
-        quasars.value,
+        targets.value,
         view.value,
         userRA1.value,
         userDec1.value,
@@ -458,7 +458,7 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
 watch(view, (newVal) => {
   store.setView(newVal)
   projection.updateView(
-    quasars.value,
+    targets.value,
     view.value,
     userRA1.value,
     userDec1.value,
@@ -479,7 +479,7 @@ watch([userRA1, userDec1, userBeta], () => {
     viewUpdateQueued = true
     requestAnimationFrame(() => {
       projection.updateView(
-        quasars.value,
+        targets.value,
         view.value,
         userRA1.value,
         userDec1.value,

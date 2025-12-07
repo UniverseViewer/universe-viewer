@@ -17,119 +17,119 @@ export function comovingDist(redshift, precisionEnabled = false) {
   }
 }
 
-export function calcQuasarsAngularDist(quasars, kappa, precisionEnabled) {
-  if (!quasars) return false
+export function calcTargetsAngularDist(targets, kappa, precisionEnabled) {
+  if (!targets) return false
 
   let multiplier
   if (kappa === 0) multiplier = 1
   else if (kappa < 0.0) multiplier = Math.sqrt(-kappa)
   else multiplier = Math.sqrt(kappa)
 
-  for (let i = 0; i < quasars.length; i++) {
-    quasars[i].setAngularDist(multiplier * comovingDist(quasars[i].getRedshift()), precisionEnabled)
+  for (let i = 0; i < targets.length; i++) {
+    targets[i].setAngularDist(multiplier * comovingDist(targets[i].getRedshift()), precisionEnabled)
   }
   return true
 }
 
-export function calcQuasarsPos(quasars, kappa, precisionEnabled, comovingSpaceFlag) {
-  if (!quasars) return false
+export function calcTargetsPos(targets, kappa, precisionEnabled, comovingSpaceFlag) {
+  if (!targets) return false
 
   if (!comovingSpaceFlag) {
     if (kappa < 0.0) {
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
         const v = new Vect4d()
         v.setX(
-          Math.sinh(q.getAngularDist()) * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()),
+          Math.sinh(t.getAngularDist()) * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()),
         )
         v.setY(
-          Math.sinh(q.getAngularDist()) * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()),
+          Math.sinh(t.getAngularDist()) * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()),
         )
-        v.setZ(Math.sinh(q.getAngularDist()) * Math.sin(q.getDeclination()))
-        v.setT(Math.cosh(q.getAngularDist()))
-        q.setPos(v)
+        v.setZ(Math.sinh(t.getAngularDist()) * Math.sin(t.getDeclination()))
+        v.setT(Math.cosh(t.getAngularDist()))
+        t.setPos(v)
       }
     } else if (kappa > 0.0) {
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
         const v = new Vect4d()
         v.setX(
-          Math.sin(q.getAngularDist()) * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()),
+          Math.sin(t.getAngularDist()) * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()),
         )
         v.setY(
-          Math.sin(q.getAngularDist()) * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()),
+          Math.sin(t.getAngularDist()) * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()),
         )
-        v.setZ(Math.sin(q.getAngularDist()) * Math.sin(q.getDeclination()))
-        v.setT(Math.cos(q.getAngularDist()))
-        q.setPos(v)
+        v.setZ(Math.sin(t.getAngularDist()) * Math.sin(t.getDeclination()))
+        v.setT(Math.cos(t.getAngularDist()))
+        t.setPos(v)
       }
     } else {
       // kappa = 0 (Flat) in Reference Space
       // Behaves same as Flat Comoving Space
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
-        const cd = comovingDist(quasars[i].getRedshift(), precisionEnabled)
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
+        const cd = comovingDist(targets[i].getRedshift(), precisionEnabled)
         const v = new Vect4d()
-        v.setX(cd * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()))
-        v.setY(cd * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()))
-        v.setZ(cd * Math.sin(q.getDeclination()))
+        v.setX(cd * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()))
+        v.setY(cd * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()))
+        v.setZ(cd * Math.sin(t.getDeclination()))
         v.setT(0)
-        q.setPos(v)
+        t.setPos(v)
       }
     }
   } else {
     if (kappa < 0.0) {
       const s = 1 / Math.sqrt(-kappa)
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
         const v = new Vect4d()
         v.setX(
           s *
-            Math.sinh(q.getAngularDist()) *
-            Math.cos(q.getAscension()) *
-            Math.cos(q.getDeclination()),
+            Math.sinh(t.getAngularDist()) *
+            Math.cos(t.getAscension()) *
+            Math.cos(t.getDeclination()),
         )
         v.setY(
           s *
-            Math.sinh(q.getAngularDist()) *
-            Math.sin(q.getAscension()) *
-            Math.cos(q.getDeclination()),
+            Math.sinh(t.getAngularDist()) *
+            Math.sin(t.getAscension()) *
+            Math.cos(t.getDeclination()),
         )
-        v.setZ(s * Math.sinh(q.getAngularDist()) * Math.sin(q.getDeclination()))
-        v.setT(s * Math.cosh(q.getAngularDist()))
-        q.setPos(v)
+        v.setZ(s * Math.sinh(t.getAngularDist()) * Math.sin(t.getDeclination()))
+        v.setT(s * Math.cosh(t.getAngularDist()))
+        t.setPos(v)
       }
     } else if (kappa > 0.0) {
       const s = 1 / Math.sqrt(kappa)
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
         const v = new Vect4d()
         v.setX(
           s *
-            Math.sin(q.getAngularDist()) *
-            Math.cos(q.getAscension()) *
-            Math.cos(q.getDeclination()),
+            Math.sin(t.getAngularDist()) *
+            Math.cos(t.getAscension()) *
+            Math.cos(t.getDeclination()),
         )
         v.setY(
           s *
-            Math.sin(q.getAngularDist()) *
-            Math.sin(q.getAscension()) *
-            Math.cos(q.getDeclination()),
+            Math.sin(t.getAngularDist()) *
+            Math.sin(t.getAscension()) *
+            Math.cos(t.getDeclination()),
         )
-        v.setZ(s * Math.sin(q.getAngularDist()) * Math.sin(q.getDeclination()))
-        v.setT(s * Math.cos(q.getAngularDist()))
-        q.setPos(v)
+        v.setZ(s * Math.sin(t.getAngularDist()) * Math.sin(t.getDeclination()))
+        v.setT(s * Math.cos(t.getAngularDist()))
+        t.setPos(v)
       }
     } else {
-      for (let i = 0; i < quasars.length; i++) {
-        const q = quasars[i]
-        const cd = comovingDist(quasars[i].getRedshift(), precisionEnabled)
+      for (let i = 0; i < targets.length; i++) {
+        const t = targets[i]
+        const cd = comovingDist(targets[i].getRedshift(), precisionEnabled)
         const v = new Vect4d()
-        v.setX(cd * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()))
-        v.setY(cd * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()))
-        v.setZ(cd * Math.sin(q.getDeclination()))
+        v.setX(cd * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()))
+        v.setY(cd * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()))
+        v.setZ(cd * Math.sin(t.getDeclination()))
         v.setT(0)
-        q.setPos(v)
+        t.setPos(v)
       }
     }
   }
@@ -205,8 +205,8 @@ function calcProjVects(RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
   return { E0, E1, E2, E3 }
 }
 
-export function calcQuasarsProj(quasars, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
-  if (!quasars) return
+export function calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
+  if (!targets) return
 
   const projVects = calcProjVects(RA1, Dec1, Beta, kappa, comovingSpaceFlag)
   const E0 = projVects.E0
@@ -216,52 +216,52 @@ export function calcQuasarsProj(quasars, view, RA1, Dec1, Beta, kappa, comovingS
 
   switch (view) {
     case 1:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E0))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E1))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E0))
+        targets[i].sety(targets[i].getPos().dotProd4d(E1))
       }
       break
     case 2:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E0))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E2))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E0))
+        targets[i].sety(targets[i].getPos().dotProd4d(E2))
       }
       break
     case 3:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E0))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E3))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E0))
+        targets[i].sety(targets[i].getPos().dotProd4d(E3))
       }
       break
     case 4:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E1))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E2))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E1))
+        targets[i].sety(targets[i].getPos().dotProd4d(E2))
       }
       break
     case 5:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E1))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E3))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E1))
+        targets[i].sety(targets[i].getPos().dotProd4d(E3))
       }
       break
     case 6:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E2))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E3))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E2))
+        targets[i].sety(targets[i].getPos().dotProd4d(E3))
       }
       break
     default:
-      for (let i = 0; i < quasars.length; i++) {
-        quasars[i].setx(quasars[i].getPos().dotProd4d(E0))
-        quasars[i].sety(quasars[i].getPos().dotProd4d(E1))
+      for (let i = 0; i < targets.length; i++) {
+        targets[i].setx(targets[i].getPos().dotProd4d(E0))
+        targets[i].sety(targets[i].getPos().dotProd4d(E1))
       }
       break
   }
 }
 
 export function updateAll(
-  quasars,
+  targets,
   view,
   RA1,
   Dec1,
@@ -270,10 +270,10 @@ export function updateAll(
   precisionEnabled,
   comovingSpaceFlag,
 ) {
-  calcQuasarsAngularDist(quasars, kappa, precisionEnabled)
-  calcQuasarsPos(quasars, kappa, precisionEnabled, comovingSpaceFlag)
-  calcQuasarsProj(quasars, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
+  calcTargetsAngularDist(targets, kappa, precisionEnabled)
+  calcTargetsPos(targets, kappa, precisionEnabled, comovingSpaceFlag)
+  calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
 }
-export function updateView(quasars, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
-  calcQuasarsProj(quasars, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
+export function updateView(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
+  calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
 }

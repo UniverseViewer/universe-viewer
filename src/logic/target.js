@@ -1,4 +1,4 @@
-export default class Quasar {
+export default class Target {
   constructor({
     ascension = 0,
     declination = 0,

@@ -1,23 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 
-export const useQuasarsStore = defineStore('quasars', () => {
+export const useTargetsStore = defineStore('targets', () => {
   const selectedCount = ref(0)
-  const quasars = shallowRef(null)
+  const targets = shallowRef(null)
 
   function setSelectedCount(n) {
     selectedCount.value = n
   }
 
-  function setQuasars(qArray) {
-    quasars.value = qArray
+  function setTargets(tArray) {
+    targets.value = tArray
   }
 
   return {
     selectedCount,
-    quasars,
+    targets,
     // Setters
     setSelectedCount,
-    setQuasars,
+    setTargets,
   }
 })

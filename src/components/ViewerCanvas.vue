@@ -22,7 +22,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vu
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import { useUniverseStore } from '@/stores/universe.js'
-import { useQuasarsStore } from '@/stores/quasars.js'
+import { useTargetsStore } from '@/stores/targets.js'
 import { watch } from 'vue'
 
 export default {
@@ -37,10 +37,10 @@ export default {
     const overlay = ref(null)
 
     const universeStore = useUniverseStore()
-    const quasarsStore = useQuasarsStore()
+    const targetsStore = useTargetsStore()
     const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance } =
       storeToRefs(universeStore)
-    const { quasars } = storeToRefs(quasarsStore)
+    const { targets } = storeToRefs(targetsStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -288,28 +288,28 @@ export default {
     })
 
     function populatePoints() {
-      const q = quasars.value || []
-      const N = q.length
+      const t = targets.value || []
+      const N = t.length
       if (N === 0) return
       const positions = new Float32Array(N * 3)
       const colors = new Float32Array(N * 3)
 
       for (let i = 0; i < N; i++) {
-        const qi = q[i]
+        const ti = t[i]
         let x, y
         if (state.mode === state.SKY_MODE) {
-          x = qi.getAscension()
-          y = qi.getDeclination()
+          x = ti.getAscension()
+          y = ti.getDeclination()
         } else {
-          x = qi.getx ? qi.getx() : 0
-          y = qi.gety ? qi.gety() : 0
+          x = ti.getx ? ti.getx() : 0
+          y = ti.gety ? ti.gety() : 0
         }
 
         positions[3 * i + 0] = x
         positions[3 * i + 1] = y
         positions[3 * i + 2] = 0.1
 
-        const selected = qi.isSelected ? qi.isSelected() : false
+        const selected = ti.isSelected ? ti.isSelected() : false
         if (selected) {
           colors[3 * i + 0] = state.theme[themeName.value].pointSelectedR
           colors[3 * i + 1] = state.theme[themeName.value].pointSelectedG
@@ -555,33 +555,33 @@ export default {
       const isClick = pixelWidth < 5 && pixelHeight < 5
 
       let selX1, selX2, selY1, selY2
-      let nearestQuasar = null
+      let nearestTarget = null
 
       if (isClick) {
-        // Find the nearest quasar within a small threshold
+        // Find the nearest target within a small threshold
         const clickThresholdWorld = 0.01 / state.zoom // Small threshold in world coordinates
         const clickX = p1.worldX
         const clickY = p1.worldY
 
-        const q = quasars.value || []
+        const t = targets.value || []
         let minDistance = clickThresholdWorld
 
-        for (let i = 0; i < q.length; i++) {
-          const qi = q[i]
+        for (let i = 0; i < t.length; i++) {
+          const ti = t[i]
           let x, y
           if (state.mode === state.UNIVERSE_MODE) {
-            x = qi.getx()
-            y = qi.gety()
+            x = ti.getx()
+            y = ti.gety()
           } else {
-            x = qi.getAscension()
-            y = qi.getDeclination()
+            x = ti.getAscension()
+            y = ti.getDeclination()
           }
 
           const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2))
 
           if (distance <= minDistance) {
             minDistance = distance
-            nearestQuasar = qi
+            nearestTarget = ti
           }
         }
 
@@ -598,51 +598,51 @@ export default {
         selY2 = Math.max(p1.worldY, p2.worldY)
       }
 
-      const q = quasars.value || []
+      const t = targets.value || []
       let nbSelected = 0
 
       // Pre-capture selected state for intersection mode
       const previouslySelected = new Set()
       if (state.selectionType === 'intersection') {
-        q.forEach((qi) => {
-          if (qi.isSelected()) {
-            previouslySelected.add(qi)
+        t.forEach((ti) => {
+          if (ti.isSelected()) {
+            previouslySelected.add(ti)
           }
         })
       }
 
       // Initial deselection for 'replace' and 'intersection' modes
       if (state.selectionType === 'replace' || state.selectionType === 'intersection') {
-        q.forEach((qi) => qi.setSelected(false))
+        t.forEach((ti) => ti.setSelected(false))
       }
 
-      if (isClick && nearestQuasar) {
-        // Select only the nearest quasar
+      if (isClick && nearestTarget) {
+        // Select only the nearest target
         switch (state.selectionType) {
           case 'additive':
-            nearestQuasar.setSelected(true)
+            nearestTarget.setSelected(true)
             break
           case 'replace':
-            nearestQuasar.setSelected(true)
+            nearestTarget.setSelected(true)
             break
           case 'intersection':
-            if (previouslySelected.has(nearestQuasar)) {
-              nearestQuasar.setSelected(true)
+            if (previouslySelected.has(nearestTarget)) {
+              nearestTarget.setSelected(true)
             }
             break
         }
-        nbSelected = q.filter((qi) => qi.isSelected()).length
+        nbSelected = t.filter((ti) => ti.isSelected()).length
       } else {
-        // Rectangle selection (including clicks with no nearby quasar)
-        for (let i = 0; i < q.length; i++) {
-          const qi = q[i]
+        // Rectangle selection (including clicks with no nearby target)
+        for (let i = 0; i < t.length; i++) {
+          const ti = t[i]
           let x, y
           if (state.mode === state.UNIVERSE_MODE) {
-            x = qi.getx()
-            y = qi.gety()
+            x = ti.getx()
+            y = ti.gety()
           } else {
-            const asc = qi.getAscension()
-            const dec = qi.getDeclination()
+            const asc = ti.getAscension()
+            const dec = ti.getDeclination()
             x = asc
             y = dec
           }
@@ -652,28 +652,28 @@ export default {
           switch (state.selectionType) {
             case 'additive':
               if (isInsideRectangle) {
-                qi.setSelected(true)
+                ti.setSelected(true)
               }
               break
             case 'replace':
               if (isInsideRectangle) {
-                qi.setSelected(true)
+                ti.setSelected(true)
               }
               break
             case 'intersection':
-              if (isInsideRectangle && previouslySelected.has(qi)) {
-                qi.setSelected(true)
+              if (isInsideRectangle && previouslySelected.has(ti)) {
+                ti.setSelected(true)
               }
               break
           }
 
-          if (qi.isSelected()) {
+          if (ti.isSelected()) {
             nbSelected += 1
           }
         }
       }
 
-      quasarsStore.setSelectedCount(nbSelected)
+      targetsStore.setSelectedCount(nbSelected)
 
       state.isSelecting = false
 
@@ -773,7 +773,7 @@ export default {
       selectionStyle,
       isSelecting: computed(() => state.isSelecting),
       modeName,
-      quasars,
+      targets,
       updateCanvas,
       setModePublic: (m) => {
         setMode(m)

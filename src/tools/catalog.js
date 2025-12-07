@@ -1,18 +1,18 @@
 /**
- * Load quasars catalog from file, parsing it to Quasar objects.
+ * Load catalog from file, parsing it to Target objects.
  */
 
-import Quasar from '@/logic/quasar.js'
+import Target from '@/logic/target.js'
 
 /*
  * Load catalog from custom ADR format.
  * Expected format per line: Ascension Declination Redshift
  * @param {string} content - The raw file content
- * @returns {Array} Array of Quasar objects
+ * @returns {Array} Array of Target objects
  */
 export function loadCatalogADR(content) {
   const lines = content.split(/\r?\n/)
-  const quasars = []
+  const targets = []
 
   for (let line of lines) {
     line = line.trim()
@@ -34,13 +34,13 @@ export function loadCatalogADR(content) {
       continue
     }
 
-    const q = new Quasar()
-    q.setAscension(asc)
-    q.setDeclination(dec)
-    q.setRedshift(redshift)
+    const t = new Target()
+    t.setAscension(asc)
+    t.setDeclination(dec)
+    t.setRedshift(redshift)
 
-    quasars.push(q)
+    targets.push(t)
   }
 
-  return quasars
+  return targets
 }
