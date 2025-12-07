@@ -230,17 +230,18 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useTheme } from 'vuetify'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
-import { useUniverseStore, UPDATE_ALL, UPDATE_VIEW } from '@/stores/universe.js'
+import { useUniverseStore } from '@/stores/universe.js'
+import { useQuasarsStore } from '@/stores/quasars.js'
+import * as projection from '@/logic/projection.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
 import Help from '@/components/Help.vue'
 
-// Store setup
+// Stores setup
 const store = useUniverseStore()
 const {
   version,
-  quasars,
   lambda,
   omega,
   kappa,
@@ -252,7 +253,11 @@ const {
   comovingSpaceFlag,
   precisionEnabled,
   pointSize,
+  viewerCanvas,
 } = storeToRefs(store)
+
+const quasarsStore = useQuasarsStore()
+const { quasars } = storeToRefs(quasarsStore)
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -309,8 +314,10 @@ function onFileChange(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const count = loadCatalogADR(content)
-      infoLabel.value = `Loaded ${count} objects`
+      const loadedQuasars = loadCatalogADR(content)
+      quasarsStore.setQuasars(loadedQuasars)
+      quasarsStore.setSelectedCount(0)
+      infoLabel.value = `Loaded ${loadedQuasars.length} objects`
       forceUpdate()
     } catch (err) {
       console.error(err)
@@ -328,7 +335,17 @@ const aboutOpened = ref(false)
 // Logic Updates
 function forceUpdate() {
   try {
-    store.update(UPDATE_ALL)
+    projection.updateAll(
+      quasars.value,
+      view.value,
+      userRA1.value,
+      userDec1.value,
+      userBeta.value,
+      kappa.value,
+      precisionEnabled.value,
+      comovingSpaceFlag.value,
+    )
+    viewerCanvas.value.updateCanvas()
   } catch (e) {
     console.error(e)
     infoLabel.value = 'Update Error: ' + e.message
@@ -358,7 +375,7 @@ if (savedTheme) {
 
 const isDarkTheme = ref(theme.global.current.value.dark)
 
-// Sync ref if theme changed externally (e.g. initial load)
+// Sync ref if theme changed externally (e.e. initial load)
 watch(
   () => theme.global.current.value.dark,
   (val) => {
@@ -378,8 +395,10 @@ watch(catalogFile, (newVal) => {
   fetch('/catalogs/' + newVal)
     .then((response) => response.text())
     .then((content) => {
-      const count = loadCatalogADR(content)
-      infoLabel.value = `Loaded ${count} objects`
+      const loadedQuasars = loadCatalogADR(content)
+      quasarsStore.setQuasars(loadedQuasars)
+      quasarsStore.setSelectedCount(0)
+      infoLabel.value = `Loaded ${loadedQuasars.length} objects`
       forceUpdate()
     })
     .catch((err) => (infoLabel.value = `Error: ${err.message}`))
@@ -420,7 +439,17 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
   if (!cosmoUpdateQueued) {
     cosmoUpdateQueued = true
     requestAnimationFrame(() => {
-      store.update(UPDATE_ALL)
+      projection.updateAll(
+        quasars.value,
+        view.value,
+        userRA1.value,
+        userDec1.value,
+        userBeta.value,
+        kappa.value,
+        precisionEnabled.value,
+        comovingSpaceFlag.value,
+      )
+      viewerCanvas.value.updateCanvas()
       cosmoUpdateQueued = false
     })
   }
@@ -428,7 +457,16 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
 
 watch(view, (newVal) => {
   store.setView(newVal)
-  store.update(UPDATE_VIEW)
+  projection.updateView(
+    quasars.value,
+    view.value,
+    userRA1.value,
+    userDec1.value,
+    userBeta.value,
+    kappa.value,
+    comovingSpaceFlag.value,
+  )
+  viewerCanvas.value.updateCanvas()
 })
 
 watch(showRefMarks, (val) => {
@@ -440,7 +478,16 @@ watch([userRA1, userDec1, userBeta], () => {
   if (!viewUpdateQueued) {
     viewUpdateQueued = true
     requestAnimationFrame(() => {
-      store.update(UPDATE_VIEW)
+      projection.updateView(
+        quasars.value,
+        view.value,
+        userRA1.value,
+        userDec1.value,
+        userBeta.value,
+        kappa.value,
+        comovingSpaceFlag.value,
+      )
+      viewerCanvas.value.updateCanvas()
       viewUpdateQueued = false
     })
   }

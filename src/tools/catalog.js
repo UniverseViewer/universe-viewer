@@ -3,16 +3,14 @@
  */
 
 import Quasar from '@/logic/quasar.js'
-import { useUniverseStore } from '@/stores/universe.js'
 
 /*
  * Load catalog from custom ADR format.
  * Expected format per line: Ascension Declination Redshift
  * @param {string} content - The raw file content
+ * @returns {Array} Array of Quasar objects
  */
 export function loadCatalogADR(content) {
-  const store = useUniverseStore()
-
   const lines = content.split(/\r?\n/)
   const quasars = []
 
@@ -44,11 +42,5 @@ export function loadCatalogADR(content) {
     quasars.push(q)
   }
 
-  // Update Store
-  store.setQuasars(quasars)
-
-  // Reset selection count
-  store.setSelectedCount(0)
-
-  return quasars.length
+  return quasars
 }

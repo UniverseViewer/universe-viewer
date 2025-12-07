@@ -1,12 +1,9 @@
 import { defineStore } from 'pinia'
 import pkg from '../../package.json'
-import { ref, computed, shallowRef, triggerRef } from 'vue'
+import { ref, computed } from 'vue'
 
-import Vect3d from '@/logic/vect3d.js'
-import Vect4d from '@/logic/vect4d.js'
 import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
-
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 
 function roundTo(n, digits) {
@@ -14,16 +11,8 @@ function roundTo(n, digits) {
   return Math.round(n * factor) / factor
 }
 
-export const UPDATE_ALL = 1
-export const UPDATE_VIEW = 2
-export const UPDATE_VIEWER = 3
-
 export const useUniverseStore = defineStore('universe', () => {
   const version = ref(pkg.version)
-
-  const selectedCount = ref(0)
-
-  const quasars = shallowRef(null)
 
   const lambda = ref(0)
   const omega = ref(0)
@@ -34,20 +23,24 @@ export const useUniverseStore = defineStore('universe', () => {
   const userRA1 = ref(0.0) // radians
   const userDec1 = ref(0.0) // radians
   const userBeta = ref(0.0) // radians
-  const E0 = ref(new Vect4d())
-  const E1 = ref(new Vect4d())
-  const E2 = ref(new Vect4d())
-  const E3 = ref(new Vect4d())
 
   const viewerCanvas = ref(null)
   const precisionEnabled = ref(false)
   const comovingSpaceFlag = ref(true)
   const pointSize = ref(1.5)
-  const computing = ref(false)
 
-  // Getters (as computed properties)
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
+
+  function initialize() {
+    try {
+      setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
+    } catch (ex) {
+      console.error('Cosmological parameters are incorrect!')
+      console.error(ex && ex.message ? ex.message : ex)
+      throw ex
+    }
+  }
 
   const horizon = computed(() => {
     /* The horizon is the distance to z=infinity, i.e., a=0. So we integrate from 0.0 to 1.0. */
@@ -68,27 +61,8 @@ export const useUniverseStore = defineStore('universe', () => {
     }
   })
 
-  // Actions
   function setPointSize(size) {
     pointSize.value = size
-  }
-
-  function setSelectedCount(n) {
-    selectedCount.value = n
-  }
-
-  function initialize() {
-    try {
-      setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
-    } catch (ex) {
-      console.error('Cosmological parameters are incorrect!')
-      console.error(ex && ex.message ? ex.message : ex)
-      throw ex
-    }
-  }
-
-  function setQuasars(qArray) {
-    quasars.value = qArray
   }
 
   function setCosmoConsts(newlambda, newomega, newkappa, newalpha) {
@@ -122,68 +96,6 @@ export const useUniverseStore = defineStore('universe', () => {
     userBeta.value = (Math.PI / 12.0) * Beta_hours
   }
 
-  function setProjVects() {
-    const P1 = new Vect3d()
-    P1.setX(Math.cos(userRA1.value) * Math.cos(userDec1.value))
-    P1.setY(Math.sin(userRA1.value) * Math.cos(userDec1.value))
-    P1.setZ(Math.sin(userDec1.value))
-
-    let eta1 = new Vect3d()
-    let eta2 = new Vect3d()
-
-    if (Math.abs(P1.getX() - 1) > 1e-5) {
-      const i = new Vect3d()
-      i.setX(1)
-      i.setY(0)
-      i.setZ(0)
-      const temp = P1.vectProd3d(i)
-      const norme = temp.norm()
-      eta1.setX(temp.getX() / norme)
-      eta1.setY(temp.getY() / norme)
-      eta1.setZ(temp.getZ() / norme)
-    } else {
-      const j = new Vect3d()
-      j.setX(0)
-      j.setY(1)
-      j.setZ(0)
-      const temp = P1.vectProd3d(j)
-      const norme = temp.norm()
-      eta1.setX(temp.getX() / norme)
-      eta1.setY(temp.getY() / norme)
-      eta1.setZ(temp.getZ() / norme)
-    }
-
-    eta2 = P1.vectProd3d(eta1)
-
-    const P2 = new Vect3d()
-    P2.setX(Math.cos(userBeta.value) * eta1.getX() + Math.sin(userBeta.value) * eta2.getX())
-    P2.setY(Math.cos(userBeta.value) * eta1.getY() + Math.sin(userBeta.value) * eta2.getY())
-    P2.setZ(Math.cos(userBeta.value) * eta1.getZ() + Math.sin(userBeta.value) * eta2.getZ())
-
-    const P3 = P1.vectProd3d(P2)
-
-    E0.value.setX(0.0)
-    E0.value.setY(0.0)
-    E0.value.setZ(0.0)
-    if (comovingSpaceFlag.value && kappa.value !== 0) {
-      E0.value.setT(Math.sqrt(Math.abs(kappa.value)))
-    } else {
-      E0.value.setT(1.0)
-    }
-    E1.value.setX(P1.getX())
-    E1.value.setY(P1.getY())
-    E1.value.setZ(P1.getZ())
-    E1.value.setT(0.0)
-    E2.value.setX(P2.getX())
-    E2.value.setY(P2.getY())
-    E2.value.setZ(P2.getZ())
-    E2.value.setT(0.0)
-    E3.value.setX(P3.getX())
-    E3.value.setY(P3.getY())
-    E3.value.setZ(P3.getZ())
-    E3.value.setT(0.0)
-  }
-
   function setView(v) {
     if (v < 1 || v > 6) throw new Error('View number incorrect, must be {1,2,3,4,5,6}')
     view.value = v
@@ -204,225 +116,9 @@ export const useUniverseStore = defineStore('universe', () => {
     comovingSpaceFlag.value = !!flag
   }
 
-  function comovingDist(i) {
-    const zInv = 1.0 / (1.0 + quasars.value[i].getRedshift())
-    if (precisionEnabled.value) {
-      return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, evolutionIntegrand)
-    } else {
-      return rombergIntegral.integrate(zInv, 1.0, 6, evolutionIntegrand)
-    }
-  }
-
-  function calcQuasarsAngularDist() {
-    if (!quasars.value) return false
-
-    let multiplier
-    if (kappa.value === 0) multiplier = 1
-    else if (kappa.value < 0.0) multiplier = Math.sqrt(-kappa.value)
-    else multiplier = Math.sqrt(kappa.value)
-
-    for (let i = 0; i < quasars.value.length; i++) {
-      quasars.value[i].setAngularDist(multiplier * comovingDist(i))
-    }
-    triggerRef(quasars)
-    return true
-  }
-
-  function calcQuasarsPos() {
-    if (!quasars.value) return false
-
-    if (!comovingSpaceFlag.value) {
-      if (kappa.value < 0.0) {
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const v = new Vect4d()
-          v.setX(
-            Math.sinh(q.getAngularDist()) *
-              Math.cos(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setY(
-            Math.sinh(q.getAngularDist()) *
-              Math.sin(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setZ(Math.sinh(q.getAngularDist()) * Math.sin(q.getDeclination()))
-          v.setT(Math.cosh(q.getAngularDist()))
-          q.setPos(v)
-        }
-      } else if (kappa.value > 0.0) {
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const v = new Vect4d()
-          v.setX(
-            Math.sin(q.getAngularDist()) *
-              Math.cos(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setY(
-            Math.sin(q.getAngularDist()) *
-              Math.sin(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setZ(Math.sin(q.getAngularDist()) * Math.sin(q.getDeclination()))
-          v.setT(Math.cos(q.getAngularDist()))
-          q.setPos(v)
-        }
-      } else {
-        // kappa = 0 (Flat) in Reference Space
-        // Behaves same as Flat Comoving Space
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const cd = comovingDist(i)
-          const v = new Vect4d()
-          v.setX(cd * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()))
-          v.setY(cd * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()))
-          v.setZ(cd * Math.sin(q.getDeclination()))
-          v.setT(0)
-          q.setPos(v)
-        }
-      }
-    } else {
-      if (kappa.value < 0.0) {
-        const s = 1 / Math.sqrt(-kappa.value)
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const v = new Vect4d()
-          v.setX(
-            s *
-              Math.sinh(q.getAngularDist()) *
-              Math.cos(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setY(
-            s *
-              Math.sinh(q.getAngularDist()) *
-              Math.sin(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setZ(s * Math.sinh(q.getAngularDist()) * Math.sin(q.getDeclination()))
-          v.setT(s * Math.cosh(q.getAngularDist()))
-          q.setPos(v)
-        }
-      } else if (kappa.value > 0.0) {
-        const s = 1 / Math.sqrt(kappa.value)
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const v = new Vect4d()
-          v.setX(
-            s *
-              Math.sin(q.getAngularDist()) *
-              Math.cos(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setY(
-            s *
-              Math.sin(q.getAngularDist()) *
-              Math.sin(q.getAscension()) *
-              Math.cos(q.getDeclination()),
-          )
-          v.setZ(s * Math.sin(q.getAngularDist()) * Math.sin(q.getDeclination()))
-          v.setT(s * Math.cos(q.getAngularDist()))
-          q.setPos(v)
-        }
-      } else {
-        for (let i = 0; i < quasars.value.length; i++) {
-          const q = quasars.value[i]
-          const cd = comovingDist(i)
-          const v = new Vect4d()
-          v.setX(cd * Math.cos(q.getAscension()) * Math.cos(q.getDeclination()))
-          v.setY(cd * Math.sin(q.getAscension()) * Math.cos(q.getDeclination()))
-          v.setZ(cd * Math.sin(q.getDeclination()))
-          v.setT(0)
-          q.setPos(v)
-        }
-      }
-    }
-    triggerRef(quasars)
-    return true
-  }
-
-  function calcQuasarsProj() {
-    setProjVects()
-    if (!quasars.value) return
-
-    switch (view.value) {
-      case 1:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E0.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E1.value))
-        }
-        break
-      case 2:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E0.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E2.value))
-        }
-        break
-      case 3:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E0.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E3.value))
-        }
-        break
-      case 4:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E1.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E2.value))
-        }
-        break
-      case 5:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E1.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E3.value))
-        }
-        break
-      case 6:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E2.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E3.value))
-        }
-        break
-      default:
-        for (let i = 0; i < quasars.value.length; i++) {
-          quasars.value[i].setx(quasars.value[i].getPos().dotProd4d(E0.value))
-          quasars.value[i].sety(quasars.value[i].getPos().dotProd4d(E1.value))
-        }
-        break
-    }
-    triggerRef(quasars)
-  }
-
-  function update(flag) {
-    if (flag !== UPDATE_ALL && flag !== UPDATE_VIEW && flag !== UPDATE_VIEWER) {
-      throw new Error('Update accepted values are: UPDATE_ALL, UPDATE_VIEW, UPDATE_VIEWER')
-    }
-    if (flag === UPDATE_ALL) {
-      computing.value = true
-      calcQuasarsAngularDist()
-      calcQuasarsPos()
-      calcQuasarsProj()
-      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
-        viewerCanvas.value.updateCanvas()
-      }
-      computing.value = false
-    } else if (flag === UPDATE_VIEW) {
-      calcQuasarsProj()
-      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
-        viewerCanvas.value.updateCanvas()
-      }
-    } else if (flag === UPDATE_VIEWER) {
-      if (viewerCanvas.value && typeof viewerCanvas.value.updateCanvas === 'function') {
-        viewerCanvas.value.updateCanvas()
-      }
-    }
-  }
-
   return {
     initialize,
     version,
-    selectedCount,
-    quasars,
     lambda,
     omega,
     kappa,
@@ -433,33 +129,21 @@ export const useUniverseStore = defineStore('universe', () => {
     userBeta,
     userDec1Deg,
     userBetaHours,
-    E0,
-    E1,
-    E2,
-    E3,
     viewerCanvas,
     precisionEnabled,
     comovingSpaceFlag,
     horizon,
     horizonAngularDistance,
     pointSize,
-    computing,
     // Setters
-    setSelectedCount,
     setPointSize,
-    setQuasars,
     setCosmoConsts,
     setUserRa1,
     setUserDec1,
     setUserBeta,
-    setProjVects,
     setView,
     setViewerCanvas,
     enablePrecision,
     setComovingSpace,
-    calcQuasarsAngularDist,
-    calcQuasarsPos,
-    calcQuasarsProj,
-    update,
   }
 })

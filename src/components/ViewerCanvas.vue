@@ -21,7 +21,8 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vue'
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
-import { useUniverseStore, UPDATE_VIEWER } from '@/stores/universe.js'
+import { useUniverseStore } from '@/stores/universe.js'
+import { useQuasarsStore } from '@/stores/quasars.js'
 import { watch } from 'vue'
 
 export default {
@@ -35,9 +36,11 @@ export default {
     const root = ref(null)
     const overlay = ref(null)
 
-    const store = useUniverseStore()
-    const { quasars, kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance } =
-      storeToRefs(store)
+    const universeStore = useUniverseStore()
+    const quasarsStore = useQuasarsStore()
+    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance } =
+      storeToRefs(universeStore)
+    const { quasars } = storeToRefs(quasarsStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -164,7 +167,7 @@ export default {
       state.camera.bottom = -halfVisibleWorldHeight
 
       updateCameraBounds() // This will apply state.posX, state.posY, state.zoom
-      store.update(UPDATE_VIEWER)
+      updateCanvas()
     }
 
     function setMode(m) {
@@ -244,7 +247,6 @@ export default {
       state.scene = markRaw(new THREE.Scene())
       state.scene.background = new THREE.Color(state.theme[themeName.value].background)
       state.camera = markRaw(createOrthoCamera())
-      onResize() // Set initial camera projection based on current size
 
       state.geometry = markRaw(new THREE.BufferGeometry())
       state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
@@ -263,6 +265,8 @@ export default {
 
       state.refGroup = markRaw(new THREE.Group())
       state.scene.add(state.refGroup)
+
+      onResize() // Set initial camera projection based on current size
 
       drawReferenceMarks()
       populatePoints()
@@ -669,7 +673,7 @@ export default {
         }
       }
 
-      store.setSelectedCount(nbSelected)
+      quasarsStore.setSelectedCount(nbSelected)
 
       state.isSelecting = false
 
@@ -724,7 +728,7 @@ export default {
         resizeObserver.observe(root.value)
       }
 
-      store.setViewerCanvas({
+      universeStore.setViewerCanvas({
         updateCanvas,
         setMode: (m) => {
           setMode(m)
