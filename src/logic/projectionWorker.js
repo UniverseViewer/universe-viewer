@@ -65,11 +65,11 @@ function calcPos(data) {
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i]
     const v = computePos(
+      comovingSpaceFlag,
       t.angularDistance,
       t.ascension,
       t.declination,
       t.redshift,
-      comovingSpaceFlag,
       kappa,
       lambda,
       omega,

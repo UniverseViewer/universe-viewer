@@ -39,7 +39,7 @@ export function computeAngularDist(redshift, kappa, lambda, omega, alpha, precis
 /**
  * Compute position.
  */
-export function computePos(angularDist, ascension, declination, redshift, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+export function computePos(comovingSpaceFlag, angularDist, ascension, declination, redshift, kappa, lambda, omega, alpha, precisionEnabled) {
   const v = new Vect4d()
 
   if (!comovingSpaceFlag) {
@@ -148,11 +148,11 @@ export function calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega,
   for (let i = 0; i < targets.length; i++) {
     const t = targets[i]
     const v = computePos(
+      comovingSpaceFlag,
       t.getAngularDist(),
       t.getAscension(),
       t.getDeclination(),
       t.getRedshift(),
-      comovingSpaceFlag,
       kappa,
       lambda,
       omega,
