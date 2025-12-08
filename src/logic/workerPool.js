@@ -23,8 +23,8 @@
  */
 
 class WorkerPool {
-  constructor(workerScript, maxWorkers = null) {
-    this.workerScript = workerScript
+  constructor(workerClass, maxWorkers = null) {
+    this.workerClass = workerClass
     this.maxWorkers = maxWorkers || Math.max(1, (navigator.hardwareConcurrency || 4) - 1)
     this.workers = []
     this.availableWorkers = []
@@ -42,9 +42,7 @@ class WorkerPool {
     try {
       // Create workers
       for (let i = 0; i < this.maxWorkers; i++) {
-        const worker = new Worker(new URL(this.workerScript, import.meta.url), {
-          type: 'module',
-        })
+        const worker = new this.workerClass()
 
         worker.onmessage = (e) => this.handleWorkerMessage(worker, e)
         worker.onerror = (e) => this.handleWorkerError(worker, e)
@@ -170,15 +168,18 @@ class WorkerPool {
   }
 }
 
-// Singleton instance
+// Projection worker pool singleton instance
 let projectionWorkerPool = null
+
+// Projection worker class
+import ProjectionWorker from './projectionWorker.js?worker'
 
 /**
  * Get or create the projection worker pool.
  */
 export async function getProjectionWorkerPool() {
   if (!projectionWorkerPool) {
-    projectionWorkerPool = new WorkerPool('./projectionWorker.js')
+    projectionWorkerPool = new WorkerPool(ProjectionWorker)
     await projectionWorkerPool.init()
   }
   return projectionWorkerPool
