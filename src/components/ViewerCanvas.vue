@@ -3,7 +3,7 @@
     <!-- Three.js canvas will be appended here -->
     <div
       ref="overlay"
-      class="overlay"
+      :class="['overlay', busy?'busy':'' ]"
       style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none"
     ></div>
 
@@ -38,7 +38,7 @@ export default {
 
     const universeStore = useUniverseStore()
     const targetsStore = useTargetsStore()
-    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance } =
+    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance, busy } =
       storeToRefs(universeStore)
     const { targets } = storeToRefs(targetsStore)
 
@@ -775,6 +775,7 @@ export default {
       modeName,
       targets,
       updateCanvas,
+      busy,
       setModePublic: (m) => {
         setMode(m)
         updateCanvas()
@@ -795,7 +796,9 @@ export default {
   background: black;
   overflow: hidden;
 }
-
+.overlay.busy {
+  backdrop-filter: blur(6px);
+}
 .selection-rect {
   box-sizing: border-box;
   position: absolute;

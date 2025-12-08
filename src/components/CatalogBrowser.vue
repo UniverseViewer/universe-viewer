@@ -1,5 +1,6 @@
 <template>
   <v-select
+    :disabled="disabled"
     :item-props="catalogProps"
     :items="catalogs"
     item-value="file"
@@ -17,7 +18,8 @@ export default {
   name: 'CatalogBrowser',
 
   props: {
-    modelValue: { type: String, default: null }   // parent → child
+    modelValue: { type: String, default: null },   // parent → child
+    disabled: { type: Boolean, default: false },
   },
   emits: ['update:modelValue'],
 

@@ -32,6 +32,8 @@ export const useUniverseStore = defineStore('universe', () => {
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
 
+  const busy = ref(false)
+
   function initialize() {
     try {
       setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
@@ -63,10 +65,6 @@ export const useUniverseStore = defineStore('universe', () => {
       return horizon.value
     }
   })
-
-  function setPointSize(size) {
-    pointSize.value = size
-  }
 
   function setCosmoConsts(newlambda, newomega, newkappa, newalpha) {
     if (roundTo(newlambda - newkappa + newomega + newalpha, 5) !== 1.0) {
@@ -119,6 +117,14 @@ export const useUniverseStore = defineStore('universe', () => {
     comovingSpaceFlag.value = !!flag
   }
 
+  function setPointSize(size) {
+    pointSize.value = size
+  }
+
+  function setBusy(state) {
+    this.busy = state
+  }
+
   return {
     initialize,
     version,
@@ -138,8 +144,8 @@ export const useUniverseStore = defineStore('universe', () => {
     horizon,
     horizonAngularDistance,
     pointSize,
+    busy,
     // Setters
-    setPointSize,
     setCosmoConsts,
     setUserRa1,
     setUserDec1,
@@ -148,5 +154,7 @@ export const useUniverseStore = defineStore('universe', () => {
     setViewerCanvas,
     enablePrecision,
     setComovingSpace,
+    setPointSize,
+    setBusy,
   }
 })

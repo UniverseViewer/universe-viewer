@@ -4,6 +4,8 @@ import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 import { getProjectionWorkerPool } from '@/logic/workerPool.js'
+import { useUniverseStore } from '@/stores/universe.js'
+import { useTargetsStore } from '@/stores/targets.js'
 
 // Targets number threshold for using parallel computation
 const PARALLEL_THRESHOLD = 500
@@ -278,8 +280,6 @@ function splitIntoChunks(targets, numChunks) {
   return chunks
 }
 
-import { useTargetsStore } from '@/stores/targets.js'
-
 /**
  * Parallel version of calcTargetsAngularDist().
  */
@@ -466,12 +466,16 @@ export async function updateAll(
   alpha,
   precisionEnabled,
 ) {
+  const universeStore = useUniverseStore()
+  universeStore.setBusy(true)
+
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       await calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled)
       await calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      universeStore.setBusy(false)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -483,6 +487,7 @@ export async function updateAll(
   calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  universeStore.setBusy(false)
 }
 
 /**
