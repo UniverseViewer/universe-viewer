@@ -44,10 +44,13 @@ export const useUniverseStore = defineStore('universe', () => {
 
   const horizon = computed(() => {
     /* The horizon is the distance to z=infinity, i.e., a=0. So we integrate from 0.0 to 1.0. */
+    const integrand = (x) =>
+      evolutionIntegrand(x, kappa.value, lambda.value, omega.value, alpha.value)
+
     if (precisionEnabled.value) {
-      return trapezoidalIntegral.integrate(0.0, 1.0, 0.001, evolutionIntegrand)
+      return trapezoidalIntegral.integrate(0.0, 1.0, 0.001, integrand)
     } else {
-      return rombergIntegral.integrate(0.0, 1.0, 10, evolutionIntegrand)
+      return rombergIntegral.integrate(0.0, 1.0, 10, integrand)
     }
   })
   const horizonAngularDistance = computed(() => {

@@ -1,142 +1,171 @@
-/**
- * Projection computations
- */
-
 import Vect3d from '@/logic/vect3d.js'
 import Vect4d from '@/logic/vect4d.js'
 import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
+import { getProjectionWorkerPool } from '@/logic/workerPool.js'
 
-export function comovingDist(redshift, precisionEnabled = false) {
+// Targets number threshold for using parallel computation
+const PARALLEL_THRESHOLD = 500
+
+/**
+ * Calculate comoving distance.
+ */
+export function comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled) {
   const zInv = 1.0 / (1.0 + redshift)
+  const integrand = (x) => evolutionIntegrand(x, kappa, lambda, omega, alpha)
+
   if (precisionEnabled) {
-    return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, evolutionIntegrand)
+    return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, integrand)
   } else {
-    return rombergIntegral.integrate(zInv, 1.0, 6, evolutionIntegrand)
+    return rombergIntegral.integrate(zInv, 1.0, 6, integrand)
   }
 }
 
-export function calcTargetsAngularDist(targets, kappa, precisionEnabled) {
-  if (!targets) return false
-
+/**
+ * Compute angular distance.
+ */
+export function computeAngularDist(redshift, kappa, lambda, omega, alpha, precisionEnabled) {
   let multiplier
   if (kappa === 0) multiplier = 1
   else if (kappa < 0.0) multiplier = Math.sqrt(-kappa)
   else multiplier = Math.sqrt(kappa)
 
-  for (let i = 0; i < targets.length; i++) {
-    targets[i].setAngularDist(multiplier * comovingDist(targets[i].getRedshift()), precisionEnabled)
-  }
-  return true
+  return multiplier * comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled)
 }
 
-export function calcTargetsPos(targets, kappa, precisionEnabled, comovingSpaceFlag) {
-  if (!targets) return false
+/**
+ * Compute position.
+ */
+export function computePos(angularDist, ascension, declination, redshift, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+  const v = new Vect4d()
 
   if (!comovingSpaceFlag) {
     if (kappa < 0.0) {
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const v = new Vect4d()
-        v.setX(
-          Math.sinh(t.getAngularDist()) * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()),
-        )
-        v.setY(
-          Math.sinh(t.getAngularDist()) * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()),
-        )
-        v.setZ(Math.sinh(t.getAngularDist()) * Math.sin(t.getDeclination()))
-        v.setT(Math.cosh(t.getAngularDist()))
-        t.setPos(v)
-      }
+      v.setX(Math.sinh(angularDist) * Math.cos(ascension) * Math.cos(declination))
+      v.setY(Math.sinh(angularDist) * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(Math.sinh(angularDist) * Math.sin(declination))
+      v.setT(Math.cosh(angularDist))
     } else if (kappa > 0.0) {
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const v = new Vect4d()
-        v.setX(
-          Math.sin(t.getAngularDist()) * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()),
-        )
-        v.setY(
-          Math.sin(t.getAngularDist()) * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()),
-        )
-        v.setZ(Math.sin(t.getAngularDist()) * Math.sin(t.getDeclination()))
-        v.setT(Math.cos(t.getAngularDist()))
-        t.setPos(v)
-      }
+      v.setX(Math.sin(angularDist) * Math.cos(ascension) * Math.cos(declination))
+      v.setY(Math.sin(angularDist) * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(Math.sin(angularDist) * Math.sin(declination))
+      v.setT(Math.cos(angularDist))
     } else {
       // kappa = 0 (Flat) in Reference Space
-      // Behaves same as Flat Comoving Space
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const cd = comovingDist(targets[i].getRedshift(), precisionEnabled)
-        const v = new Vect4d()
-        v.setX(cd * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()))
-        v.setY(cd * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()))
-        v.setZ(cd * Math.sin(t.getDeclination()))
-        v.setT(0)
-        t.setPos(v)
-      }
+      const cd = comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled)
+      v.setX(cd * Math.cos(ascension) * Math.cos(declination))
+      v.setY(cd * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(cd * Math.sin(declination))
+      v.setT(0)
     }
   } else {
     if (kappa < 0.0) {
       const s = 1 / Math.sqrt(-kappa)
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const v = new Vect4d()
-        v.setX(
-          s *
-            Math.sinh(t.getAngularDist()) *
-            Math.cos(t.getAscension()) *
-            Math.cos(t.getDeclination()),
-        )
-        v.setY(
-          s *
-            Math.sinh(t.getAngularDist()) *
-            Math.sin(t.getAscension()) *
-            Math.cos(t.getDeclination()),
-        )
-        v.setZ(s * Math.sinh(t.getAngularDist()) * Math.sin(t.getDeclination()))
-        v.setT(s * Math.cosh(t.getAngularDist()))
-        t.setPos(v)
-      }
+      v.setX(s * Math.sinh(angularDist) * Math.cos(ascension) * Math.cos(declination))
+      v.setY(s * Math.sinh(angularDist) * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(s * Math.sinh(angularDist) * Math.sin(declination))
+      v.setT(s * Math.cosh(angularDist))
     } else if (kappa > 0.0) {
       const s = 1 / Math.sqrt(kappa)
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const v = new Vect4d()
-        v.setX(
-          s *
-            Math.sin(t.getAngularDist()) *
-            Math.cos(t.getAscension()) *
-            Math.cos(t.getDeclination()),
-        )
-        v.setY(
-          s *
-            Math.sin(t.getAngularDist()) *
-            Math.sin(t.getAscension()) *
-            Math.cos(t.getDeclination()),
-        )
-        v.setZ(s * Math.sin(t.getAngularDist()) * Math.sin(t.getDeclination()))
-        v.setT(s * Math.cos(t.getAngularDist()))
-        t.setPos(v)
-      }
+      v.setX(s * Math.sin(angularDist) * Math.cos(ascension) * Math.cos(declination))
+      v.setY(s * Math.sin(angularDist) * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(s * Math.sin(angularDist) * Math.sin(declination))
+      v.setT(s * Math.cos(angularDist))
     } else {
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i]
-        const cd = comovingDist(targets[i].getRedshift(), precisionEnabled)
-        const v = new Vect4d()
-        v.setX(cd * Math.cos(t.getAscension()) * Math.cos(t.getDeclination()))
-        v.setY(cd * Math.sin(t.getAscension()) * Math.cos(t.getDeclination()))
-        v.setZ(cd * Math.sin(t.getDeclination()))
-        v.setT(0)
-        t.setPos(v)
-      }
+      const cd = comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled)
+      v.setX(cd * Math.cos(ascension) * Math.cos(declination))
+      v.setY(cd * Math.sin(ascension) * Math.cos(declination))
+      v.setZ(cd * Math.sin(declination))
+      v.setT(0)
     }
+  }
+  return v
+}
+
+/**
+ * Compute projection
+ */
+export function computeProj(pos, view, E0, E1, E2, E3) {
+  const p = new Vect4d(pos.x, pos.y, pos.z, pos.t)
+  let x, y
+
+  switch (view) {
+    case 1:
+      x = p.dotProd4d(E0)
+      y = p.dotProd4d(E1)
+      break
+    case 2:
+      x = p.dotProd4d(E0)
+      y = p.dotProd4d(E2)
+      break
+    case 3:
+      x = p.dotProd4d(E0)
+      y = p.dotProd4d(E3)
+      break
+    case 4:
+      x = p.dotProd4d(E1)
+      y = p.dotProd4d(E2)
+      break
+    case 5:
+      x = p.dotProd4d(E1)
+      y = p.dotProd4d(E3)
+      break
+    case 6:
+      x = p.dotProd4d(E2)
+      y = p.dotProd4d(E3)
+      break
+    default:
+      x = p.dotProd4d(E0)
+      y = p.dotProd4d(E1)
+      break
+  }
+  return { x, y }
+}
+
+/**
+ * Compute angular distance for all targets.
+ */
+export function calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled) {
+  if (!targets) return false
+
+  for (let i = 0; i < targets.length; i++) {
+    targets[i].setAngularDist(
+      computeAngularDist(targets[i].getRedshift(), kappa, lambda, omega, alpha, precisionEnabled),
+    )
   }
   return true
 }
 
-function calcProjVects(RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
+/**
+ * Compute position for all targets.
+ */
+export function calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+  if (!targets) return false
+
+  for (let i = 0; i < targets.length; i++) {
+    const t = targets[i]
+    const v = computePos(
+      t.getAngularDist(),
+      t.getAscension(),
+      t.getDeclination(),
+      t.getRedshift(),
+      comovingSpaceFlag,
+      kappa,
+      lambda,
+      omega,
+      alpha,
+      precisionEnabled,
+    )
+    t.setPos(v)
+  }
+  return true
+}
+
+/**
+ * Compute projection vectors.
+ */
+export function calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   const E0 = new Vect4d()
   const E1 = new Vect4d()
   const E2 = new Vect4d()
@@ -205,75 +234,272 @@ function calcProjVects(RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
   return { E0, E1, E2, E3 }
 }
 
-export function calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
+/**
+ * Compute projection for all targets.
+ */
+export function calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   if (!targets) return
 
-  const projVects = calcProjVects(RA1, Dec1, Beta, kappa, comovingSpaceFlag)
+  const projVects = calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   const E0 = projVects.E0
   const E1 = projVects.E1
   const E2 = projVects.E2
   const E3 = projVects.E3
 
-  switch (view) {
-    case 1:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E0))
-        targets[i].sety(targets[i].getPos().dotProd4d(E1))
-      }
-      break
-    case 2:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E0))
-        targets[i].sety(targets[i].getPos().dotProd4d(E2))
-      }
-      break
-    case 3:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E0))
-        targets[i].sety(targets[i].getPos().dotProd4d(E3))
-      }
-      break
-    case 4:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E1))
-        targets[i].sety(targets[i].getPos().dotProd4d(E2))
-      }
-      break
-    case 5:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E1))
-        targets[i].sety(targets[i].getPos().dotProd4d(E3))
-      }
-      break
-    case 6:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E2))
-        targets[i].sety(targets[i].getPos().dotProd4d(E3))
-      }
-      break
-    default:
-      for (let i = 0; i < targets.length; i++) {
-        targets[i].setx(targets[i].getPos().dotProd4d(E0))
-        targets[i].sety(targets[i].getPos().dotProd4d(E1))
-      }
-      break
+  for (let i = 0; i < targets.length; i++) {
+    const { x, y } = computeProj(targets[i].getPos(), view, E0, E1, E2, E3)
+    targets[i].setx(x)
+    targets[i].sety(y)
   }
 }
 
-export function updateAll(
+// ============================================================================
+// Parallel Computation Functions
+// ============================================================================
+
+/**
+ * Helper to split targets into chunks for parallel processing.
+ */
+function splitIntoChunks(targets, numChunks) {
+  const chunks = []
+  const chunkSize = Math.ceil(targets.length / numChunks)
+
+  for (let i = 0; i < numChunks; i++) {
+    const start = i * chunkSize
+    const end = Math.min(start + chunkSize, targets.length)
+    if (start < targets.length) {
+      chunks.push({
+        indices: { start, end },
+        targets: targets.slice(start, end),
+      })
+    }
+  }
+
+  return chunks
+}
+
+import { useTargetsStore } from '@/stores/targets.js'
+
+/**
+ * Parallel version of calcTargetsAngularDist().
+ */
+export async function calcTargetsAngularDistParallel(
+  targets,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
+  if (!targets || targets.length === 0) return false
+
+  try {
+    const pool = await getProjectionWorkerPool()
+    const numWorkers = pool.getWorkerCount()
+    const chunks = splitIntoChunks(targets, numWorkers)
+    const targetsStore = useTargetsStore()
+    const serializedTargets = targetsStore.serialize()
+
+    // Create tasks for each chunk
+    const tasks = chunks.map((chunk) => {
+      // Slice the serialized array to match the chunk indices
+      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
+      return {
+        type: 'calcAngularDist',
+        data: {
+          targets: chunkSerialized,
+          kappa,
+          lambda,
+          omega,
+          alpha,
+          precisionEnabled,
+        },
+        indices: chunk.indices,
+      }
+    })
+
+    // Execute in parallel
+    const results = await pool.executeParallel(tasks)
+
+    // Update targets with results
+    results.forEach((result, chunkIndex) => {
+      const { start } = tasks[chunkIndex].indices
+      result.forEach((item, i) => {
+        targets[start + i].setAngularDist(item.angularDistance)
+      })
+    })
+
+    return true
+  } catch (error) {
+    console.error('Parallel calcTargetsAngularDist failed, falling back to single-threaded:', error)
+    return calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
+  }
+}
+
+/**
+ * Parallel version of calcTargetsPos().
+ */
+export async function calcTargetsPosParallel(
+  targets,
+  comovingSpaceFlag,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
+  if (!targets || targets.length === 0) return false
+
+  try {
+    const pool = await getProjectionWorkerPool()
+    const numWorkers = pool.getWorkerCount()
+    const chunks = splitIntoChunks(targets, numWorkers)
+    const targetsStore = useTargetsStore()
+    const serializedTargets = targetsStore.serialize()
+
+    // Create tasks for each chunk
+    const tasks = chunks.map((chunk) => {
+      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
+      return {
+        type: 'calcPos',
+        data: {
+          targets: chunkSerialized,
+          comovingSpaceFlag,
+          kappa,
+          lambda,
+          omega,
+          alpha,
+          precisionEnabled,
+        },
+        indices: chunk.indices,
+      }
+    })
+
+    // Execute in parallel
+    const results = await pool.executeParallel(tasks)
+
+    // Update targets with results
+    results.forEach((result, chunkIndex) => {
+      const { start } = tasks[chunkIndex].indices
+      result.forEach((item, i) => {
+        const v = new Vect4d(item.pos.x, item.pos.y, item.pos.z, item.pos.t)
+        targets[start + i].setPos(v)
+      })
+    })
+
+    return true
+  } catch (error) {
+    console.error('Parallel calcTargetsPos failed, falling back to single-threaded:', error)
+    return calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
+  }
+}
+
+/**
+ * Parallel version of calcTargetsProj().
+ */
+export async function calcTargetsProjParallel(
   targets,
   view,
   RA1,
   Dec1,
   Beta,
-  kappa,
-  precisionEnabled,
   comovingSpaceFlag,
+  kappa,
 ) {
-  calcTargetsAngularDist(targets, kappa, precisionEnabled)
-  calcTargetsPos(targets, kappa, precisionEnabled, comovingSpaceFlag)
-  calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
+  if (!targets || targets.length === 0) return
+
+  try {
+    const pool = await getProjectionWorkerPool()
+    const numWorkers = pool.getWorkerCount()
+    const chunks = splitIntoChunks(targets, numWorkers)
+    const targetsStore = useTargetsStore()
+    const serializedTargets = targetsStore.serialize()
+
+    // Create tasks for each chunk
+    const tasks = chunks.map((chunk) => {
+      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
+      return {
+        type: 'calcProj',
+        data: {
+          targets: chunkSerialized,
+          view,
+          RA1,
+          Dec1,
+          Beta,
+          comovingSpaceFlag,
+          kappa,
+        },
+        indices: chunk.indices,
+      }
+    })
+
+    // Execute in parallel
+    const results = await pool.executeParallel(tasks)
+
+    // Update targets with results
+    results.forEach((result, chunkIndex) => {
+      const { start } = tasks[chunkIndex].indices
+      result.forEach((item, i) => {
+        targets[start + i].setx(item.x)
+        targets[start + i].sety(item.y)
+      })
+    })
+  } catch (error) {
+    console.error('Parallel calcTargetsProj failed, falling back to single-threaded:', error)
+    calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  }
 }
-export function updateView(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag) {
-  calcTargetsProj(targets, view, RA1, Dec1, Beta, kappa, comovingSpaceFlag)
+
+/**
+ * Compute angular distance, position and projection for all targets, with parallelization if relevant.
+ */
+export async function updateAll(
+  targets,
+  view,
+  RA1,
+  Dec1,
+  Beta,
+  comovingSpaceFlag,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
+  // Use parallel computation for large datasets
+  if (targets && targets.length >= PARALLEL_THRESHOLD) {
+    try {
+      await calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled)
+      await calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
+      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      return
+    } catch (error) {
+      console.warn('Parallel computation failed, falling back to single-threaded:', error)
+      // Fall through to single-threaded version
+    }
+  }
+
+  // Single-threaded version for small datasets or fallback
+  calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
+  calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
+  calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+}
+
+/**
+ * Compute projection for all targets, with parallelization if relevant.
+ */
+export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+  // Use parallel computation for large datasets
+  if (targets && targets.length >= PARALLEL_THRESHOLD) {
+    try {
+      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      return
+    } catch (error) {
+      console.warn('Parallel computation failed, falling back to single-threaded:', error)
+      // Fall through to single-threaded version
+    }
+  }
+
+  // Single-threaded version for small datasets or fallback
+  calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
 }

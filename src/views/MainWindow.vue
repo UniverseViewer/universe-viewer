@@ -333,17 +333,20 @@ const helpOpened = ref(false)
 const aboutOpened = ref(false)
 
 // Logic Updates
-function forceUpdate() {
+async function forceUpdate() {
   try {
-    projection.updateAll(
-      targets.value,
-      view.value,
-      userRA1.value,
-      userDec1.value,
-      userBeta.value,
-      kappa.value,
-      precisionEnabled.value,
-      comovingSpaceFlag.value,
+    await projection.updateAll(
+      targetsStore.targets,
+      store.view,
+      store.userRA1,
+      store.userDec1,
+      store.userBeta,
+      store.comovingSpaceFlag,
+      store.kappa,
+      store.lambda,
+      store.omega,
+      store.alpha,
+      store.precisionEnabled,
     )
     viewerCanvas.value.updateCanvas()
   } catch (e) {
@@ -438,16 +441,19 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
 
   if (!cosmoUpdateQueued) {
     cosmoUpdateQueued = true
-    requestAnimationFrame(() => {
-      projection.updateAll(
-        targets.value,
-        view.value,
-        userRA1.value,
-        userDec1.value,
-        userBeta.value,
-        kappa.value,
-        precisionEnabled.value,
-        comovingSpaceFlag.value,
+    requestAnimationFrame(async () => {
+      await projection.updateAll(
+        targetsStore.targets,
+        store.view,
+        store.userRA1,
+        store.userDec1,
+        store.userBeta,
+        store.comovingSpaceFlag,
+        store.kappa,
+        store.lambda,
+        store.omega,
+        store.alpha,
+        store.precisionEnabled,
       )
       viewerCanvas.value.updateCanvas()
       cosmoUpdateQueued = false
@@ -455,16 +461,16 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
   }
 })
 
-watch(view, (newVal) => {
+watch(view, async (newVal) => {
   store.setView(newVal)
-  projection.updateView(
+  await projection.updateView(
     targets.value,
     view.value,
     userRA1.value,
     userDec1.value,
     userBeta.value,
-    kappa.value,
     comovingSpaceFlag.value,
+    kappa.value,
   )
   viewerCanvas.value.updateCanvas()
 })
@@ -477,15 +483,15 @@ let viewUpdateQueued = false
 watch([userRA1, userDec1, userBeta], () => {
   if (!viewUpdateQueued) {
     viewUpdateQueued = true
-    requestAnimationFrame(() => {
-      projection.updateView(
+    requestAnimationFrame(async () => {
+      await projection.updateView(
         targets.value,
         view.value,
         userRA1.value,
         userDec1.value,
         userBeta.value,
-        kappa.value,
         comovingSpaceFlag.value,
+        kappa.value,
       )
       viewerCanvas.value.updateCanvas()
       viewUpdateQueued = false
