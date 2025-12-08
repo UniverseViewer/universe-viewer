@@ -448,7 +448,7 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
   else if (selectedConst.value === 'alpha') newAlpha = 1 - newLambda + newKappa - newOmega
 
   try {
-    store.setCosmoConsts(newLambda, newOmega, newKappa, newAlpha)
+    store.setCosmoParams(newLambda, newOmega, newKappa, newAlpha)
     // Update the ref that was not selected
     if (selectedConst.value !== 'lambda') lambda.value = newLambda
     if (selectedConst.value !== 'omega') omega.value = newOmega

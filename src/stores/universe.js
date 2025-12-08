@@ -56,7 +56,7 @@ export const useUniverseStore = defineStore('universe', () => {
 
   function initialize() {
     try {
-      setCosmoConsts(1.2, 0.2, 0.40005, 0.00005)
+      setCosmoParams(1.2, 0.2, 0.40005, 0.00005)
     } catch (ex) {
       console.error('Cosmological parameters are incorrect!')
       console.error(ex && ex.message ? ex.message : ex)
@@ -86,7 +86,7 @@ export const useUniverseStore = defineStore('universe', () => {
     }
   })
 
-  function setCosmoConsts(newlambda, newomega, newkappa, newalpha) {
+  function setCosmoParams(newlambda, newomega, newkappa, newalpha) {
     if (roundTo(newlambda - newkappa + newomega + newalpha, 5) !== 1.0) {
       throw new Error('Constraint broken:\nlambda - kappa + omega + alpha = 1.0 not verified!')
     }
@@ -166,7 +166,7 @@ export const useUniverseStore = defineStore('universe', () => {
     pointSize,
     busy,
     // Setters
-    setCosmoConsts,
+    setCosmoParams,
     setUserRa1,
     setUserDec1,
     setUserBeta,
