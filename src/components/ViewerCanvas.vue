@@ -1,11 +1,7 @@
 <template>
-  <div ref="root" class="viewer-root" style="position: relative; width: 100%; height: 100%">
+  <div ref="root" :class="['viewer-root', busy?'busy':'' ]">
     <!-- Three.js canvas will be appended here -->
-    <div
-      ref="overlay"
-      :class="['overlay', busy?'busy':'' ]"
-      style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none"
-    ></div>
+    <div ref="overlay" class="overlay"></div>
 
     <!-- Selection rectangle (HTML overlay) -->
     <div v-show="isSelecting" :style="selectionStyle" class="selection-rect"></div>
@@ -509,7 +505,7 @@ export default {
       const after = pixelToWorld(e.clientX, e.clientY)
       state.posX += before.worldX - after.worldX
       state.posY += before.worldY - after.worldY
-      updateCanvas()
+      render()
     }
 
     function onContextMenu(e) {
@@ -556,7 +552,7 @@ export default {
         state.posY += offsetY
         state.mouseX = e.clientX
         state.mouseY = e.clientY
-        updateCanvas()
+        render()
       }
     }
 
@@ -813,10 +809,26 @@ export default {
 
 <style scoped>
 .viewer-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
   background: black;
   overflow: hidden;
 }
-.overlay.busy {
+.viewer-root.busy {
+  cursor: wait;
+}
+.overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  transition: backdrop-filter 0.5s;
+  backdrop-filter: blur(0px);
+}
+.busy .overlay {
   backdrop-filter: blur(6px);
 }
 .selection-rect {
