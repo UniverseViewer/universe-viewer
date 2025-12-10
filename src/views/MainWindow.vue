@@ -122,6 +122,13 @@
                       {{ isConstraintValid ? 'Valid' : 'Invalid' }}
                     </span>
                   </div>
+                  <v-checkbox
+                    :disabled="busy"
+                    v-model="precisionEnabled"
+                    label="High precision integration"
+                    density="compact"
+                    hide-details
+                  ></v-checkbox>
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
@@ -213,13 +220,6 @@
                       {{ objectPointSize.toFixed(1) }}
                     </template>
                   </v-slider>
-                  <v-checkbox
-                    :disabled="busy"
-                    v-model="precisionEnabled"
-                    label="High precision integration"
-                    density="compact"
-                    hide-details
-                  ></v-checkbox>
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
