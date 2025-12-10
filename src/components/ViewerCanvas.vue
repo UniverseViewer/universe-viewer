@@ -183,7 +183,7 @@ export default {
       state.camera.bottom = -halfVisibleWorldHeight
 
       updateCameraBounds() // This will apply state.posX, state.posY, state.zoom
-      updateCanvas()
+      render()
     }
 
     function setMode(m) {
@@ -284,9 +284,7 @@ export default {
 
       onResize() // Set initial camera projection based on current size
 
-      drawReferenceMarks()
-      populatePoints()
-      render()
+      updateCanvas()
     }
 
     watch(pointSize, (newValue) => {
@@ -301,6 +299,11 @@ export default {
         state.scene.background = new THREE.Color(state.theme[newVal].background)
         updateCanvas()
       }
+    })
+
+    watch([horizonAngularDistance, kappa, view, comovingSpaceFlag], () => {
+      drawReferenceMarks()
+      render()
     })
 
     function populatePoints() {
@@ -529,7 +532,6 @@ export default {
       } else if (e.button === 1) {
         // Reset view
         setMode(state.mode)
-        updateCanvas()
         return
       }
     }
@@ -746,10 +748,7 @@ export default {
 
       universeStore.setViewerCanvas({
         updateCanvas,
-        setMode: (m) => {
-          setMode(m)
-          updateCanvas()
-        },
+        setMode,
         setShowReferencesMarks: (s) => {
           state.showReferencesMarks = !!s
           drawReferenceMarks()
