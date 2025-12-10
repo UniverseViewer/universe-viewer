@@ -34,3 +34,8 @@ coverage
 
 # Vitest
 __screenshots__/
+
+# Catalogs data
+public/catalogs/agnqso_desi/agnqso_desi.fits
+public/catalogs/agnqso_desi/dr1_vac_dr1_agnqso_v1.0.sha256sum
+public/catalogs/agnqso_desi/qso.dat
