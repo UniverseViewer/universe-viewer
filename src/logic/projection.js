@@ -514,10 +514,14 @@ export async function updateAll(
  * Compute projection for all targets, with parallelization if relevant.
  */
 export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+  const universeStore = useUniverseStore()
+  universeStore.setBusy(true)
+
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      universeStore.setBusy(false)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -527,4 +531,5 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
 
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  universeStore.setBusy(false)
 }
