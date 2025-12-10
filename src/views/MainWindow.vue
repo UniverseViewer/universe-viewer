@@ -176,8 +176,8 @@
                     label="Object point size"
                     v-model="objectPointSize"
                     :max="10"
-                    :min="1"
-                    step="0.5"
+                    :min="0.5"
+                    step="0.1"
                   >
                     <template v-slot:append>
                       {{ objectPointSize.toFixed(1) }}
