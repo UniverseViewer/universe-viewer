@@ -161,15 +161,45 @@
                     <v-btn :disabled="busy" :value="2">Edge 2</v-btn>
                     <v-btn :disabled="busy" :value="3">Edge 3</v-btn>
                   </v-btn-toggle>
-                  <v-slider :disabled="busy" label="RA1" v-model="ra1" :max="24" :min="0" step="0.1">
-                    <template v-slot:append> {{ ra1.toFixed(1) }}h </template>
-                  </v-slider>
-                  <v-slider :disabled="busy" label="Dec1" v-model="dec1" :max="90" :min="-90" step="0.1">
-                    <template v-slot:append> {{ dec1.toFixed(1) }}° </template>
-                  </v-slider>
-                  <v-slider :disabled="busy" label="Beta" v-model="beta" :max="24" :min="0" step="0.1">
-                    <template v-slot:append> {{ beta.toFixed(1) }}h </template>
-                  </v-slider>
+                  <v-number-input
+                    v-model="ra1"
+                    :disabled="busy"
+                    label="RA1"
+                    :precision="null"
+                    :min="0"
+                    :max="24"
+                    :step="1"
+                    control-variant="split"
+                    density="compact"
+                  >
+                    <template v-slot:append> h </template>
+                  </v-number-input>
+                  <v-number-input
+                    v-model="dec1"
+                    :disabled="busy"
+                    label="Dec1"
+                    :precision="null"
+                    :min="-90"
+                    :max="90"
+                    :step="1"
+                    control-variant="split"
+                    density="compact"
+                  >
+                    <template v-slot:append> ° </template>
+                  </v-number-input>
+                  <v-number-input
+                    v-model="beta"
+                    :disabled="busy"
+                    label="Beta"
+                    :precision="null"
+                    :min="0"
+                    :max="24"
+                    :step="1"
+                    control-variant="split"
+                    density="compact"
+                  >
+                    <template v-slot:append> h </template>
+                  </v-number-input>
                   <v-divider class="my-3"></v-divider>
                   <v-slider
                     :disabled="busy"
@@ -299,15 +329,15 @@ const infoLabel = ref('Ready')
 
 // ra1, dec1, beta need to be computed to convert from rad to hours/deg for sliders
 const ra1 = computed({
-  get: () => (12 * userRA1.value) / Math.PI,
+  get: () => Math.round((12 * userRA1.value) / Math.PI * 10) / 10,
   set: (val) => store.setUserRa1(val),
 })
 const dec1 = computed({
-  get: () => (180 * userDec1.value) / Math.PI,
+  get: () => Math.round((180 * userDec1.value) / Math.PI * 10) / 10,
   set: (val) => store.setUserDec1(val),
 })
 const beta = computed({
-  get: () => (12 * userBeta.value) / Math.PI,
+  get: () => Math.round((12 * userBeta.value) / Math.PI * 10) / 10,
   set: (val) => store.setUserBeta(val),
 })
 const objectPointSize = computed({
