@@ -297,7 +297,9 @@ export default {
     watch(themeName, (newVal) => {
       if (state.scene) {
         state.scene.background = new THREE.Color(state.theme[newVal].background)
-        updateCanvas()
+        updatePointsColor()
+        drawReferenceMarks()
+        render()
       }
     })
 
@@ -306,10 +308,53 @@ export default {
       render()
     })
 
+    function updatePointsColor() {
+      const geometry = state.geometry
+      if (!geometry) return
+
+      const t = targets.value || []
+      const N = t.length
+
+      const colors = geometry.attributes.color
+      if (!colors || colors.count !== N) {
+        // Fallback to full rebuild if color attribute is missing or count mismatches.
+        // This handles cases where targets have been added/removed.
+        populatePoints()
+        return
+      }
+
+      if (N === 0) return
+
+      for (let i = 0; i < N; i++) {
+        const ti = t[i]
+        const selected = ti.isSelected ? ti.isSelected() : false
+        const theme = state.theme[themeName.value]
+
+        let r, g, b
+        if (selected) {
+          r = theme.pointSelectedR
+          g = theme.pointSelectedG
+          b = theme.pointSelectedB
+        } else {
+          r = theme.pointR
+          g = theme.pointG
+          b = theme.pointB
+        }
+        colors.setXYZ(i, r, g, b)
+      }
+      colors.needsUpdate = true
+    }
+
     function populatePoints() {
       const t = targets.value || []
       const N = t.length
-      if (N === 0) return
+      if (N === 0) {
+        state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
+        state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
+        state.geometry.attributes.position.needsUpdate = true
+        state.geometry.attributes.color.needsUpdate = true
+        return
+      }
       const positions = new Float32Array(N * 3)
       const colors = new Float32Array(N * 3)
 
@@ -695,7 +740,8 @@ export default {
 
       state.isSelecting = false
 
-      updateCanvas()
+      updatePointsColor()
+      render()
     }
 
     function handlePressedKeys() {
