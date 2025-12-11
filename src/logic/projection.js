@@ -303,14 +303,7 @@ function splitIntoChunks(targets, numChunks) {
 /**
  * Parallel version of calcTargetsAngularDist().
  */
-export async function calcTargetsAngularDistParallel(
-  targets,
-  kappa,
-  lambda,
-  omega,
-  alpha,
-  precisionEnabled,
-) {
+export async function calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled) {
   if (!targets || targets.length === 0) return false
 
   try {
@@ -359,15 +352,7 @@ export async function calcTargetsAngularDistParallel(
 /**
  * Parallel version of calcTargetsPos().
  */
-export async function calcTargetsPosParallel(
-  targets,
-  comovingSpaceFlag,
-  kappa,
-  lambda,
-  omega,
-  alpha,
-  precisionEnabled,
-) {
+export async function calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
   if (!targets || targets.length === 0) return false
 
   try {
@@ -417,15 +402,7 @@ export async function calcTargetsPosParallel(
 /**
  * Parallel version of calcTargetsProj().
  */
-export async function calcTargetsProjParallel(
-  targets,
-  view,
-  RA1,
-  Dec1,
-  Beta,
-  comovingSpaceFlag,
-  kappa,
-) {
+export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   if (!targets || targets.length === 0) return
 
   try {
@@ -473,27 +450,24 @@ export async function calcTargetsProjParallel(
 /**
  * Compute angular distance, position and projection for all targets, with parallelization if relevant.
  */
-export async function updateAll(
-  targets,
-  view,
-  RA1,
-  Dec1,
-  Beta,
-  comovingSpaceFlag,
-  kappa,
-  lambda,
-  omega,
-  alpha,
-  precisionEnabled,
-) {
+export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
   const universeStore = useUniverseStore()
   universeStore.setBusy(true)
+  await new Promise((resolve) => setTimeout(resolve, 0))
 
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       await calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled)
-      await calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
+      await calcTargetsPosParallel(
+        targets,
+        comovingSpaceFlag,
+        kappa,
+        lambda,
+        omega,
+        alpha,
+        precisionEnabled,
+      )
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
       universeStore.setBusy(false)
       return
@@ -516,6 +490,7 @@ export async function updateAll(
 export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   const universeStore = useUniverseStore()
   universeStore.setBusy(true)
+  await new Promise((resolve) => setTimeout(resolve, 0))
 
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {

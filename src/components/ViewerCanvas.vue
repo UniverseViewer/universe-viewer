@@ -860,9 +860,6 @@ export default {
   background: black;
   overflow: hidden;
 }
-.viewer-root.busy {
-  cursor: wait;
-}
 .overlay {
   position: absolute;
   left: 0;

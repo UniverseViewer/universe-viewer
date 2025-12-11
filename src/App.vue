@@ -23,6 +23,20 @@
  */
 
 import MainWindow from './views/MainWindow.vue'
+import { useUniverseStore } from '@/stores/universe.js'
+import { storeToRefs } from 'pinia'
+import { watch } from 'vue'
+
+const universeStore = useUniverseStore()
+const { busy } = storeToRefs(universeStore)
+
+watch(busy, (isBusy) => {
+  if (isBusy) {
+    document.body.classList.add('busy-cursor')
+  } else {
+    document.body.classList.remove('busy-cursor')
+  }
+})
 </script>
 
 <style>
@@ -37,5 +51,9 @@ a,
 a:visited {
   color: rgb(var(--v-theme-primary));
   text-decoration: none;
+}
+body.busy-cursor,
+body.busy-cursor * {
+  cursor: wait !important;
 }
 </style>

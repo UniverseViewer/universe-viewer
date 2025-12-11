@@ -11,10 +11,9 @@
               <!-- DATA LOADING -->
               <v-expansion-panel title="Data" value="data">
                 <v-expansion-panel-text>
-                  <CatalogBrowser :disabled="busy" v-model="catalogFile" />
+                  <CatalogBrowser v-model="catalogFile" />
                   or<br /><br />
                   <v-file-input
-                    :disabled="busy"
                     v-model="browsedFile"
                     label="Browse catalog file"
                     accept=".dat,.txt"
@@ -41,7 +40,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="lambda"
-                          :disabled="busy || selectedConst === 'lambda'"
+                          :disabled="selectedConst === 'lambda'"
                           label="Lambda"
                           :precision="null"
                           :step="0.05"
@@ -61,7 +60,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="omega"
-                          :disabled="busy || selectedConst === 'omega'"
+                          :disabled="selectedConst === 'omega'"
                           label="Omega"
                           :precision="null"
                           :step="0.05"
@@ -81,7 +80,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="kappa"
-                          :disabled="busy || selectedConst === 'kappa'"
+                          :disabled="selectedConst === 'kappa'"
                           label="Kappa"
                           :precision="null"
                           :step="0.05"
@@ -101,7 +100,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="alpha"
-                          :disabled="busy || selectedConst === 'alpha'"
+                          :disabled="selectedConst === 'alpha'"
                           label="Alpha"
                           :precision="null"
                           :step="0.05"
@@ -123,7 +122,6 @@
                     </span>
                   </div>
                   <v-checkbox
-                    :disabled="busy"
                     v-model="precisionEnabled"
                     label="High precision integration"
                     density="compact"
@@ -136,21 +134,18 @@
               <v-expansion-panel title="View settings" value="view">
                 <v-expansion-panel-text>
                   <v-switch
-                    :disabled="busy"
                     v-model="comovingSpaceFlag"
                     label="Comoving space"
                     color="success"
                     density="compact"
                   ></v-switch>
                   <v-switch
-                    :disabled="busy"
                     v-model="showRefMarks"
                     label="Show reference marks"
                     color="success"
                     density="compact"
                   ></v-switch>
                   <v-btn
-                    :disabled="busy"
                     block
                     class="mb-2"
                     :color="isSkyMode ? 'primary' : 'secondary'"
@@ -161,16 +156,15 @@
                   <v-divider class="my-3"></v-divider>
                   <div class="text-subtitle-2 mb-2">Projection</div>
                   <v-btn-toggle v-model="view" mandatory class="mb-4 views">
-                    <v-btn :disabled="busy" :value="4">Front 1</v-btn>
-                    <v-btn :disabled="busy" :value="5">Front 2</v-btn>
-                    <v-btn :disabled="busy" :value="6">Front 3</v-btn>
-                    <v-btn :disabled="busy" :value="1">Edge 1</v-btn>
-                    <v-btn :disabled="busy" :value="2">Edge 2</v-btn>
-                    <v-btn :disabled="busy" :value="3">Edge 3</v-btn>
+                    <v-btn :value="4">Front 1</v-btn>
+                    <v-btn :value="5">Front 2</v-btn>
+                    <v-btn :value="6">Front 3</v-btn>
+                    <v-btn :value="1">Edge 1</v-btn>
+                    <v-btn :value="2">Edge 2</v-btn>
+                    <v-btn :value="3">Edge 3</v-btn>
                   </v-btn-toggle>
                   <v-number-input
                     v-model="ra1"
-                    :disabled="busy"
                     label="RA1"
                     :precision="null"
                     :min="0"
@@ -183,7 +177,6 @@
                   </v-number-input>
                   <v-number-input
                     v-model="dec1"
-                    :disabled="busy"
                     label="Dec1"
                     :precision="null"
                     :min="-90"
@@ -196,7 +189,6 @@
                   </v-number-input>
                   <v-number-input
                     v-model="beta"
-                    :disabled="busy"
                     label="Beta"
                     :precision="null"
                     :min="0"
@@ -209,7 +201,6 @@
                   </v-number-input>
                   <v-divider class="my-3"></v-divider>
                   <v-slider
-                    :disabled="busy"
                     label="Object point size"
                     v-model="objectPointSize"
                     :max="10"
@@ -249,6 +240,14 @@
           </v-col>
         </v-row>
       </v-container>
+
+      <v-overlay
+        :model-value="busy"
+        scrim="transparent"
+        class="align-center justify-center"
+        persistent
+      >
+      </v-overlay>
 
       <!-- BOTTOM INFO BAR -->
       <v-footer app height="32">

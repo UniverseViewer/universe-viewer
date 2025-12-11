@@ -142,7 +142,7 @@ export const useUniverseStore = defineStore('universe', () => {
   }
 
   function setBusy(state) {
-    this.busy = state
+    busy.value = !!state
   }
 
   return {
