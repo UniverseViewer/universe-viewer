@@ -1,0 +1,7 @@
+<IfModule mod_headers.c>
+  <FilesMatch "\.gz$">
+    Header set Content-Encoding gzip
+    Header set Vary Accept-Encoding
+    Header set Content-Type application/octet-stream
+  </FilesMatch>
+</IfModule>
