@@ -21,7 +21,9 @@
                     prepend-icon="mdi-file-upload"
                     density="compact"
                   ></v-file-input>
-                  <div class="text-caption">Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects</div>
+                  <div class="text-caption">
+                    Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects
+                  </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
@@ -287,7 +289,7 @@ import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
 import { useBusyStore } from '@/stores/busy.js'
-import * as projection from '@/logic/projection.js'
+
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
@@ -308,7 +310,6 @@ const {
   comovingSpaceFlag,
   precisionEnabled,
   pointSize,
-  viewerCanvas,
   viewerMode,
 } = storeToRefs(store)
 
@@ -379,7 +380,6 @@ function onFileChange(event) {
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
       infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
-      forceUpdate()
     } catch (err) {
       console.error(err)
       infoLabel.value = `Error: ${err.message}`
@@ -396,29 +396,6 @@ const helpOpened = ref(false)
 const aboutOpened = ref(false)
 
 // Logic Updates
-async function forceUpdate() {
-  try {
-    await busyStore.runBusyTask(async () => {
-      await projection.updateAll(
-        targetsStore.targets,
-        store.view,
-        store.userRA1,
-        store.userDec1,
-        store.userBeta,
-        store.comovingSpaceFlag,
-        store.kappa,
-        store.lambda,
-        store.omega,
-        store.alpha,
-        store.precisionEnabled,
-      )
-      viewerCanvas.value.updateCanvas()
-    })
-  } catch (e) {
-    console.error(e)
-    infoLabel.value = 'Update Error: ' + e.message
-  }
-}
 
 async function toggleSkyMode() {
   const newMode = isSkyMode.value ? 'universe' : 'sky'
@@ -461,7 +438,6 @@ watch(catalogFile, (newVal) => {
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
       infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
-      forceUpdate()
     })
     .catch((err) => (infoLabel.value = `Error: ${err.message}`))
     .finally(() => {
@@ -499,31 +475,10 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
     }
     return
   }
-
-  forceUpdate()
 })
 
 watch(showRefMarks, (val) => {
   if (viewer.value) viewer.value.setShowReferencesMarksPublic(val)
-})
-
-watch([view, userRA1, userDec1, userBeta], async () => {
-  await busyStore.runBusyTask(async () => {
-    await projection.updateView(
-      targets.value,
-      view.value,
-      userRA1.value,
-      userDec1.value,
-      userBeta.value,
-      comovingSpaceFlag.value,
-      kappa.value,
-    )
-    viewerCanvas.value.updateCanvas()
-  })
-})
-
-watch([comovingSpaceFlag, precisionEnabled], () => {
-  forceUpdate()
 })
 </script>
 

@@ -37,6 +37,7 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vue'
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
+import * as projection from '@/logic/projection.js'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
 import { useBusyStore } from '@/stores/busy.js'
@@ -56,8 +57,21 @@ export default {
     const universeStore = useUniverseStore()
     const targetsStore = useTargetsStore()
     const busyStore = useBusyStore()
-    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance, viewerMode } =
-      storeToRefs(universeStore)
+    const {
+      kappa,
+      lambda,
+      omega,
+      alpha,
+      view,
+      pointSize,
+      comovingSpaceFlag,
+      horizonAngularDistance,
+      viewerMode,
+      userRA1,
+      userDec1,
+      userBeta,
+      precisionEnabled,
+    } = storeToRefs(universeStore)
     const { busy } = storeToRefs(busyStore)
     const { targets } = storeToRefs(targetsStore)
 
@@ -319,9 +333,50 @@ export default {
       })
     })
 
-    watch([horizonAngularDistance, kappa, view, comovingSpaceFlag], () => {
-      drawReferenceMarks()
-      render()
+    async function recomputeAll() {
+      await busyStore.runBusyTask(async () => {
+        await projection.updateAll(
+          targets.value,
+          view.value,
+          userRA1.value,
+          userDec1.value,
+          userBeta.value,
+          comovingSpaceFlag.value,
+          kappa.value,
+          lambda.value,
+          omega.value,
+          alpha.value,
+          precisionEnabled.value,
+        )
+        updateCanvas()
+      })
+    }
+
+    async function recomputeView() {
+      await busyStore.runBusyTask(async () => {
+        await projection.updateView(
+          targets.value,
+          view.value,
+          userRA1.value,
+          userDec1.value,
+          userBeta.value,
+          comovingSpaceFlag.value,
+          kappa.value,
+        )
+        updateCanvas()
+      })
+    }
+
+    watch([lambda, omega, kappa, alpha, precisionEnabled, comovingSpaceFlag], () => {
+      recomputeAll()
+    })
+
+    watch([view, userRA1, userDec1, userBeta], () => {
+      recomputeView()
+    })
+
+    watch(targets, () => {
+      recomputeAll()
     })
 
     function updatePointsColor() {
