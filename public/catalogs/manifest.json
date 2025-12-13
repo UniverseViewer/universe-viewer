@@ -2,16 +2,19 @@
   {
     "name": "Hewitt & Burbidge QSO Catalog",
     "year": 1993,
+    "targets_number": 7236,
     "file": "burbidge.dat"
   },
   {
     "name": "2dF QSO Redshifr Survey",
     "year": 2001,
+    "targets_number": 22431,
     "file": "2df.dat"
   },
   {
     "name": "AGN/QSO Value-Added Catalog for DESI DR1",
     "year": 2025,
+    "targets_number": 1647301,
     "file": "agnqso_desi/qso.gz"
   }
 ]

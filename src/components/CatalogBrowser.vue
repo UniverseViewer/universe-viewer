@@ -49,7 +49,7 @@ export default {
     function catalogProps (catalog) {
       return {
         title: catalog.name,
-        subtitle: catalog.year,
+        subtitle: catalog.targets_number.toLocaleString() + " targets, " + catalog.year,
       }
     }
 

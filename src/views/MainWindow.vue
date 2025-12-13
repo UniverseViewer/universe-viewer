@@ -21,7 +21,7 @@
                     prepend-icon="mdi-file-upload"
                     density="compact"
                   ></v-file-input>
-                  <div class="text-caption">Loaded: {{ targets ? targets.length : 0 }} objects</div>
+                  <div class="text-caption">Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects</div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
@@ -378,7 +378,7 @@ function onFileChange(event) {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedTargets.length} objects`
+      infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
       forceUpdate()
     } catch (err) {
       console.error(err)
@@ -460,7 +460,7 @@ watch(catalogFile, (newVal) => {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedTargets.length} objects`
+      infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
       forceUpdate()
     })
     .catch((err) => (infoLabel.value = `Error: ${err.message}`))
