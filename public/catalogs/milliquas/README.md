@@ -1,4 +1,4 @@
-# AGN/QSO Value-Added Catalog for DESI DR1
+# MILLIQUAS - Million Quasars Catalog, Version 8
 
 It has been converted to UniverseViewer data format using the `extract.py` script.
 
