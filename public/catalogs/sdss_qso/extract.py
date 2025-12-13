@@ -26,7 +26,7 @@ from sys import argv, exit, stderr
 
 def usage():
   print(f"Usage: {argv[0]} <catalog>", file=stderr)
-  print("\tWith catalog in: dr16q_v3", file=stderr)
+  print("\tWith catalog in: dr16q_v3, dr16q_v4", file=stderr)
   exit(1)
 
 if len(argv) != 2:
