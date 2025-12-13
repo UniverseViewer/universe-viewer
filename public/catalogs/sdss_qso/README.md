@@ -22,3 +22,5 @@ SDSS is managed by the Astrophysical Research Consortium for the Participating I
 - [Technical publications](https://www.sdss.org/science/publications/technical-publications/)
 - [DR16 QSO catalog page](https://www.sdss4.org/dr16/algorithms/qso_catalog/)
 - [FITS catalog format](https://data.sdss.org/datamodel/files/BOSS_QSO/DR16Q/DR16Q_v4.html)
+- Lyke, B. W., Myers, A. D., et al. (2020). The Sloan Digital Sky Survey Quasar Catalog: Sixteenth Data Release (DR16Q). The Astrophysical Journal Supplement, 250.\
+- Ahumada, R., Allende Prieto, C., et al. (2020). The 16th Data Release of the Sloan Digital Sky Surveys (The Astrophysical Journal Supplement).
