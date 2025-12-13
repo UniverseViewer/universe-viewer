@@ -30,7 +30,7 @@
               <!-- COSMOLOGICAL PARAMETERS -->
               <v-expansion-panel title="Cosmological parameters" value="parameters">
                 <v-expansion-panel-text>
-                  <v-radio-group v-model="selectedConst" density="compact">
+                  <v-radio-group v-model="selectedConst" density="compact" :disabled="isSkyMode">
                     <v-row>
                       <v-col cols="2" class="border-e">
                         <v-tooltip text="Lambda as derived parameter">
@@ -42,7 +42,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="lambda"
-                          :disabled="selectedConst === 'lambda'"
+                          :disabled="selectedConst === 'lambda' || isSkyMode"
                           label="Lambda"
                           :precision="null"
                           :step="0.05"
@@ -62,7 +62,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="omega"
-                          :disabled="selectedConst === 'omega'"
+                          :disabled="selectedConst === 'omega' || isSkyMode"
                           label="Omega"
                           :precision="null"
                           :step="0.05"
@@ -82,7 +82,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="kappa"
-                          :disabled="selectedConst === 'kappa'"
+                          :disabled="selectedConst === 'kappa' || isSkyMode"
                           label="Kappa"
                           :precision="null"
                           :step="0.05"
@@ -102,7 +102,7 @@
                       <v-col cols="10">
                         <v-number-input
                           v-model="alpha"
-                          :disabled="selectedConst === 'alpha'"
+                          :disabled="selectedConst === 'alpha' || isSkyMode"
                           label="Alpha"
                           :precision="null"
                           :step="0.05"
@@ -128,6 +128,7 @@
                     label="High precision integration"
                     density="compact"
                     hide-details
+                    :disabled="isSkyMode"
                   ></v-checkbox>
                 </v-expansion-panel-text>
               </v-expansion-panel>
@@ -140,6 +141,7 @@
                     label="Comoving space"
                     color="success"
                     density="compact"
+                    :disabled="isSkyMode"
                   ></v-switch>
                   <v-switch
                     v-model="showRefMarks"
@@ -147,17 +149,9 @@
                     color="success"
                     density="compact"
                   ></v-switch>
-                  <v-btn
-                    block
-                    class="mb-2"
-                    :color="isSkyMode ? 'primary' : 'secondary'"
-                    @click="toggleSkyMode"
-                  >
-                    {{ isSkyMode ? 'Exit Sky View' : 'Sky View' }}
-                  </v-btn>
                   <v-divider class="my-3"></v-divider>
                   <div class="text-subtitle-2 mb-2">Projection</div>
-                  <v-btn-toggle v-model="view" mandatory class="mb-4 views">
+                  <v-btn-toggle v-model="view" mandatory class="mb-4 views" :disabled="isSkyMode">
                     <v-btn :value="4">Front 1</v-btn>
                     <v-btn :value="5">Front 2</v-btn>
                     <v-btn :value="6">Front 3</v-btn>
@@ -174,6 +168,7 @@
                     :step="1"
                     control-variant="split"
                     density="compact"
+                    :disabled="isSkyMode"
                   >
                     <template v-slot:append> h </template>
                   </v-number-input>
@@ -186,6 +181,7 @@
                     :step="1"
                     control-variant="split"
                     density="compact"
+                    :disabled="isSkyMode"
                   >
                     <template v-slot:append> ° </template>
                   </v-number-input>
@@ -198,6 +194,7 @@
                     :step="1"
                     control-variant="split"
                     density="compact"
+                    :disabled="isSkyMode"
                   >
                     <template v-slot:append> h </template>
                   </v-number-input>
@@ -261,7 +258,15 @@
                 ></v-btn>
                 <v-divider></v-divider>
                 <v-btn
-                  icon="mdi-refresh"
+                  icon="mdi-telescope"
+                  variant="text"
+                  :color="isSkyMode ? 'primary' : undefined"
+                  @click="toggleSkyMode"
+                  title="Sky View"
+                  rounded="0"
+                ></v-btn>
+                <v-btn
+                  icon="mdi-image-filter-center-focus"
                   variant="text"
                   @click="resetView"
                   title="Reset View"
