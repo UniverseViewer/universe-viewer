@@ -28,6 +28,8 @@ import { computeAngularDist, computePos, computeProj, calcProjVects } from './pr
 // Worker message handler
 self.onmessage = function (e) {
   const { id, type, data } = e.data
+  // Pass ID to data so calculation functions can send progress with it
+  data.id = id
 
   try {
     let result
@@ -58,7 +60,13 @@ self.onmessage = function (e) {
 function calcAngularDist(data) {
   const { targets, kappa, lambda, omega, alpha, precisionEnabled } = data
 
-  const results = targets.map((target) => {
+  const total = targets.length
+  const progressStep = Math.ceil(total / 20) // Report every 5%
+
+  const results = targets.map((target, index) => {
+    if (index % progressStep === 0) {
+      self.postMessage({ id: data.id, progress: (index / total) * 100 })
+    }
     const angularDist = computeAngularDist(
       target.redshift,
       kappa,
@@ -81,7 +89,13 @@ function calcPos(data) {
 
   const results = []
 
-  for (let i = 0; i < targets.length; i++) {
+  const total = targets.length
+  const progressStep = Math.ceil(total / 20) // Report every 5%
+
+  for (let i = 0; i < total; i++) {
+    if (i % progressStep === 0) {
+      self.postMessage({ id: data.id, progress: (i / total) * 100 })
+    }
     const t = targets[i]
     const v = computePos(
       comovingSpaceFlag,
@@ -115,7 +129,13 @@ function calcProj(data) {
 
   const results = []
 
-  for (let i = 0; i < targets.length; i++) {
+  const total = targets.length
+  const progressStep = Math.ceil(total / 20) // Report every 5%
+
+  for (let i = 0; i < total; i++) {
+    if (i % progressStep === 0) {
+      self.postMessage({ id: data.id, progress: (i / total) * 100 })
+    }
     const { x, y } = computeProj(targets[i].pos, view, E0, E1, E2, E3)
     results.push({ x, y })
   }

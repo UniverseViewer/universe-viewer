@@ -312,7 +312,7 @@ export default {
           setMode(state.UNIVERSE_MODE)
         }
         updateCanvas()
-      })
+      }, "Calculating view")
     })
 
     watch(pointSize, (newValue) => {
@@ -330,7 +330,7 @@ export default {
           drawReferenceMarks()
           render()
         }
-      })
+      }, "Updating render")
     })
 
     async function recomputeAll() {

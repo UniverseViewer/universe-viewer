@@ -25,7 +25,7 @@
 class WorkerPool {
   constructor(workerClass, maxWorkers = null) {
     this.workerClass = workerClass
-    this.maxWorkers = maxWorkers || Math.max(1, (navigator.hardwareConcurrency || 4))
+    this.maxWorkers = maxWorkers || Math.max(1, navigator.hardwareConcurrency || 4)
     this.workers = []
     this.availableWorkers = []
     this.taskQueue = []
@@ -63,15 +63,17 @@ class WorkerPool {
    * Execute a task on an available worker.
    * @param {string} type - Task type (e.g., 'calcAngularDist', 'calcPos', 'calcProj').
    * @param {object} data - Task data.
+   * @param {function} onProgress - Optional callback for progress updates.
    * @returns {Promise} Promise that resolves with the result.
    */
-  executeTask(type, data) {
+  executeTask(type, data, onProgress = null) {
     return new Promise((resolve, reject) => {
       const taskId = this.nextTaskId++
       const task = {
         id: taskId,
         type,
         data,
+        onProgress,
         resolve,
         reject,
       }
@@ -86,11 +88,11 @@ class WorkerPool {
 
   /**
    * Execute multiple tasks in parallel.
-   * @param {Array} tasks - Array of {type, data} objects.
+   * @param {Array} tasks - Array of {type, data, onProgress} objects.
    * @returns {Promise<Array>} Promise that resolves with array of results.
    */
   async executeParallel(tasks) {
-    const promises = tasks.map((task) => this.executeTask(task.type, task.data))
+    const promises = tasks.map((task) => this.executeTask(task.type, task.data, task.onProgress))
     return Promise.all(promises)
   }
 
@@ -112,9 +114,16 @@ class WorkerPool {
    * Handle message from worker.
    */
   handleWorkerMessage(worker, event) {
-    const { id, result, error } = event.data
+    const { id, result, error, progress } = event.data
 
     if (worker.currentTask && worker.currentTask.id === id) {
+      if (progress !== undefined) {
+        if (worker.currentTask.onProgress) {
+          worker.currentTask.onProgress(progress)
+        }
+        return
+      }
+
       if (error) {
         worker.currentTask.reject(new Error(error))
       } else {

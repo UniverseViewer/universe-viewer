@@ -25,6 +25,7 @@ import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 import { getProjectionWorkerPool } from '@/logic/workerPool.js'
 import { useTargetsStore } from '@/stores/targets.js'
+import { useBusyStore } from '@/stores/busy.js'
 
 // Targets number threshold for using parallel computation
 const PARALLEL_THRESHOLD = 500
@@ -58,7 +59,18 @@ export function computeAngularDist(redshift, kappa, lambda, omega, alpha, precis
 /**
  * Compute position.
  */
-export function computePos(comovingSpaceFlag, angularDist, ascension, declination, redshift, kappa, lambda, omega, alpha, precisionEnabled) {
+export function computePos(
+  comovingSpaceFlag,
+  angularDist,
+  ascension,
+  declination,
+  redshift,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
   const v = new Vect4d()
 
   if (!comovingSpaceFlag) {
@@ -161,7 +173,15 @@ export function calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, pre
 /**
  * Compute position for all targets.
  */
-export function calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+export function calcTargetsPos(
+  targets,
+  comovingSpaceFlag,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
   if (!targets) return false
 
   for (let i = 0; i < targets.length; i++) {
@@ -302,7 +322,14 @@ function splitIntoChunks(targets, numChunks) {
 /**
  * Parallel version of calcTargetsAngularDist().
  */
-export async function calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled) {
+export async function calcTargetsAngularDistParallel(
+  targets,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
   if (!targets || targets.length === 0) return false
 
   try {
@@ -312,8 +339,11 @@ export async function calcTargetsAngularDistParallel(targets, kappa, lambda, ome
     const targetsStore = useTargetsStore()
     const serializedTargets = targetsStore.serialize()
 
+    const chunkProgress = new Array(chunks.length).fill(0)
+    const busyStore = useBusyStore()
+
     // Create tasks for each chunk
-    const tasks = chunks.map((chunk) => {
+    const tasks = chunks.map((chunk, index) => {
       // Slice the serialized array to match the chunk indices
       const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
@@ -327,6 +357,11 @@ export async function calcTargetsAngularDistParallel(targets, kappa, lambda, ome
           precisionEnabled,
         },
         indices: chunk.indices,
+        onProgress: (p) => {
+          chunkProgress[index] = p
+          const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
+          busyStore.setProgress(totalProgress)
+        },
       }
     })
 
@@ -351,7 +386,15 @@ export async function calcTargetsAngularDistParallel(targets, kappa, lambda, ome
 /**
  * Parallel version of calcTargetsPos().
  */
-export async function calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+export async function calcTargetsPosParallel(
+  targets,
+  comovingSpaceFlag,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
   if (!targets || targets.length === 0) return false
 
   try {
@@ -361,8 +404,11 @@ export async function calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, 
     const targetsStore = useTargetsStore()
     const serializedTargets = targetsStore.serialize()
 
+    const chunkProgress = new Array(chunks.length).fill(0)
+    const busyStore = useBusyStore()
+
     // Create tasks for each chunk
-    const tasks = chunks.map((chunk) => {
+    const tasks = chunks.map((chunk, index) => {
       const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
         type: 'calcPos',
@@ -376,6 +422,11 @@ export async function calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, 
           precisionEnabled,
         },
         indices: chunk.indices,
+        onProgress: (p) => {
+          chunkProgress[index] = p
+          const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
+          busyStore.setProgress(totalProgress)
+        },
       }
     })
 
@@ -401,7 +452,15 @@ export async function calcTargetsPosParallel(targets, comovingSpaceFlag, kappa, 
 /**
  * Parallel version of calcTargetsProj().
  */
-export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+export async function calcTargetsProjParallel(
+  targets,
+  view,
+  RA1,
+  Dec1,
+  Beta,
+  comovingSpaceFlag,
+  kappa,
+) {
   if (!targets || targets.length === 0) return
 
   try {
@@ -411,8 +470,11 @@ export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, co
     const targetsStore = useTargetsStore()
     const serializedTargets = targetsStore.serialize()
 
+    const chunkProgress = new Array(chunks.length).fill(0)
+    const busyStore = useBusyStore()
+
     // Create tasks for each chunk
-    const tasks = chunks.map((chunk) => {
+    const tasks = chunks.map((chunk, index) => {
       const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
         type: 'calcProj',
@@ -426,6 +488,11 @@ export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, co
           kappa,
         },
         indices: chunk.indices,
+        onProgress: (p) => {
+          chunkProgress[index] = p
+          const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
+          busyStore.setProgress(totalProgress)
+        },
       }
     })
 
@@ -449,11 +516,29 @@ export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, co
 /**
  * Compute angular distance, position and projection for all targets, with parallelization if relevant.
  */
-export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
+export async function updateAll(
+  targets,
+  view,
+  RA1,
+  Dec1,
+  Beta,
+  comovingSpaceFlag,
+  kappa,
+  lambda,
+  omega,
+  alpha,
+  precisionEnabled,
+) {
+  const busyStore = useBusyStore()
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
+      busyStore.setStatusMessage('Computing angular distances [1/3]')
+      busyStore.setProgress(0)
       await calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled)
+
+      busyStore.setStatusMessage('Computing positions [2/3]')
+      busyStore.setProgress(0)
       await calcTargetsPosParallel(
         targets,
         comovingSpaceFlag,
@@ -463,7 +548,13 @@ export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFla
         alpha,
         precisionEnabled,
       )
+
+      busyStore.setStatusMessage('Computing projection [3/3]')
+      busyStore.setProgress(0)
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+
+      busyStore.setStatusMessage('Ready')
+      busyStore.setProgress(100)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -471,20 +562,27 @@ export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFla
     }
   }
 
+  busyStore.setStatusMessage('Computing (single-threaded)')
   // Single-threaded version for small datasets or fallback
   calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  busyStore.setStatusMessage('Ready')
 }
 
 /**
  * Compute projection for all targets, with parallelization if relevant.
  */
 export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+  const busyStore = useBusyStore()
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
+      busyStore.setStatusMessage('Computing projection')
+      busyStore.setProgress(0)
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      busyStore.setStatusMessage('Ready')
+      busyStore.setProgress(100)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -492,6 +590,8 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
     }
   }
 
+  busyStore.setStatusMessage('Computing (single-threaded)')
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  busyStore.setStatusMessage('Ready')
 }
