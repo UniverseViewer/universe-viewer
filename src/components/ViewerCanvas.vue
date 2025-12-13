@@ -624,140 +624,142 @@ export default {
       if (e.button !== 0) return
       if (!state.isSelecting) return
 
-      const rect = root.value.getBoundingClientRect()
-      const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
-      const p2 = pixelToWorld(rect.left + state.selectX2, rect.top + state.selectY2)
+      busyStore.runBusyTask(() => {
+        const rect = root.value.getBoundingClientRect()
+        const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
+        const p2 = pixelToWorld(rect.left + state.selectX2, rect.top + state.selectY2)
 
-      // Calculate pixel-space dimensions of the selection
-      const pixelWidth = Math.abs(state.selectX2 - state.selectX1)
-      const pixelHeight = Math.abs(state.selectY2 - state.selectY1)
-      const isClick = pixelWidth < 5 && pixelHeight < 5
+        // Calculate pixel-space dimensions of the selection
+        const pixelWidth = Math.abs(state.selectX2 - state.selectX1)
+        const pixelHeight = Math.abs(state.selectY2 - state.selectY1)
+        const isClick = pixelWidth < 5 && pixelHeight < 5
 
-      let selX1, selX2, selY1, selY2
-      let nearestTarget = null
+        let selX1, selX2, selY1, selY2
+        let nearestTarget = null
 
-      if (isClick) {
-        // Find the nearest target within a small threshold
-        const clickThresholdWorld = 0.01 / state.zoom // Small threshold in world coordinates
-        const clickX = p1.worldX
-        const clickY = p1.worldY
+        if (isClick) {
+          // Find the nearest target within a small threshold
+          const clickThresholdWorld = 0.01 / state.zoom // Small threshold in world coordinates
+          const clickX = p1.worldX
+          const clickY = p1.worldY
+
+          const t = targets.value || []
+          let minDistance = clickThresholdWorld
+
+          for (let i = 0; i < t.length; i++) {
+            const ti = t[i]
+            let x, y
+            if (state.mode === state.UNIVERSE_MODE) {
+              x = ti.getx()
+              y = ti.gety()
+            } else {
+              x = ti.getAscension()
+              y = ti.getDeclination()
+            }
+
+            const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2))
+
+            if (distance <= minDistance) {
+              minDistance = distance
+              nearestTarget = ti
+            }
+          }
+
+          // Create a tiny selection area for the logic below
+          selX1 = clickX - 0.0001
+          selX2 = clickX + 0.0001
+          selY1 = clickY - 0.0001
+          selY2 = clickY + 0.0001
+        } else {
+          // Regular rectangle selection
+          selX1 = Math.min(p1.worldX, p2.worldX)
+          selX2 = Math.max(p1.worldX, p2.worldX)
+          selY1 = Math.min(p1.worldY, p2.worldY)
+          selY2 = Math.max(p1.worldY, p2.worldY)
+        }
 
         const t = targets.value || []
-        let minDistance = clickThresholdWorld
+        let nbSelected = 0
 
-        for (let i = 0; i < t.length; i++) {
-          const ti = t[i]
-          let x, y
-          if (state.mode === state.UNIVERSE_MODE) {
-            x = ti.getx()
-            y = ti.gety()
-          } else {
-            x = ti.getAscension()
-            y = ti.getDeclination()
-          }
-
-          const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2))
-
-          if (distance <= minDistance) {
-            minDistance = distance
-            nearestTarget = ti
-          }
-        }
-
-        // Create a tiny selection area for the logic below
-        selX1 = clickX - 0.0001
-        selX2 = clickX + 0.0001
-        selY1 = clickY - 0.0001
-        selY2 = clickY + 0.0001
-      } else {
-        // Regular rectangle selection
-        selX1 = Math.min(p1.worldX, p2.worldX)
-        selX2 = Math.max(p1.worldX, p2.worldX)
-        selY1 = Math.min(p1.worldY, p2.worldY)
-        selY2 = Math.max(p1.worldY, p2.worldY)
-      }
-
-      const t = targets.value || []
-      let nbSelected = 0
-
-      // Pre-capture selected state for intersection mode
-      const previouslySelected = new Set()
-      if (state.selectionType === 'intersection') {
-        t.forEach((ti) => {
-          if (ti.isSelected()) {
-            previouslySelected.add(ti)
-          }
-        })
-      }
-
-      // Initial deselection for 'replace' and 'intersection' modes
-      if (state.selectionType === 'replace' || state.selectionType === 'intersection') {
-        t.forEach((ti) => ti.setSelected(false))
-      }
-
-      if (isClick && nearestTarget) {
-        // Select only the nearest target
-        switch (state.selectionType) {
-          case 'additive':
-            nearestTarget.setSelected(true)
-            break
-          case 'replace':
-            nearestTarget.setSelected(true)
-            break
-          case 'intersection':
-            if (previouslySelected.has(nearestTarget)) {
-              nearestTarget.setSelected(true)
+        // Pre-capture selected state for intersection mode
+        const previouslySelected = new Set()
+        if (state.selectionType === 'intersection') {
+          t.forEach((ti) => {
+            if (ti.isSelected()) {
+              previouslySelected.add(ti)
             }
-            break
+          })
         }
-        nbSelected = t.filter((ti) => ti.isSelected()).length
-      } else {
-        // Rectangle selection (including clicks with no nearby target)
-        for (let i = 0; i < t.length; i++) {
-          const ti = t[i]
-          let x, y
-          if (state.mode === state.UNIVERSE_MODE) {
-            x = ti.getx()
-            y = ti.gety()
-          } else {
-            const asc = ti.getAscension()
-            const dec = ti.getDeclination()
-            x = asc
-            y = dec
-          }
 
-          const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
+        // Initial deselection for 'replace' and 'intersection' modes
+        if (state.selectionType === 'replace' || state.selectionType === 'intersection') {
+          t.forEach((ti) => ti.setSelected(false))
+        }
 
+        if (isClick && nearestTarget) {
+          // Select only the nearest target
           switch (state.selectionType) {
             case 'additive':
-              if (isInsideRectangle) {
-                ti.setSelected(true)
-              }
+              nearestTarget.setSelected(true)
               break
             case 'replace':
-              if (isInsideRectangle) {
-                ti.setSelected(true)
-              }
+              nearestTarget.setSelected(true)
               break
             case 'intersection':
-              if (isInsideRectangle && previouslySelected.has(ti)) {
-                ti.setSelected(true)
+              if (previouslySelected.has(nearestTarget)) {
+                nearestTarget.setSelected(true)
               }
               break
           }
+          nbSelected = t.filter((ti) => ti.isSelected()).length
+        } else {
+          // Rectangle selection (including clicks with no nearby target)
+          for (let i = 0; i < t.length; i++) {
+            const ti = t[i]
+            let x, y
+            if (state.mode === state.UNIVERSE_MODE) {
+              x = ti.getx()
+              y = ti.gety()
+            } else {
+              const asc = ti.getAscension()
+              const dec = ti.getDeclination()
+              x = asc
+              y = dec
+            }
 
-          if (ti.isSelected()) {
-            nbSelected += 1
+            const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2
+
+            switch (state.selectionType) {
+              case 'additive':
+                if (isInsideRectangle) {
+                  ti.setSelected(true)
+                }
+                break
+              case 'replace':
+                if (isInsideRectangle) {
+                  ti.setSelected(true)
+                }
+                break
+              case 'intersection':
+                if (isInsideRectangle && previouslySelected.has(ti)) {
+                  ti.setSelected(true)
+                }
+                break
+            }
+
+            if (ti.isSelected()) {
+              nbSelected += 1
+            }
           }
         }
-      }
 
-      targetsStore.setSelectedCount(nbSelected)
+        targetsStore.setSelectedCount(nbSelected)
 
-      state.isSelecting = false
+        state.isSelecting = false
 
-      updatePointsColor()
-      render()
+        updatePointsColor()
+        render()
+      })
     }
 
     function handlePressedKeys() {
