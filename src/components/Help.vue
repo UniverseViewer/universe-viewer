@@ -10,11 +10,9 @@
     >
       <v-card-text>
         <strong>Zoom:</strong> scroll<br />
-        <strong>Drag view:</strong> right click / alt + left click<br />
-        <strong>Select:</strong> left click<br />
-        <strong>Additive selection:</strong> shift + left click<br />
-        <strong>Intersevtion selection:</strong> ctrl + left click<br />
-        <strong>Reset view:</strong> middle click<br />
+        <strong>Drag view or select (depends on mouse mode):</strong> left click<br />
+        <strong>Additive selection (if selection mode):</strong> shift + left click<br />
+        <strong>Intersevtion selection (if selection mode):</strong> ctrl + left click<br />
       </v-card-text>
       <template v-slot:actions>
         <v-btn
