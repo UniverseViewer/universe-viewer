@@ -62,7 +62,7 @@ with fits.open(fits_file) as hdul:
         ra_rad = np.deg2rad(15.0 * ra_hours)
 
         # Dec with sign
-        sign = -1.0 if row["DE-"] == b"-" else 1.0
+        sign = -1.0 if str(row["DE-"]) == "-" else 1.0
         dec_deg = sign * (row["DEd"] + row["DEm"] / 60.0 + row["DEs"] / 3600.0)
         dec_rad = np.deg2rad(dec_deg)
 
