@@ -48,9 +48,10 @@ export default {
 
   props: {
     darkMode: { type: Boolean, default: true },
+    mouseMode: { type: String, default: 'move' },
   },
 
-  setup(props) {
+  setup(props, { expose }) {
     const root = ref(null)
     const overlay = ref(null)
 
@@ -312,7 +313,7 @@ export default {
           setMode(state.UNIVERSE_MODE)
         }
         updateCanvas()
-      }, "Calculating view")
+      }, 'Calculating view')
     })
 
     watch(pointSize, (newValue) => {
@@ -330,7 +331,7 @@ export default {
           drawReferenceMarks()
           render()
         }
-      }, "Updating render")
+      }, 'Updating render')
     })
 
     async function recomputeAll() {
@@ -632,25 +633,29 @@ export default {
     }
 
     function onMouseDown(e) {
-      if ((e.button === 0 && state.altKeyPressed) || e.button === 2) {
-        // Drag view
-        state.isDragging = true
-        state.mouseX = e.clientX
-        state.mouseY = e.clientY
-      } else if (e.button === 0) {
-        // Select
-        const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
-        state.selectX1 = pixelX
-        state.selectY1 = pixelY
-        state.selectX2 = pixelX
-        state.selectY2 = pixelY
-        state.isSelecting = true
-      } else if (e.button === 1) {
-        // Reset view
-        setMode(state.mode)
-        return
+      if (e.button === 0) {
+        if (props.mouseMode === 'move') {
+          // Drag view
+          state.isDragging = true
+          state.mouseX = e.clientX
+          state.mouseY = e.clientY
+        } else if (props.mouseMode === 'select') {
+          // Select
+          const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
+          state.selectX1 = pixelX
+          state.selectY1 = pixelY
+          state.selectX2 = pixelX
+          state.selectY2 = pixelY
+          state.isSelecting = true
+        }
       }
     }
+
+    function resetView() {
+      setMode(state.mode)
+    }
+
+    expose({ resetView })
 
     function onMouseMove(e) {
       const rect = root.value.getBoundingClientRect()

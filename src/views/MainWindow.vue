@@ -238,7 +238,37 @@
 
           <!-- MAIN VIEWER -->
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
-            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" />
+            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" :mouse-mode="mouseMode" />
+
+            <!-- RIGHT SIDEBAR (OVERLAY) -->
+            <div class="right-sidebar">
+              <v-sheet class="d-flex flex-column" elevation="2" rounded color="surface">
+                <v-btn
+                  icon="mdi-cursor-move"
+                  variant="text"
+                  :color="mouseMode === 'move' ? 'primary' : undefined"
+                  @click="mouseMode = 'move'"
+                  title="Move Mode"
+                  rounded="0"
+                ></v-btn>
+                <v-btn
+                  icon="mdi-selection-drag"
+                  variant="text"
+                  :color="mouseMode === 'select' ? 'primary' : undefined"
+                  @click="mouseMode = 'select'"
+                  title="Selection Mode"
+                  rounded="0"
+                ></v-btn>
+                <v-divider></v-divider>
+                <v-btn
+                  icon="mdi-refresh"
+                  variant="text"
+                  @click="resetView"
+                  title="Reset View"
+                  rounded="0"
+                ></v-btn>
+              </v-sheet>
+            </div>
           </v-col>
         </v-row>
       </v-container>
@@ -343,6 +373,7 @@ const viewer = ref(null)
 const selectedConst = ref('kappa')
 const showRefMarks = ref(true)
 const infoLabel = ref('Ready')
+const mouseMode = ref('move')
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -414,6 +445,12 @@ const aboutOpened = ref(false)
 async function toggleSkyMode() {
   const newMode = isSkyMode.value ? 'universe' : 'sky'
   store.setViewerMode(newMode)
+}
+
+function resetView() {
+  if (viewer.value) {
+    viewer.value.resetView()
+  }
 }
 
 // Watchers
@@ -512,5 +549,11 @@ watch(showRefMarks, (val) => {
   flex: 0 0 33.33%;
   max-width: 33.33%;
   box-sizing: border-box;
+}
+.right-sidebar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
 }
 </style>
