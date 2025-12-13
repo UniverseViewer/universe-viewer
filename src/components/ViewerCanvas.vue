@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" :class="['viewer-root', busy?'busy':'' ]">
+  <div ref="root" :class="['viewer-root', busy ? 'busy' : '']">
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -39,6 +39,7 @@ import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
+import { useBusyStore } from '@/stores/busy.js'
 import { watch } from 'vue'
 
 export default {
@@ -54,8 +55,10 @@ export default {
 
     const universeStore = useUniverseStore()
     const targetsStore = useTargetsStore()
-    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance, busy } =
+    const busyStore = useBusyStore()
+    const { kappa, view, pointSize, comovingSpaceFlag, horizonAngularDistance, viewerMode } =
       storeToRefs(universeStore)
+    const { busy } = storeToRefs(busyStore)
     const { targets } = storeToRefs(targetsStore)
 
     const state = reactive({
@@ -287,6 +290,17 @@ export default {
       updateCanvas()
     }
 
+    watch(viewerMode, (newMode) => {
+      busyStore.runBusyTask(() => {
+        if (newMode === 'sky') {
+          setMode(state.SKY_MODE)
+        } else {
+          setMode(state.UNIVERSE_MODE)
+        }
+        updateCanvas()
+      })
+    })
+
     watch(pointSize, (newValue) => {
       if (state.material) {
         state.material.size = newValue
@@ -295,12 +309,14 @@ export default {
     })
 
     watch(themeName, (newVal) => {
-      if (state.scene) {
-        state.scene.background = new THREE.Color(state.theme[newVal].background)
-        updatePointsColor()
-        drawReferenceMarks()
-        render()
-      }
+      busyStore.runBusyTask(() => {
+        if (state.scene) {
+          state.scene.background = new THREE.Color(state.theme[newVal].background)
+          updatePointsColor()
+          drawReferenceMarks()
+          render()
+        }
+      })
     })
 
     watch([horizonAngularDistance, kappa, view, comovingSpaceFlag], () => {
@@ -794,7 +810,6 @@ export default {
 
       universeStore.setViewerCanvas({
         updateCanvas,
-        setMode,
         setShowReferencesMarks: (s) => {
           state.showReferencesMarks = !!s
           drawReferenceMarks()
@@ -837,10 +852,6 @@ export default {
       targets,
       updateCanvas,
       busy,
-      setModePublic: (m) => {
-        setMode(m)
-        updateCanvas()
-      },
       setShowReferencesMarksPublic: (s) => {
         state.showReferencesMarks = !!s
         drawReferenceMarks()

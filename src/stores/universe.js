@@ -48,11 +48,10 @@ export const useUniverseStore = defineStore('universe', () => {
   const precisionEnabled = ref(false)
   const comovingSpaceFlag = ref(true)
   const pointSize = ref(1.5)
+  const viewerMode = ref('universe')
 
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
-
-  const busy = ref(false)
 
   function initialize() {
     try {
@@ -141,8 +140,8 @@ export const useUniverseStore = defineStore('universe', () => {
     pointSize.value = size
   }
 
-  function setBusy(state) {
-    busy.value = !!state
+  function setViewerMode(mode) {
+    viewerMode.value = mode
   }
 
   return {
@@ -164,7 +163,7 @@ export const useUniverseStore = defineStore('universe', () => {
     horizon,
     horizonAngularDistance,
     pointSize,
-    busy,
+    viewerMode,
     // Setters
     setCosmoParams,
     setUserRa1,
@@ -175,6 +174,6 @@ export const useUniverseStore = defineStore('universe', () => {
     enablePrecision,
     setComovingSpace,
     setPointSize,
-    setBusy,
+    setViewerMode,
   }
 })

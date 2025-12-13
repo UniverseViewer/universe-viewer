@@ -286,6 +286,7 @@ import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
+import { useBusyStore } from '@/stores/busy.js'
 import * as projection from '@/logic/projection.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
@@ -308,11 +309,14 @@ const {
   precisionEnabled,
   pointSize,
   viewerCanvas,
-  busy,
+  viewerMode,
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()
 const { targets } = storeToRefs(targetsStore)
+
+const busyStore = useBusyStore()
+const { busy } = storeToRefs(busyStore)
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -323,20 +327,21 @@ const viewer = ref(null)
 // Local State
 const selectedConst = ref('kappa')
 const showRefMarks = ref(true)
-const isSkyMode = ref(false)
 const infoLabel = ref('Ready')
+
+const isSkyMode = computed(() => viewerMode.value === 'sky')
 
 // ra1, dec1, beta need to be computed to convert from rad to hours/deg for sliders
 const ra1 = computed({
-  get: () => Math.round((12 * userRA1.value) / Math.PI * 10) / 10,
+  get: () => Math.round(((12 * userRA1.value) / Math.PI) * 10) / 10,
   set: (val) => store.setUserRa1(val),
 })
 const dec1 = computed({
-  get: () => Math.round((180 * userDec1.value) / Math.PI * 10) / 10,
+  get: () => Math.round(((180 * userDec1.value) / Math.PI) * 10) / 10,
   set: (val) => store.setUserDec1(val),
 })
 const beta = computed({
-  get: () => Math.round((12 * userBeta.value) / Math.PI * 10) / 10,
+  get: () => Math.round(((12 * userBeta.value) / Math.PI) * 10) / 10,
   set: (val) => store.setUserBeta(val),
 })
 const objectPointSize = computed({
@@ -364,6 +369,7 @@ const browsedFile = ref(null)
 function onFileChange(event) {
   const file = event.target.files[0]
   if (!file) return
+  busyStore.increment()
 
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -377,49 +383,46 @@ function onFileChange(event) {
     } catch (err) {
       console.error(err)
       infoLabel.value = `Error: ${err.message}`
+    } finally {
+      busyStore.decrement()
     }
   }
   catalogFile.value = undefined
   reader.readAsText(file)
 }
 
-// Helo
+// Help
 const helpOpened = ref(false)
 const aboutOpened = ref(false)
 
 // Logic Updates
 async function forceUpdate() {
   try {
-    await projection.updateAll(
-      targetsStore.targets,
-      store.view,
-      store.userRA1,
-      store.userDec1,
-      store.userBeta,
-      store.comovingSpaceFlag,
-      store.kappa,
-      store.lambda,
-      store.omega,
-      store.alpha,
-      store.precisionEnabled,
-    )
-    viewerCanvas.value.updateCanvas()
+    await busyStore.runBusyTask(async () => {
+      await projection.updateAll(
+        targetsStore.targets,
+        store.view,
+        store.userRA1,
+        store.userDec1,
+        store.userBeta,
+        store.comovingSpaceFlag,
+        store.kappa,
+        store.lambda,
+        store.omega,
+        store.alpha,
+        store.precisionEnabled,
+      )
+      viewerCanvas.value.updateCanvas()
+    })
   } catch (e) {
     console.error(e)
     infoLabel.value = 'Update Error: ' + e.message
   }
 }
 
-function toggleSkyMode() {
-  if (viewer.value) {
-    if (isSkyMode.value) {
-      viewer.value.setModePublic(0) // UNIVERSE_MODE
-      isSkyMode.value = false
-    } else {
-      viewer.value.setModePublic(1) // SKY_MODE
-      isSkyMode.value = true
-    }
-  }
+async function toggleSkyMode() {
+  const newMode = isSkyMode.value ? 'universe' : 'sky'
+  store.setViewerMode(newMode)
 }
 
 // Watchers
@@ -449,6 +452,7 @@ watch(isDarkTheme, (val) => {
 
 watch(catalogFile, (newVal) => {
   if (newVal === undefined || newVal === null) return
+  busyStore.increment()
   browsedFile.value = null
   fetch('/catalogs/' + newVal)
     .then((response) => response.text())
@@ -460,10 +464,12 @@ watch(catalogFile, (newVal) => {
       forceUpdate()
     })
     .catch((err) => (infoLabel.value = `Error: ${err.message}`))
+    .finally(() => {
+      busyStore.decrement()
+    })
 })
 
-let cosmoUpdateQueued = false
-watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
+watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
   if (Math.abs(sumConsts.value - 1) < 1e-5) return
 
   let newLambda = lambda.value,
@@ -494,64 +500,26 @@ watch([lambda, omega, kappa, alpha], (newVals, oldVals) => {
     return
   }
 
-  if (!cosmoUpdateQueued) {
-    cosmoUpdateQueued = true
-    requestAnimationFrame(async () => {
-      await projection.updateAll(
-        targetsStore.targets,
-        store.view,
-        store.userRA1,
-        store.userDec1,
-        store.userBeta,
-        store.comovingSpaceFlag,
-        store.kappa,
-        store.lambda,
-        store.omega,
-        store.alpha,
-        store.precisionEnabled,
-      )
-      viewerCanvas.value.updateCanvas()
-      cosmoUpdateQueued = false
-    })
-  }
-})
-
-watch(view, async (newVal) => {
-  store.setView(newVal)
-  await projection.updateView(
-    targets.value,
-    view.value,
-    userRA1.value,
-    userDec1.value,
-    userBeta.value,
-    comovingSpaceFlag.value,
-    kappa.value,
-  )
-  viewerCanvas.value.updateCanvas()
+  forceUpdate()
 })
 
 watch(showRefMarks, (val) => {
   if (viewer.value) viewer.value.setShowReferencesMarksPublic(val)
 })
 
-let viewUpdateQueued = false
-watch([userRA1, userDec1, userBeta], () => {
-  if (!viewUpdateQueued) {
-    viewUpdateQueued = true
-    requestAnimationFrame(async () => {
-      await projection.updateView(
-        targets.value,
-        view.value,
-        userRA1.value,
-        userDec1.value,
-        userBeta.value,
-        comovingSpaceFlag.value,
-        kappa.value,
-      )
-      viewerCanvas.value.updateCanvas()
-      viewUpdateQueued = false
-    })
-  }
+watch([view, userRA1, userDec1, userBeta], async () => {
+  await busyStore.runBusyTask(async () => {
+    await projection.updateView(
+      targets.value,
+      view.value,
+      userRA1.value,
+      userDec1.value,
+      userBeta.value,
+      comovingSpaceFlag.value,
+      kappa.value,
+    )
+    viewerCanvas.value.updateCanvas()
+  })
 })
 
 watch([comovingSpaceFlag, precisionEnabled], () => {

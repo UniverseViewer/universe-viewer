@@ -24,7 +24,6 @@ import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 import { getProjectionWorkerPool } from '@/logic/workerPool.js'
-import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
 
 // Targets number threshold for using parallel computation
@@ -451,10 +450,6 @@ export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, co
  * Compute angular distance, position and projection for all targets, with parallelization if relevant.
  */
 export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled) {
-  const universeStore = useUniverseStore()
-  universeStore.setBusy(true)
-  await new Promise((resolve) => setTimeout(resolve, 0))
-
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
@@ -469,7 +464,6 @@ export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFla
         precisionEnabled,
       )
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
-      universeStore.setBusy(false)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -481,22 +475,16 @@ export async function updateAll(targets, view, RA1, Dec1, Beta, comovingSpaceFla
   calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
-  universeStore.setBusy(false)
 }
 
 /**
  * Compute projection for all targets, with parallelization if relevant.
  */
 export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
-  const universeStore = useUniverseStore()
-  universeStore.setBusy(true)
-  await new Promise((resolve) => setTimeout(resolve, 0))
-
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
-      universeStore.setBusy(false)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -506,5 +494,4 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
 
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
-  universeStore.setBusy(false)
 }
