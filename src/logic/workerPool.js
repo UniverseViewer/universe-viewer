@@ -25,7 +25,7 @@
 class WorkerPool {
   constructor(workerClass, maxWorkers = null) {
     this.workerClass = workerClass
-    this.maxWorkers = maxWorkers || Math.max(1, (navigator.hardwareConcurrency || 4) - 1)
+    this.maxWorkers = maxWorkers || Math.max(1, (navigator.hardwareConcurrency || 4))
     this.workers = []
     this.availableWorkers = []
     this.taskQueue = []
