@@ -3,54 +3,73 @@
     "name": "Hewitt & Burbidge QSO Catalog",
     "year": 1993,
     "targets_number": 7236,
-    "file": "burbidge.dat"
+    "file": "burbidge.dat",
+    "author": "A. Hewitt and G. Burbidge",
+    "link": "https://ui.adsabs.harvard.edu/abs/1993ApJS...87..451H/abstract"
   },
   {
     "name": "2dF QSO Redshifr Survey",
     "year": 2001,
     "targets_number": 22431,
-    "file": "2df.dat"
+    "file": "2df.dat",
+    "author": "Croom et al.",
+    "link": "http://www.2dfquasar.org/"
   },
   {
     "name": "6dF Galaxy Survey",
     "year": 2009,
     "targets_number": 124647,
-    "file": "vii_259_6dF/6dfgs.gz"
+    "file": "vii_259_6dF/6dfgs.gz",
+    "author": "Jones et al.",
+    "link": "https://ui.adsabs.harvard.edu/abs/2009MNRAS.399..683J/abstract"
   },
   {
-    "name": "Active Galactic Nuclei (13th Ed.) (Veron-Cetty+ 2010)",
+    "name": "Active Galactic Nuclei (13th Ed.) (Veron-Cetty+)",
     "year": 2010,
     "targets_number": 34231,
-    "file": "vii_258/agn.gz"
+    "file": "vii_258/agn.gz",
+    "author": "Veron-Cetty M.P., Veron P.",
+    "link": "https://ui.adsabs.harvard.edu/abs/2010yCat.7258....0V/abstract"
   },
   {
-    "name": "Quasars (13th Ed.) (Veron-Cetty+ 2010)",
+    "name": "Quasars (13th Ed.) (Veron-Cetty+)",
     "year": 2010,
     "targets_number": 133335,
-    "file": "vii_258/qso.gz"
+    "file": "vii_258/qso.gz",
+    "author": "Veron-Cetty M.P., Veron P.",
+    "link": "https://ui.adsabs.harvard.edu/abs/2010yCat.7258....0V/abstract"
   },
   {
     "name": "SDSS QSO Catalog: DR16Q v3 Superset",
     "year": 2020,
     "targets_number": 1189251,
-    "file": "sdss_qso/dr16q_v3.gz"
+    "file": "sdss_qso/dr16q_v3.gz",
+    "author": "Lyke et al.",
+    "link": "https://www.sdss.org/dr16/algorithms/qso_catalog/"
   },
   {
     "name": "SDSS QSO Catalog: DR16Q v4",
     "year": 2020,
     "targets_number": 638022,
-    "file": "sdss_qso/dr16q_v4.gz"
+    "file": "sdss_qso/dr16q_v4.gz",
+    "author": "Lyke et al.",
+    "link": "https://www.sdss.org/dr16/algorithms/qso_catalog/"
   },
   {
     "name": "Million Quasars Catalog, Version 8",
     "year": 2023,
     "targets_number": 1012635,
-    "file": "milliquas/milliquas_v8.gz"
+    "file": "milliquas/milliquas_v8.gz",
+    "author": "Eric W. Flesch",
+    "link": "https://quasars.org/milliquas.htm"
   },
   {
     "name": "AGN/QSO Value-Added Catalog for DESI DR1",
     "year": 2025,
     "targets_number": 1647301,
-    "file": "agnqso_desi/qso.gz"
+    "file": "agnqso_desi/qso.gz",
+    "author": "DESI Collaboration et al.",
+    "link": "https://data.desi.lbl.gov/doc/releases/dr1/vac/agnqso/",
+    "license": "Creative Commons Attribution 4.0 International License"
   }
 ]

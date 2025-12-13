@@ -1,38 +1,81 @@
 <template>
-  <v-dialog
-    v-model="visible"
-    width="auto"
-  >
-    <v-card
-      max-width="600"
-      prepend-icon="mdi-information"
-      :title="'UniverseViewer ' + version"
-    >
-      <v-card-text>
-        &copy; 2008 - 2025
-        <br />
-        <br />
-        <strong><a href="mailto:mathieu.abati@gmail.com">Mathieu Abati</a></strong> (2008 - 2025)
-        <br />
-        <strong>Julie Fontaine</strong> (2008)
-        <br />
-        <br />
-        Special thanks to <strong>Roland Triay</strong>
-        <br />
-        <br />
-        Based on <a href="https://amu.hal.science/hal-01431981/document" target="_blank" rel="noopener">Framework for cosmography at high redshift</a> - R. Triay, L. Spinelli, R. Lafaye (1996)
-        <br />
-        <br />
-        This software is provided "as is" without warranty of any kind.
-        It is licensed under the terms of the <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" target="_blank" rel="noopener">GNU GENERAL PUBLIC LICENSE, version 2</a>.
+  <v-dialog v-model="visible" width="auto" scrollable>
+    <v-card max-width="800" height="600" max-height="90vh" class="d-flex flex-column">
+      <v-card-title class="d-flex align-center">
+        <v-icon icon="mdi-information" class="mr-2"></v-icon>
+        UniverseViewer {{ version }}
+      </v-card-title>
+
+      <v-tabs v-model="tab">
+        <v-tab value="software">Software</v-tab>
+        <v-tab value="catalogs">Catalogs</v-tab>
+      </v-tabs>
+
+      <v-card-text style="height: 400px">
+        <v-window v-model="tab">
+          <v-window-item value="software">
+            <div class="pa-4">
+              &copy; 2008 - 2025
+              <br />
+              <br />
+              <strong><a href="mailto:mathieu.abati@gmail.com">Mathieu Abati</a></strong> (2008 -
+              2025)
+              <br />
+              <strong>Julie Fontaine</strong> (2008)
+              <br />
+              <br />
+              Special thanks to <strong>Roland Triay</strong>
+              <br />
+              <br />
+              Based on
+              <a href="https://amu.hal.science/hal-01431981/document" target="_blank" rel="noopener"
+                >Framework for cosmography at high redshift</a
+              >
+              - R. Triay, L. Spinelli, R. Lafaye (1996)
+              <br />
+              <br />
+              This software is provided "as is" without warranty of any kind. It is licensed under
+              the terms of the
+              <a
+                href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html"
+                target="_blank"
+                rel="noopener"
+                >GNU GENERAL PUBLIC LICENSE, version 2</a
+              >.
+            </div>
+          </v-window-item>
+
+          <v-window-item value="catalogs">
+            <v-container>
+              <v-row>
+                <v-col v-for="catalog in catalogs" :key="catalog.file" cols="12">
+                  <v-card variant="tonal">
+                    <v-card-title>{{ catalog.name }}</v-card-title>
+                    <v-card-subtitle>{{ catalog.year }}</v-card-subtitle>
+                    <v-card-text>
+                      <div v-if="catalog.author"><strong>Author:</strong> {{ catalog.author }}</div>
+                      <div v-if="catalog.link">
+                        <strong>Link:</strong>
+                        <a :href="catalog.link" target="_blank" rel="noopener">{{
+                          catalog.link
+                        }}</a>
+                      </div>
+                      <div v-if="catalog.license">
+                        <strong>License:</strong> {{ catalog.license }}
+                      </div>
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-window-item>
+        </v-window>
       </v-card-text>
-      <template v-slot:actions>
-        <v-btn
-          class="ms-auto"
-          text="Ok"
-          @click="visible = false"
-        ></v-btn>
-      </template>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn text="Ok" @click="visible = false"></v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -60,41 +103,43 @@
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
+import manifest from '../../public/catalogs/manifest.json'
 
 export default {
-  name: 'About',
+  name: 'AboutDialog',
 
   props: {
-    modelValue: { type: Boolean, default: false }
+    modelValue: { type: Boolean, default: false },
   },
   emits: ['update:modelValue'],
 
   setup(props, { emit }) {
     const store = useUniverseStore()
-    const {
-      version,
-    } = storeToRefs(store)
+    const { version } = storeToRefs(store)
 
     const visible = ref(props.modelValue)
+    const tab = ref('software')
+    const catalogs = manifest
 
     // Sync with parent
-    watch(visible, value => {
+    watch(visible, (value) => {
       emit('update:modelValue', value)
     })
     // Sync parent (parent updates)
     watch(
       () => props.modelValue,
-      value => {
+      (value) => {
         visible.value = value
-      }
+      },
     )
     return {
       version,
       visible,
+      tab,
+      catalogs,
     }
   },
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
