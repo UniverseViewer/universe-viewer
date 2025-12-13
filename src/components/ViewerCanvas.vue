@@ -269,6 +269,21 @@ export default {
       state.camera.updateProjectionMatrix()
     }
 
+    function createCircleTexture() {
+      const size = 128
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      const context = canvas.getContext('2d')
+
+      context.beginPath()
+      context.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI)
+      context.fillStyle = 'white'
+      context.fill()
+
+      return new THREE.CanvasTexture(canvas)
+    }
+
     function initThree() {
       const width = root.value.clientWidth
       const height = root.value.clientHeight
@@ -286,11 +301,16 @@ export default {
       state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
       state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
 
+      const circleTexture = createCircleTexture()
+
       state.material = markRaw(
         new THREE.PointsMaterial({
           size: pointSize.value,
           vertexColors: true,
           sizeAttenuation: false,
+          map: circleTexture,
+          transparent: true,
+          alphaTest: 0.5,
         }),
       )
 
