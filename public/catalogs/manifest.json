@@ -24,6 +24,12 @@
     "file": "sdss_qso/dr16q_v4.gz"
   },
   {
+    "name": "Million Quasars Catalog, Version 8",
+    "year": 2023,
+    "targets_number": 1012635,
+    "file": "milliquas/milliquas_v8.gz"
+  },
+  {
     "name": "AGN/QSO Value-Added Catalog for DESI DR1",
     "year": 2025,
     "targets_number": 1647301,

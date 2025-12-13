@@ -41,3 +41,5 @@ public/catalogs/agnqso_desi/dr1_vac_dr1_agnqso_v1.0.sha256sum
 public/catalogs/agnqso_desi/qso.dat
 public/catalogs/sdss_qso/*.fits
 public/catalogs/sdss_qso/*.dat
+public/catalogs/milliquas/*.fits
+public/catalogs/milliquas/*.dat
