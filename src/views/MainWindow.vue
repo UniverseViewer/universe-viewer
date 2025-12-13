@@ -159,6 +159,16 @@
                     <v-btn :value="2">Edge 2</v-btn>
                     <v-btn :value="3">Edge 3</v-btn>
                   </v-btn-toggle>
+                  <v-slider
+                    v-model="sliderRa1"
+                    :min="0"
+                    :max="24"
+                    :step="0.1"
+                    hide-details
+                    density="compact"
+                    :disabled="isSkyMode"
+                    @end="ra1 = sliderRa1"
+                  ></v-slider>
                   <v-number-input
                     v-model="ra1"
                     label="RA1"
@@ -172,6 +182,16 @@
                   >
                     <template v-slot:append> h </template>
                   </v-number-input>
+                  <v-slider
+                    v-model="sliderDec1"
+                    :min="-90"
+                    :max="90"
+                    :step="1"
+                    hide-details
+                    density="compact"
+                    :disabled="isSkyMode"
+                    @end="dec1 = sliderDec1"
+                  ></v-slider>
                   <v-number-input
                     v-model="dec1"
                     label="Dec1"
@@ -185,6 +205,16 @@
                   >
                     <template v-slot:append> ° </template>
                   </v-number-input>
+                  <v-slider
+                    v-model="sliderBeta"
+                    :min="0"
+                    :max="24"
+                    :step="0.1"
+                    hide-details
+                    density="compact"
+                    :disabled="isSkyMode"
+                    @end="beta = sliderBeta"
+                  ></v-slider>
                   <v-number-input
                     v-model="beta"
                     label="Beta"
@@ -400,6 +430,21 @@ const objectPointSize = computed({
   set: (val) => store.setPointSize(val),
 })
 
+// Sliders for lazy update
+const sliderRa1 = ref(ra1.value)
+const sliderDec1 = ref(dec1.value)
+const sliderBeta = ref(beta.value)
+
+watch(ra1, (val) => {
+  sliderRa1.value = val
+})
+watch(dec1, (val) => {
+  sliderDec1.value = val
+})
+watch(beta, (val) => {
+  sliderBeta.value = val
+})
+
 // Computed
 const sumConsts = computed(() => lambda.value - kappa.value + omega.value + alpha.value)
 const isConstraintValid = computed(() => Math.abs(sumConsts.value - 1.0) < 1e-4)
@@ -408,6 +453,10 @@ const isConstraintValid = computed(() => Math.abs(sumConsts.value - 1.0) < 1e-4)
 onMounted(() => {
   try {
     store.initialize()
+    // Initialize sliders
+    sliderRa1.value = ra1.value
+    sliderDec1.value = dec1.value
+    sliderBeta.value = beta.value
   } catch (e) {
     console.error(e)
     infoLabel.value = `Error: ${e.message}`
