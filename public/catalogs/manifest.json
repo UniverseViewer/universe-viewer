@@ -12,6 +12,18 @@
     "file": "2df.dat"
   },
   {
+    "name": "SDSS QSO Catalog: DR16Q v3 Superset",
+    "year": 2020,
+    "targets_number": 1189251,
+    "file": "sdss_qso/dr16q_v3.gz"
+  },
+  {
+    "name": "SDSS QSO Catalog: DR16Q v4",
+    "year": 2020,
+    "targets_number": 638022,
+    "file": "sdss_qso/dr16q_v4.gz"
+  },
+  {
     "name": "AGN/QSO Value-Added Catalog for DESI DR1",
     "year": 2025,
     "targets_number": 1647301,
