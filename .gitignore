@@ -43,3 +43,5 @@ public/catalogs/sdss_qso/*.fits
 public/catalogs/sdss_qso/*.dat
 public/catalogs/milliquas/*.fits
 public/catalogs/milliquas/*.dat
+public/catalogs/vii_258/*.fits
+public/catalogs/vii_258/*.dat

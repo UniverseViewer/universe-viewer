@@ -12,6 +12,18 @@
     "file": "2df.dat"
   },
   {
+    "name": "Quasars (13th Ed.) (Veron-Cetty+ 2010)",
+    "year": 2010,
+    "targets_number": 133335,
+    "file": "vii_258/qso.gz"
+  },
+  {
+    "name": "Active Galactic Nuclei (13th Ed.) (Veron-Cetty+ 2010)",
+    "year": 2010,
+    "targets_number": 34231,
+    "file": "vii_258/agn.gz"
+  },
+  {
     "name": "SDSS QSO Catalog: DR16Q v3 Superset",
     "year": 2020,
     "targets_number": 1189251,
