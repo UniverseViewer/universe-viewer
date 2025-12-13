@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <Help v-model="helpOpened" />
+    <Help v-model="helpOpened" :tab="helpTab" />
     <About v-model="aboutOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
@@ -13,14 +13,28 @@
                 <v-expansion-panel-text>
                   <CatalogBrowser v-model="catalogFile" />
                   or<br /><br />
-                  <v-file-input
-                    v-model="browsedFile"
-                    label="Browse catalog file"
-                    accept=".dat,.txt"
-                    @change="onFileChange"
-                    prepend-icon="mdi-file-upload"
-                    density="compact"
-                  ></v-file-input>
+                  <div class="d-flex align-center">
+                    <v-file-input
+                      v-model="browsedFile"
+                      label="Browse catalog file"
+                      accept=".dat,.txt"
+                      @change="onFileChange"
+                      prepend-icon="mdi-file-upload"
+                      density="compact"
+                      hide-details
+                      class="flex-grow-1"
+                    ></v-file-input>
+                    <v-icon-btn
+                      @click="openHelp('data_format')"
+                      hide-overlay
+                      icon="mdi-help"
+                      class="ml-2"
+                      variant="text"
+                      density="compact"
+                      size="small"
+                    ></v-icon-btn>
+                  </div>
+                  <br />
                   <div class="text-caption">
                     Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects
                   </div>
@@ -250,7 +264,7 @@
                 label="Dark mode theme"
                 color="success"
               />
-              <v-btn @click="helpOpened = true" icon="mdi-help"> </v-btn>
+              <v-btn @click="openHelp()" icon="mdi-help"> </v-btn>
               <v-btn @click="aboutOpened = true" icon="mdi-information"> </v-btn>
               <v-btn
                 icon="mdi-github"
@@ -374,6 +388,8 @@ import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
 import Help from '@/components/Help.vue'
 
+import { VIconBtn } from 'vuetify/labs/VIconBtn'
+
 // Stores setup
 const store = useUniverseStore()
 const {
@@ -492,6 +508,13 @@ function onFileChange(event) {
 
 // Help
 const helpOpened = ref(false)
+const helpTab = ref(undefined)
+
+function openHelp(tab = 'controls') {
+  helpOpened.value = true
+  helpTab.value = tab
+}
+
 const aboutOpened = ref(false)
 
 // Logic Updates
