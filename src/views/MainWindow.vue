@@ -279,44 +279,11 @@
 
           <!-- MAIN VIEWER -->
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
-            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" :mouse-mode="mouseMode" />
+            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" />
 
             <!-- RIGHT SIDEBAR (OVERLAY) -->
             <div class="right-sidebar">
-              <v-sheet class="d-flex flex-column" elevation="2" rounded color="surface">
-                <v-btn
-                  icon="mdi-cursor-move"
-                  variant="text"
-                  :color="mouseMode === 'move' ? 'primary' : undefined"
-                  @click="mouseMode = 'move'"
-                  title="Move Mode"
-                  rounded="0"
-                ></v-btn>
-                <v-btn
-                  icon="mdi-selection-drag"
-                  variant="text"
-                  :color="mouseMode === 'select' ? 'primary' : undefined"
-                  @click="mouseMode = 'select'"
-                  title="Selection Mode"
-                  rounded="0"
-                ></v-btn>
-                <v-divider></v-divider>
-                <v-btn
-                  icon="mdi-telescope"
-                  variant="text"
-                  :color="isSkyMode ? 'primary' : undefined"
-                  @click="toggleSkyMode"
-                  title="Sky View"
-                  rounded="0"
-                ></v-btn>
-                <v-btn
-                  icon="mdi-image-filter-center-focus"
-                  variant="text"
-                  @click="resetView"
-                  title="Reset View"
-                  rounded="0"
-                ></v-btn>
-              </v-sheet>
+              <ViewerToolbox @resetView="resetView" />
             </div>
           </v-col>
         </v-row>
@@ -387,6 +354,7 @@ import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
 import Help from '@/components/Help.vue'
+import ViewerToolbox from '@/components/ViewerToolbox.vue'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
@@ -424,7 +392,6 @@ const viewer = ref(null)
 const selectedConst = ref('kappa')
 const showRefMarks = ref(true)
 const infoLabel = ref('Ready')
-const mouseMode = ref('move')
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -518,11 +485,6 @@ function openHelp(tab = 'controls') {
 const aboutOpened = ref(false)
 
 // Logic Updates
-
-async function toggleSkyMode() {
-  const newMode = isSkyMode.value ? 'universe' : 'sky'
-  store.setViewerMode(newMode)
-}
 
 function resetView() {
   if (viewer.value) {

@@ -48,7 +48,6 @@ export default {
 
   props: {
     darkMode: { type: Boolean, default: true },
-    mouseMode: { type: String, default: 'move' },
   },
 
   setup(props, { expose }) {
@@ -72,6 +71,7 @@ export default {
       userDec1,
       userBeta,
       precisionEnabled,
+      mouseMode,
     } = storeToRefs(universeStore)
     const { busy } = storeToRefs(busyStore)
     const { targets } = storeToRefs(targetsStore)
@@ -654,12 +654,12 @@ export default {
 
     function onMouseDown(e) {
       if (e.button === 0) {
-        if (props.mouseMode === 'move') {
+        if (mouseMode.value === 'move') {
           // Drag view
           state.isDragging = true
           state.mouseX = e.clientX
           state.mouseY = e.clientY
-        } else if (props.mouseMode === 'select') {
+        } else if (mouseMode.value === 'select') {
           // Select
           const { pixelX, pixelY } = pixelToWorld(e.clientX, e.clientY)
           state.selectX1 = pixelX

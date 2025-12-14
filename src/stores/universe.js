@@ -49,6 +49,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const comovingSpaceFlag = ref(true)
   const pointSize = ref(1.5)
   const viewerMode = ref('universe')
+  const mouseMode = ref('move')
 
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
@@ -144,6 +145,10 @@ export const useUniverseStore = defineStore('universe', () => {
     viewerMode.value = mode
   }
 
+  function setMouseMode(mode) {
+    mouseMode.value = mode
+  }
+
   return {
     initialize,
     version,
@@ -164,6 +169,7 @@ export const useUniverseStore = defineStore('universe', () => {
     horizonAngularDistance,
     pointSize,
     viewerMode,
+    mouseMode,
     // Setters
     setCosmoParams,
     setUserRa1,
@@ -175,5 +181,6 @@ export const useUniverseStore = defineStore('universe', () => {
     setComovingSpace,
     setPointSize,
     setViewerMode,
+    setMouseMode,
   }
 })
