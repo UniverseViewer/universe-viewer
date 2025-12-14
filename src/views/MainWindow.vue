@@ -174,17 +174,18 @@
                     <v-btn :value="3">Edge 3</v-btn>
                   </v-btn-toggle>
                   <v-slider
-                    v-model="sliderRa1"
+                    v-model="pendingRa1"
                     :min="0"
                     :max="24"
                     :step="0.1"
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="ra1 = sliderRa1"
+                    @end="ra1 = pendingRa1"
                   ></v-slider>
                   <v-number-input
-                    v-model="ra1"
+                    v-model="pendingRa1"
+                    @update:model-value="ra1 = pendingRa1"
                     label="RA1"
                     :precision="null"
                     :min="0"
@@ -197,17 +198,18 @@
                     <template v-slot:append> h </template>
                   </v-number-input>
                   <v-slider
-                    v-model="sliderDec1"
+                    v-model="pendingDec1"
                     :min="-90"
                     :max="90"
                     :step="1"
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="dec1 = sliderDec1"
+                    @end="dec1 = pendingDec1"
                   ></v-slider>
                   <v-number-input
-                    v-model="dec1"
+                    v-model="pendingDec1"
+                    @update:model-value="dec1 = pendingDec1"
                     label="Dec1"
                     :precision="null"
                     :min="-90"
@@ -220,17 +222,18 @@
                     <template v-slot:append> ° </template>
                   </v-number-input>
                   <v-slider
-                    v-model="sliderBeta"
+                    v-model="pendingBeta"
                     :min="0"
                     :max="24"
                     :step="0.1"
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="beta = sliderBeta"
+                    @end="beta = pendingBeta"
                   ></v-slider>
                   <v-number-input
-                    v-model="beta"
+                    v-model="pendingBeta"
+                    @update:model-value="beta = pendingBeta"
                     label="Beta"
                     :precision="null"
                     :min="0"
@@ -394,18 +397,18 @@ const objectPointSize = computed({
 })
 
 // Sliders for lazy update
-const sliderRa1 = ref(ra1.value)
-const sliderDec1 = ref(dec1.value)
-const sliderBeta = ref(beta.value)
+const pendingRa1 = ref(ra1.value)
+const pendingDec1 = ref(dec1.value)
+const pendingBeta = ref(beta.value)
 
 watch(ra1, (val) => {
-  sliderRa1.value = val
+  pendingRa1.value = val
 })
 watch(dec1, (val) => {
-  sliderDec1.value = val
+  pendingDec1.value = val
 })
 watch(beta, (val) => {
-  sliderBeta.value = val
+  pendingBeta.value = val
 })
 
 // Computed
@@ -417,9 +420,9 @@ onMounted(() => {
   try {
     store.initialize()
     // Initialize sliders
-    sliderRa1.value = ra1.value
-    sliderDec1.value = dec1.value
-    sliderBeta.value = beta.value
+    pendingRa1.value = ra1.value
+    pendingDec1.value = dec1.value
+    pendingBeta.value = beta.value
   } catch (e) {
     console.error(e)
     statusStore.setInfoMessage(`Error: ${e.message}`)
