@@ -6,6 +6,7 @@ export const useBusyStore = defineStore('busy', () => {
   const busy = computed(() => busyRefCount.value > 0)
   const progress = ref(0)
   const statusMessage = ref('')
+  const infoMessage = ref('Ready')
 
   function increment() {
     busyRefCount.value++
@@ -30,6 +31,10 @@ export const useBusyStore = defineStore('busy', () => {
 
   function setStatusMessage(message) {
     statusMessage.value = message
+  }
+
+  function setInfoMessage(message) {
+    infoMessage.value = message
   }
 
   function runBusyTask(task, statusMessage = 'Computing') {
@@ -64,5 +69,7 @@ export const useBusyStore = defineStore('busy', () => {
     statusMessage,
     setProgress,
     setStatusMessage,
+    infoMessage,
+    setInfoMessage,
   }
 })

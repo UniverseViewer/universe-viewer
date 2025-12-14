@@ -298,26 +298,7 @@
       </v-overlay>
 
       <!-- BOTTOM INFO BAR -->
-      <v-footer app height="32">
-        <v-row no-gutters class="px-4">
-          <v-col class="text-caption">
-            <span
-              v-if="busyStore.statusMessage !== ''"
-              class="d-inline-flex align-center text-no-wrap"
-            >
-              {{ busyStore.statusMessage }}
-              <v-progress-linear
-                v-if="busyStore.progress > 0 && busyStore.progress < 100"
-                class="mx-2"
-                :model-value="Math.round(busyStore.progress)"
-                style="width: 200px"
-              ></v-progress-linear>
-            </span>
-            <span v-else>{{ infoLabel }}</span>
-          </v-col>
-          <v-col class="text-right text-caption">UniverseViewer {{ version }}</v-col>
-        </v-row>
-      </v-footer>
+      <StatusBar />
     </v-main>
   </v-app>
 </template>
@@ -355,13 +336,13 @@ import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
 import Help from '@/components/Help.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
+import StatusBar from '@/components/StatusBar.vue'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
 // Stores setup
 const store = useUniverseStore()
 const {
-  version,
   lambda,
   omega,
   kappa,
@@ -391,7 +372,6 @@ const viewer = ref(null)
 // Local State
 const selectedConst = ref('kappa')
 const showRefMarks = ref(true)
-const infoLabel = ref('Ready')
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -442,7 +422,7 @@ onMounted(() => {
     sliderBeta.value = beta.value
   } catch (e) {
     console.error(e)
-    infoLabel.value = `Error: ${e.message}`
+    busyStore.setInfoMessage(`Error: ${e.message}`)
   }
 })
 
@@ -461,10 +441,10 @@ function onFileChange(event) {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
+      busyStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     } catch (err) {
       console.error(err)
-      infoLabel.value = `Error: ${err.message}`
+      busyStore.setInfoMessage(`Error: ${err.message}`)
     } finally {
       busyStore.decrement()
     }
@@ -527,9 +507,9 @@ watch(catalogFile, (newVal) => {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      infoLabel.value = `Loaded ${loadedTargets.length.toLocaleString()} objects`
+      busyStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     })
-    .catch((err) => (infoLabel.value = `Error: ${err.message}`))
+    .catch((err) => busyStore.setInfoMessage(`Error: ${err.message}`))
     .finally(() => {
       busyStore.decrement()
     })
@@ -561,7 +541,7 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
       omega.value = oldVals[1]
       kappa.value = oldVals[2]
       alpha.value = oldVals[3]
-      infoLabel.value = 'Constraint limit reached'
+      busyStore.setInfoMessage('Constraint limit reached')
     }
     return
   }
