@@ -23,12 +23,12 @@
  */
 
 import MainWindow from './views/MainWindow.vue'
-import { useBusyStore } from '@/stores/busy.js'
 import { storeToRefs } from 'pinia'
+import { useStatusStore } from '@/stores/status.js'
 import { watch } from 'vue'
 
-const busyStore = useBusyStore()
-const { busy } = storeToRefs(busyStore)
+const statusStore = useStatusStore()
+const { busy } = storeToRefs(statusStore)
 
 watch(busy, (isBusy) => {
   if (isBusy) {

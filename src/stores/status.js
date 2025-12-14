@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-export const useBusyStore = defineStore('busy', () => {
+export const useStatusStore = defineStore('status', () => {
   const busyRefCount = ref(0)
   const busy = computed(() => busyRefCount.value > 0)
   const progress = ref(0)

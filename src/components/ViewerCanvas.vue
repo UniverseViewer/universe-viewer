@@ -40,7 +40,7 @@ import * as THREE from 'three'
 import * as projection from '@/logic/projection.js'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
-import { useBusyStore } from '@/stores/busy.js'
+import { useStatusStore } from '@/stores/status.js'
 import { watch } from 'vue'
 
 export default {
@@ -56,7 +56,7 @@ export default {
 
     const universeStore = useUniverseStore()
     const targetsStore = useTargetsStore()
-    const busyStore = useBusyStore()
+    const statusStore = useStatusStore()
     const {
       kappa,
       lambda,
@@ -73,7 +73,7 @@ export default {
       precisionEnabled,
       mouseMode,
     } = storeToRefs(universeStore)
-    const { busy } = storeToRefs(busyStore)
+    const { busy } = storeToRefs(statusStore)
     const { targets } = storeToRefs(targetsStore)
 
     const state = reactive({
@@ -326,7 +326,7 @@ export default {
     }
 
     watch(viewerMode, (newMode) => {
-      busyStore.runBusyTask(() => {
+      statusStore.runBusyTask(() => {
         if (newMode === 'sky') {
           setMode(state.SKY_MODE)
         } else {
@@ -344,7 +344,7 @@ export default {
     })
 
     watch(themeName, (newVal) => {
-      busyStore.runBusyTask(() => {
+      statusStore.runBusyTask(() => {
         if (state.scene) {
           state.scene.background = new THREE.Color(state.theme[newVal].background)
           updatePointsColor()
@@ -355,7 +355,7 @@ export default {
     })
 
     async function recomputeAll() {
-      await busyStore.runBusyTask(async () => {
+      await statusStore.runBusyTask(async () => {
         await projection.updateAll(
           targets.value,
           view.value,
@@ -374,7 +374,7 @@ export default {
     }
 
     async function recomputeView() {
-      await busyStore.runBusyTask(async () => {
+      await statusStore.runBusyTask(async () => {
         await projection.updateView(
           targets.value,
           view.value,
@@ -704,7 +704,7 @@ export default {
       if (e.button !== 0) return
       if (!state.isSelecting) return
 
-      busyStore.runBusyTask(() => {
+      statusStore.runBusyTask(() => {
         const rect = root.value.getBoundingClientRect()
         const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
         const p2 = pixelToWorld(rect.left + state.selectX2, rect.top + state.selectY2)

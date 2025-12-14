@@ -329,7 +329,7 @@ import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
-import { useBusyStore } from '@/stores/busy.js'
+import { useStatusStore } from '@/stores/status.js'
 
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
@@ -360,8 +360,8 @@ const {
 const targetsStore = useTargetsStore()
 const { targets } = storeToRefs(targetsStore)
 
-const busyStore = useBusyStore()
-const { busy } = storeToRefs(busyStore)
+const statusStore = useStatusStore()
+const { busy } = storeToRefs(statusStore)
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -422,7 +422,7 @@ onMounted(() => {
     sliderBeta.value = beta.value
   } catch (e) {
     console.error(e)
-    busyStore.setInfoMessage(`Error: ${e.message}`)
+    statusStore.setInfoMessage(`Error: ${e.message}`)
   }
 })
 
@@ -432,7 +432,7 @@ const browsedFile = ref(null)
 function onFileChange(event) {
   const file = event.target.files[0]
   if (!file) return
-  busyStore.increment()
+  statusStore.increment()
 
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -441,12 +441,12 @@ function onFileChange(event) {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      busyStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+      statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     } catch (err) {
       console.error(err)
-      busyStore.setInfoMessage(`Error: ${err.message}`)
+      statusStore.setInfoMessage(`Error: ${err.message}`)
     } finally {
-      busyStore.decrement()
+      statusStore.decrement()
     }
   }
   catalogFile.value = undefined
@@ -499,7 +499,7 @@ watch(isDarkTheme, (val) => {
 
 watch(catalogFile, (newVal) => {
   if (newVal === undefined || newVal === null) return
-  busyStore.increment()
+  statusStore.increment()
   browsedFile.value = null
   fetch('/catalogs/' + newVal)
     .then((response) => response.text())
@@ -507,11 +507,11 @@ watch(catalogFile, (newVal) => {
       const loadedTargets = loadCatalogADR(content)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
-      busyStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+      statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     })
-    .catch((err) => busyStore.setInfoMessage(`Error: ${err.message}`))
+    .catch((err) => statusStore.setInfoMessage(`Error: ${err.message}`))
     .finally(() => {
-      busyStore.decrement()
+      statusStore.decrement()
     })
 })
 
@@ -541,7 +541,7 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
       omega.value = oldVals[1]
       kappa.value = oldVals[2]
       alpha.value = oldVals[3]
-      busyStore.setInfoMessage('Constraint limit reached')
+      statusStore.setInfoMessage('Constraint limit reached')
     }
     return
   }
