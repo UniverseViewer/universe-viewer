@@ -72,6 +72,7 @@ export default {
       userBeta,
       precisionEnabled,
       mouseMode,
+      showRefMarks,
     } = storeToRefs(universeStore)
     const { busy } = storeToRefs(statusStore)
     const { targets } = storeToRefs(targetsStore)
@@ -99,7 +100,6 @@ export default {
       mode: 0,
       SKY_MODE: 1,
       UNIVERSE_MODE: 0,
-      showReferencesMarks: true,
       renderer: null,
       scene: null,
       camera: null,
@@ -400,6 +400,11 @@ export default {
       recomputeAll()
     })
 
+    watch(showRefMarks, () => {
+      drawReferenceMarks()
+      render()
+    })
+
     function updatePointsColor() {
       const geometry = state.geometry
       if (!geometry) return
@@ -486,7 +491,7 @@ export default {
 
     function drawReferenceMarks() {
       while (state.refGroup.children.length) state.refGroup.remove(state.refGroup.children[0])
-      if (!state.showReferencesMarks) return
+      if (!showRefMarks.value) return
       if (!Number.isFinite(horizonAngularDistance.value)) return
       const shapePts = []
       if (state.mode === state.UNIVERSE_MODE) {
@@ -934,11 +939,6 @@ export default {
       targets,
       updateCanvas,
       busy,
-      setShowReferencesMarksPublic: (s) => {
-        state.showReferencesMarks = !!s
-        drawReferenceMarks()
-        render()
-      },
       themeName,
     }
   },

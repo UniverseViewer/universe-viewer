@@ -355,6 +355,7 @@ const {
   precisionEnabled,
   pointSize,
   viewerMode,
+  showRefMarks,
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()
@@ -371,7 +372,6 @@ const viewer = ref(null)
 
 // Local State
 const selectedConst = ref('kappa')
-const showRefMarks = ref(true)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -545,10 +545,6 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
     }
     return
   }
-})
-
-watch(showRefMarks, (val) => {
-  if (viewer.value) viewer.value.setShowReferencesMarksPublic(val)
 })
 </script>
 

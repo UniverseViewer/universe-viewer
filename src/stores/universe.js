@@ -50,6 +50,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const pointSize = ref(1.5)
   const viewerMode = ref('universe')
   const mouseMode = ref('move')
+  const showRefMarks = ref(true)
 
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
@@ -149,6 +150,10 @@ export const useUniverseStore = defineStore('universe', () => {
     mouseMode.value = mode
   }
 
+  function setShowRefMarks(show) {
+    showRefMarks.value = show
+  }
+
   return {
     initialize,
     version,
@@ -170,6 +175,7 @@ export const useUniverseStore = defineStore('universe', () => {
     pointSize,
     viewerMode,
     mouseMode,
+    showRefMarks,
     // Setters
     setCosmoParams,
     setUserRa1,
@@ -182,5 +188,6 @@ export const useUniverseStore = defineStore('universe', () => {
     setPointSize,
     setViewerMode,
     setMouseMode,
+    setShowRefMarks,
   }
 })
