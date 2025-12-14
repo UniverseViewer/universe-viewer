@@ -100,10 +100,9 @@
  * MA 02110-1301, USA.
  */
 
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
-import manifest from '../../public/catalogs/manifest.json'
 
 export default {
   name: 'AboutDialog',
@@ -119,7 +118,16 @@ export default {
 
     const visible = ref(props.modelValue)
     const tab = ref('software')
-    const catalogs = manifest
+    const catalogs = ref([])
+
+    onMounted(() => {
+      fetch('/catalogs/manifest.json')
+        .then((response) => response.json())
+        .then((data) => {
+          catalogs.value = data
+        })
+        .catch((err) => console.error('Fetch error:', err))
+    })
 
     // Sync with parent
     watch(visible, (value) => {
