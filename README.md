@@ -10,10 +10,19 @@ It must produce a conformal map of the universe and make it possible to identify
 
 ![Screenshot](screenshot.png)
 
-## Setup
+## Setup / deploy
 
-To setup Universe Viewer on your own web server, just get a release and unpack it in a served directory.
+To setup Universe Viewer on your own web server, get a release and unpack it in a served directory.
 Universe Viewer must be served at root of your domain.
+
+If you want to benefit from computation parallelization, your sever has to meet the following requirements:
+- define `Cross-Origin-Opener-Policy` header to `same-origin`,
+- define `Cross-Origin-Embedder-Policy` header to `require-corp`,
+- use HTTPS.
+
+Universe Viewer comes with a `.htaccess` file to enforce the required headers rules.
+
+Moreover, parallelization needs client browser must support `SharedArrayBuffer` and Web Workers.
 
 ## Project Build
 

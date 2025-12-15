@@ -38,6 +38,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vu
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import * as projection from '@/logic/projection.js'
+import { OFFSET_RA, OFFSET_DEC, OFFSET_PROJ_X, OFFSET_PROJ_Y, STRIDE } from '@/logic/target.js'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
 import { useStatusStore } from '@/stores/status.js'
@@ -445,45 +446,100 @@ export default {
     function populatePoints() {
       const t = targets.value || []
       const N = t.length
-      if (N === 0) {
-        state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
-        state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
-        state.geometry.attributes.position.needsUpdate = true
-        state.geometry.attributes.color.needsUpdate = true
-        return
-      }
-      const positions = new Float32Array(N * 3)
-      const colors = new Float32Array(N * 3)
 
-      for (let i = 0; i < N; i++) {
-        const ti = t[i]
-        let x, y
-        if (state.mode === state.SKY_MODE) {
-          x = ti.getAscension()
-          y = ti.getDeclination()
-        } else {
-          x = ti.getx ? ti.getx() : 0
-          y = ti.gety ? ti.gety() : 0
-        }
-
-        positions[3 * i + 0] = x
-        positions[3 * i + 1] = y
-        positions[3 * i + 2] = 0.1
-
-        const selected = ti.isSelected ? ti.isSelected() : false
-        if (selected) {
-          colors[3 * i + 0] = state.theme[themeName.value].pointSelectedR
-          colors[3 * i + 1] = state.theme[themeName.value].pointSelectedG
-          colors[3 * i + 2] = state.theme[themeName.value].pointSelectedB
-        } else {
-          colors[3 * i + 0] = state.theme[themeName.value].pointR
-          colors[3 * i + 1] = state.theme[themeName.value].pointG
-          colors[3 * i + 2] = state.theme[themeName.value].pointB
-        }
+      // Check for SharedArrayBuffer support
+      const buffer = targetsStore.sharedBuffer
+      const isZeroCopy = t[0] && t[0].isBufferBacked && buffer
+      let float64View = null
+      if (isZeroCopy) {
+        float64View = new Float64Array(buffer)
       }
 
-      state.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-      state.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+      // Reuse existing buffers if size matches
+      let positions, colors
+      const existingPos = state.geometry.getAttribute('position')
+      const existingCol = state.geometry.getAttribute('color')
+
+      if (existingPos && existingPos.count === N) {
+        positions = existingPos.array
+        colors = existingCol.array
+      } else {
+        if (N === 0) {
+          state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
+          state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
+          return
+        }
+        positions = new Float32Array(N * 3)
+        colors = new Float32Array(N * 3)
+        state.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+        state.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+      }
+
+      const theme = state.theme[themeName.value]
+      const { pointR, pointG, pointB, pointSelectedR, pointSelectedG, pointSelectedB } = theme
+
+      // Fast path for Zero-Copy
+      if (isZeroCopy) {
+        for (let i = 0; i < N; i++) {
+          const offset = i * STRIDE
+          let x, y
+          if (state.mode === state.SKY_MODE) {
+            x = float64View[offset + OFFSET_RA]
+            y = float64View[offset + OFFSET_DEC]
+          } else {
+            x = float64View[offset + OFFSET_PROJ_X]
+            y = float64View[offset + OFFSET_PROJ_Y]
+          }
+
+          positions[3 * i + 0] = x
+          positions[3 * i + 1] = y
+          positions[3 * i + 2] = 0.1
+
+          // Selection still needs object access or a separate buffer?
+          // Target.isSelected() is just a boolean property on the object.
+          // We still have the objects array 't'.
+          const selected = t[i].isSelected()
+
+          if (selected) {
+            colors[3 * i + 0] = pointSelectedR
+            colors[3 * i + 1] = pointSelectedG
+            colors[3 * i + 2] = pointSelectedB
+          } else {
+            colors[3 * i + 0] = pointR
+            colors[3 * i + 1] = pointG
+            colors[3 * i + 2] = pointB
+          }
+        }
+      } else {
+        // Fallback path (Object Mode)
+        for (let i = 0; i < N; i++) {
+          const ti = t[i]
+          let x, y
+          if (state.mode === state.SKY_MODE) {
+            x = ti.getAscension()
+            y = ti.getDeclination()
+          } else {
+            x = ti.getx ? ti.getx() : 0
+            y = ti.gety ? ti.gety() : 0
+          }
+
+          positions[3 * i + 0] = x
+          positions[3 * i + 1] = y
+          positions[3 * i + 2] = 0.1
+
+          const selected = ti.isSelected ? ti.isSelected() : false
+          if (selected) {
+            colors[3 * i + 0] = pointSelectedR
+            colors[3 * i + 1] = pointSelectedG
+            colors[3 * i + 2] = pointSelectedB
+          } else {
+            colors[3 * i + 0] = pointR
+            colors[3 * i + 1] = pointG
+            colors[3 * i + 2] = pointB
+          }
+        }
+      }
+
       state.geometry.attributes.position.needsUpdate = true
       state.geometry.attributes.color.needsUpdate = true
       state.geometry.computeBoundingSphere()

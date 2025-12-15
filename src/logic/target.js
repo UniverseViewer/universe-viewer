@@ -18,53 +18,79 @@
  * MA 02110-1301, USA.
  */
 
+// Data layout constants for SharedArrayBuffer
+export const OFFSET_REDSHIFT = 0
+export const OFFSET_RA = 1
+export const OFFSET_DEC = 2
+export const OFFSET_ANG_DIST = 3
+export const OFFSET_POS_X = 4
+export const OFFSET_POS_Y = 5
+export const OFFSET_POS_Z = 6
+export const OFFSET_POS_T = 7
+export const OFFSET_PROJ_X = 8
+export const OFFSET_PROJ_Y = 9
+export const STRIDE = 10
+
 export default class Target {
   constructor({
+    // Buffer mode arguments
+    bufferView = null,
+    index = 0,
+    // Object mode arguments
     ascension = 0,
     declination = 0,
     redshift = 0,
-    angularDistance = 0,
-    magnitude = 0,
-    pos = null,
-    x = 0,
-    y = 0,
-    selected = false,
   } = {}) {
-    this.ascension = ascension
-    this.declination = declination
-    this.redshift = redshift
-    this.angularDistance = angularDistance
-    this.magnitude = magnitude
-    this.pos = pos // Vect4d
-    this.x = x
-    this.y = y
-    this.selected = selected
+    if (bufferView) {
+      this.isBufferBacked = true
+      this.view = bufferView
+      this.offset = index * STRIDE
+    } else {
+      this.isBufferBacked = false
+      this.ascension = ascension
+      this.declination = declination
+      this.redshift = redshift
+    }
   }
 
   getAscension() {
-    return this.ascension
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_RA] : this.ascension
   }
   getDeclination() {
-    return this.declination
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_DEC] : this.declination
   }
   getRedshift() {
-    return this.redshift
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_REDSHIFT] : this.redshift
   }
   getAngularDist() {
-    return this.angularDistance
-  }
-  getMagnitude() {
-    return this.magnitude
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_ANG_DIST] : this.angularDistance
   }
 
   getPos() {
-    return this.pos
+    if (this.isBufferBacked) {
+      const x = this.view[this.offset + OFFSET_POS_X]
+      const y = this.view[this.offset + OFFSET_POS_Y]
+      const z = this.view[this.offset + OFFSET_POS_Z]
+      const t = this.view[this.offset + OFFSET_POS_T]
+      return {
+        x,
+        y,
+        z,
+        t,
+        getX: () => x,
+        getY: () => y,
+        getZ: () => z,
+        getT: () => t,
+      }
+    } else {
+      return this.pos
+    }
   }
   getx() {
-    return this.x
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_PROJ_X] : this.x
   }
   gety() {
-    return this.y
+    return this.isBufferBacked ? this.view[this.offset + OFFSET_PROJ_Y] : this.y
   }
 
   isSelected() {
@@ -72,29 +98,39 @@ export default class Target {
   }
 
   setAscension(v) {
-    this.ascension = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_RA] = v
+    else this.ascension = v
   }
   setDeclination(v) {
-    this.declination = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_DEC] = v
+    else this.declination = v
   }
   setRedshift(v) {
-    this.redshift = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_REDSHIFT] = v
+    else this.redshift = v
   }
   setAngularDist(v) {
-    this.angularDistance = v
-  }
-  setMagnitude(v) {
-    this.magnitude = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_ANG_DIST] = v
+    else this.angularDistance = v
   }
 
   setPos(v) {
-    this.pos = v
+    if (this.isBufferBacked) {
+      this.view[this.offset + OFFSET_POS_X] = v.x || v.getX()
+      this.view[this.offset + OFFSET_POS_Y] = v.y || v.getY()
+      this.view[this.offset + OFFSET_POS_Z] = v.z || v.getZ()
+      this.view[this.offset + OFFSET_POS_T] = v.t || v.getT()
+    } else {
+      this.pos = v
+    }
   }
   setx(v) {
-    this.x = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_PROJ_X] = v
+    else this.x = v
   }
   sety(v) {
-    this.y = v
+    if (this.isBufferBacked) this.view[this.offset + OFFSET_PROJ_Y] = v
+    else this.y = v
   }
 
   setSelected(v) {

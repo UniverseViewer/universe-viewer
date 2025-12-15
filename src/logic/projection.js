@@ -24,11 +24,11 @@ import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 import { getProjectionWorkerPool } from '@/logic/workerPool.js'
-import { useTargetsStore } from '@/stores/targets.js'
 import { useStatusStore } from '@/stores/status.js'
+import { useTargetsStore } from '@/stores/targets.js'
 
 // Targets number threshold for using parallel computation
-const PARALLEL_THRESHOLD = 500
+const PARALLEL_THRESHOLD = 300000
 
 /**
  * Calculate comoving distance.
@@ -298,20 +298,37 @@ export function calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFla
 // Parallel Computation Functions
 // ============================================================================
 
+// Data layout constants for SharedArrayBuffer
+// Data layout constants for SharedArrayBuffer
+import {
+  OFFSET_REDSHIFT,
+  OFFSET_RA,
+  OFFSET_DEC,
+  OFFSET_ANG_DIST,
+  OFFSET_POS_X,
+  OFFSET_POS_Y,
+  OFFSET_POS_Z,
+  OFFSET_POS_T,
+  OFFSET_PROJ_X,
+  OFFSET_PROJ_Y,
+  STRIDE,
+} from '@/logic/target.js'
+
 /**
  * Helper to split targets into chunks for parallel processing.
  */
-function splitIntoChunks(targets, numChunks) {
+function splitIntoChunks(totalTargets, numChunks) {
   const chunks = []
-  const chunkSize = Math.ceil(targets.length / numChunks)
+  const chunkSize = Math.ceil(totalTargets / numChunks)
 
   for (let i = 0; i < numChunks; i++) {
     const start = i * chunkSize
-    const end = Math.min(start + chunkSize, targets.length)
-    if (start < targets.length) {
+    const end = Math.min(start + chunkSize, totalTargets)
+    if (start < totalTargets) {
       chunks.push({
-        indices: { start, end },
-        targets: targets.slice(start, end),
+        start,
+        end,
+        count: end - start,
       })
     }
   }
@@ -329,34 +346,50 @@ export async function calcTargetsAngularDistParallel(
   omega,
   alpha,
   precisionEnabled,
+  sharedBuffer = null,
 ) {
   if (!targets || targets.length === 0) return false
 
   try {
     const pool = await getProjectionWorkerPool()
     const numWorkers = pool.getWorkerCount()
-    const chunks = splitIntoChunks(targets, numWorkers)
-    const targetsStore = useTargetsStore()
-    const serializedTargets = targetsStore.serialize()
+    const totalTargets = targets.length
 
+    // Create or use existing SharedArrayBuffer
+    let buffer = sharedBuffer
+    let float64View
+    if (!buffer) {
+      buffer = new SharedArrayBuffer(totalTargets * STRIDE * Float64Array.BYTES_PER_ELEMENT)
+      float64View = new Float64Array(buffer)
+      // Populate buffer with input data
+      for (let i = 0; i < totalTargets; i++) {
+        const t = targets[i]
+        const offset = i * STRIDE
+        float64View[offset + OFFSET_REDSHIFT] = t.redshift
+      }
+    }
+
+    const chunks = splitIntoChunks(totalTargets, numWorkers)
     const chunkProgress = new Array(chunks.length).fill(0)
     const statusStore = useStatusStore()
 
     // Create tasks for each chunk
     const tasks = chunks.map((chunk, index) => {
-      // Slice the serialized array to match the chunk indices
-      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
         type: 'calcAngularDist',
         data: {
-          targets: chunkSerialized,
+          buffer, // Pass the SharedArrayBuffer
+          start: chunk.start,
+          end: chunk.end,
           kappa,
           lambda,
           omega,
           alpha,
           precisionEnabled,
+          stride: STRIDE,
+          offsetRedshift: OFFSET_REDSHIFT,
+          offsetAngDist: OFFSET_ANG_DIST,
         },
-        indices: chunk.indices,
         onProgress: (p) => {
           chunkProgress[index] = p
           const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
@@ -366,19 +399,20 @@ export async function calcTargetsAngularDistParallel(
     })
 
     // Execute in parallel
-    const results = await pool.executeParallel(tasks)
+    await pool.executeParallel(tasks)
 
-    // Update targets with results
-    results.forEach((result, chunkIndex) => {
-      const { start } = tasks[chunkIndex].indices
-      result.forEach((item, i) => {
-        targets[start + i].setAngularDist(item.angularDistance)
-      })
-    })
+    // If we created the buffer locally, we need to write results back to targets
+    if (!sharedBuffer) {
+      float64View = new Float64Array(buffer)
+      for (let i = 0; i < totalTargets; i++) {
+        const offset = i * STRIDE
+        targets[i].setAngularDist(float64View[offset + OFFSET_ANG_DIST])
+      }
+    }
 
     return true
   } catch (error) {
-    console.error('Parallel calcTargetsAngularDist failed, falling back to single-threaded:', error)
+    console.warn('Parallel calcTargetsAngularDist failed, falling back to single-threaded:', error)
     return calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   }
 }
@@ -394,34 +428,58 @@ export async function calcTargetsPosParallel(
   omega,
   alpha,
   precisionEnabled,
+  sharedBuffer = null,
 ) {
   if (!targets || targets.length === 0) return false
 
   try {
     const pool = await getProjectionWorkerPool()
     const numWorkers = pool.getWorkerCount()
-    const chunks = splitIntoChunks(targets, numWorkers)
-    const targetsStore = useTargetsStore()
-    const serializedTargets = targetsStore.serialize()
+    const totalTargets = targets.length
 
+    let buffer = sharedBuffer
+    let float64View
+    if (!buffer) {
+      buffer = new SharedArrayBuffer(totalTargets * STRIDE * Float64Array.BYTES_PER_ELEMENT)
+      float64View = new Float64Array(buffer)
+      // Populate buffer with input data
+      for (let i = 0; i < totalTargets; i++) {
+        const t = targets[i]
+        const offset = i * STRIDE
+        float64View[offset + OFFSET_ANG_DIST] = t.angularDistance
+        float64View[offset + OFFSET_RA] = t.ascension
+        float64View[offset + OFFSET_DEC] = t.declination
+        float64View[offset + OFFSET_REDSHIFT] = t.redshift
+      }
+    }
+
+    const chunks = splitIntoChunks(totalTargets, numWorkers)
     const chunkProgress = new Array(chunks.length).fill(0)
     const statusStore = useStatusStore()
 
-    // Create tasks for each chunk
     const tasks = chunks.map((chunk, index) => {
-      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
         type: 'calcPos',
         data: {
-          targets: chunkSerialized,
+          buffer,
+          start: chunk.start,
+          end: chunk.end,
           comovingSpaceFlag,
           kappa,
           lambda,
           omega,
           alpha,
           precisionEnabled,
+          stride: STRIDE,
+          offsetAngDist: OFFSET_ANG_DIST,
+          offsetRA: OFFSET_RA,
+          offsetDec: OFFSET_DEC,
+          offsetRedshift: OFFSET_REDSHIFT,
+          offsetPosX: OFFSET_POS_X,
+          offsetPosY: OFFSET_POS_Y,
+          offsetPosZ: OFFSET_POS_Z,
+          offsetPosT: OFFSET_POS_T,
         },
-        indices: chunk.indices,
         onProgress: (p) => {
           chunkProgress[index] = p
           const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
@@ -430,21 +488,25 @@ export async function calcTargetsPosParallel(
       }
     })
 
-    // Execute in parallel
-    const results = await pool.executeParallel(tasks)
+    await pool.executeParallel(tasks)
 
-    // Update targets with results
-    results.forEach((result, chunkIndex) => {
-      const { start } = tasks[chunkIndex].indices
-      result.forEach((item, i) => {
-        const v = new Vect4d(item.pos.x, item.pos.y, item.pos.z, item.pos.t)
-        targets[start + i].setPos(v)
-      })
-    })
+    if (!sharedBuffer) {
+      float64View = new Float64Array(buffer)
+      for (let i = 0; i < totalTargets; i++) {
+        const offset = i * STRIDE
+        const v = new Vect4d(
+          float64View[offset + OFFSET_POS_X],
+          float64View[offset + OFFSET_POS_Y],
+          float64View[offset + OFFSET_POS_Z],
+          float64View[offset + OFFSET_POS_T],
+        )
+        targets[i].setPos(v)
+      }
+    }
 
     return true
   } catch (error) {
-    console.error('Parallel calcTargetsPos failed, falling back to single-threaded:', error)
+    console.warn('Parallel calcTargetsPos failed, falling back to single-threaded:', error)
     return calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   }
 }
@@ -460,34 +522,57 @@ export async function calcTargetsProjParallel(
   Beta,
   comovingSpaceFlag,
   kappa,
+  sharedBuffer = null,
 ) {
   if (!targets || targets.length === 0) return
 
   try {
     const pool = await getProjectionWorkerPool()
     const numWorkers = pool.getWorkerCount()
-    const chunks = splitIntoChunks(targets, numWorkers)
-    const targetsStore = useTargetsStore()
-    const serializedTargets = targetsStore.serialize()
+    const totalTargets = targets.length
 
+    let buffer = sharedBuffer
+    let float64View
+    if (!buffer) {
+      buffer = new SharedArrayBuffer(totalTargets * STRIDE * Float64Array.BYTES_PER_ELEMENT)
+      float64View = new Float64Array(buffer)
+      // Populate buffer with input data
+      for (let i = 0; i < totalTargets; i++) {
+        const t = targets[i]
+        const offset = i * STRIDE
+        const pos = t.pos
+        float64View[offset + OFFSET_POS_X] = pos.x
+        float64View[offset + OFFSET_POS_Y] = pos.y
+        float64View[offset + OFFSET_POS_Z] = pos.z
+        float64View[offset + OFFSET_POS_T] = pos.t
+      }
+    }
+
+    const chunks = splitIntoChunks(totalTargets, numWorkers)
     const chunkProgress = new Array(chunks.length).fill(0)
     const statusStore = useStatusStore()
 
-    // Create tasks for each chunk
     const tasks = chunks.map((chunk, index) => {
-      const chunkSerialized = serializedTargets.slice(chunk.indices.start, chunk.indices.end)
       return {
         type: 'calcProj',
         data: {
-          targets: chunkSerialized,
+          buffer,
+          start: chunk.start,
+          end: chunk.end,
           view,
           RA1,
           Dec1,
           Beta,
           comovingSpaceFlag,
           kappa,
+          stride: STRIDE,
+          offsetPosX: OFFSET_POS_X,
+          offsetPosY: OFFSET_POS_Y,
+          offsetPosZ: OFFSET_POS_Z,
+          offsetPosT: OFFSET_POS_T,
+          offsetProjX: OFFSET_PROJ_X,
+          offsetProjY: OFFSET_PROJ_Y,
         },
-        indices: chunk.indices,
         onProgress: (p) => {
           chunkProgress[index] = p
           const totalProgress = chunkProgress.reduce((a, b) => a + b, 0) / chunks.length
@@ -496,19 +581,18 @@ export async function calcTargetsProjParallel(
       }
     })
 
-    // Execute in parallel
-    const results = await pool.executeParallel(tasks)
+    await pool.executeParallel(tasks)
 
-    // Update targets with results
-    results.forEach((result, chunkIndex) => {
-      const { start } = tasks[chunkIndex].indices
-      result.forEach((item, i) => {
-        targets[start + i].setx(item.x)
-        targets[start + i].sety(item.y)
-      })
-    })
+    if (!sharedBuffer) {
+      float64View = new Float64Array(buffer)
+      for (let i = 0; i < totalTargets; i++) {
+        const offset = i * STRIDE
+        targets[i].setx(float64View[offset + OFFSET_PROJ_X])
+        targets[i].sety(float64View[offset + OFFSET_PROJ_Y])
+      }
+    }
   } catch (error) {
-    console.error('Parallel calcTargetsProj failed, falling back to single-threaded:', error)
+    console.warn('Parallel calcTargetsProj failed, falling back to single-threaded:', error)
     calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   }
 }
@@ -530,12 +614,32 @@ export async function updateAll(
   precisionEnabled,
 ) {
   const statusStore = useStatusStore()
+  const targetsStore = useTargetsStore()
+
+  console.time('TotalComputation')
+
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
+      let buffer = targetsStore.sharedBuffer
+      const totalTargets = targets.length
+
+      // Check if targets are already buffer-backed
+      const isZeroCopy = !!(targets[0] && targets[0].isBufferBacked && buffer)
+
+      console.log(`[Performance] updateAll: ${totalTargets} targets. ZeroCopy: ${isZeroCopy}`)
+
       statusStore.setStatusMessage('Computing angular distances [1/3]')
       statusStore.setProgress(0)
-      await calcTargetsAngularDistParallel(targets, kappa, lambda, omega, alpha, precisionEnabled)
+      await calcTargetsAngularDistParallel(
+        targets,
+        kappa,
+        lambda,
+        omega,
+        alpha,
+        precisionEnabled,
+        buffer,
+      )
 
       statusStore.setStatusMessage('Computing positions [2/3]')
       statusStore.setProgress(0)
@@ -547,11 +651,21 @@ export async function updateAll(
         omega,
         alpha,
         precisionEnabled,
+        buffer,
       )
 
       statusStore.setStatusMessage('Computing projection [3/3]')
       statusStore.setProgress(0)
-      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      await calcTargetsProjParallel(
+        targets,
+        view,
+        RA1,
+        Dec1,
+        Beta,
+        comovingSpaceFlag,
+        kappa,
+        buffer,
+      )
 
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
@@ -559,6 +673,8 @@ export async function updateAll(
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
       // Fall through to single-threaded version
+    } finally {
+      console.timeEnd('TotalComputation')
     }
   }
 
@@ -568,6 +684,7 @@ export async function updateAll(
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   statusStore.setStatusMessage('Ready')
+  console.timeEnd('TotalComputation')
 }
 
 /**
@@ -575,18 +692,42 @@ export async function updateAll(
  */
 export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   const statusStore = useStatusStore()
+  const targetsStore = useTargetsStore()
+
+  console.time('ViewComputation')
+
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
+      let buffer = targetsStore.sharedBuffer
+      const totalTargets = targets.length
+
+      // Check if targets are already buffer-backed
+      const isZeroCopy = !!(targets[0] && targets[0].isBufferBacked && buffer)
+
+      console.log(`[Performance] updateView: ${totalTargets} targets. ZeroCopy: ${isZeroCopy}`)
+
       statusStore.setStatusMessage('Computing projection')
       statusStore.setProgress(0)
-      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+      await calcTargetsProjParallel(
+        targets,
+        view,
+        RA1,
+        Dec1,
+        Beta,
+        comovingSpaceFlag,
+        kappa,
+        buffer,
+      )
+
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
       // Fall through to single-threaded version
+    } finally {
+      console.timeEnd('ViewComputation')
     }
   }
 
@@ -594,4 +735,5 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   statusStore.setStatusMessage('Ready')
+  console.timeEnd('ViewComputation')
 }

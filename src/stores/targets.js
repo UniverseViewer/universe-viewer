@@ -23,6 +23,8 @@ import { ref, shallowRef } from 'vue'
 export const useTargetsStore = defineStore('targets', () => {
   const selectedCount = ref(0)
   const targets = shallowRef(null)
+  const sharedBuffer = shallowRef(null)
+  const bufferOutdated = ref(true)
 
   function setSelectedCount(n) {
     selectedCount.value = n
@@ -30,32 +32,26 @@ export const useTargetsStore = defineStore('targets', () => {
 
   function setTargets(tArray) {
     targets.value = tArray
+    bufferOutdated.value = true
   }
 
-  function serialize() {
-    if (!targets.value) return []
-    return targets.value.map((t) => ({
-      ascension: t.getAscension(),
-      declination: t.getDeclination(),
-      redshift: t.getRedshift(),
-      angularDistance: t.getAngularDist(),
-      pos: t.getPos()
-        ? {
-            x: t.getPos().getX(),
-            y: t.getPos().getY(),
-            z: t.getPos().getZ(),
-            t: t.getPos().getT(),
-          }
-        : null,
-    }))
+  function setSharedBuffer(buffer) {
+    sharedBuffer.value = buffer
+  }
+
+  function setBufferOutdated(val) {
+    bufferOutdated.value = val
   }
 
   return {
     selectedCount,
     targets,
+    sharedBuffer,
+    bufferOutdated,
     // Setters
     setSelectedCount,
     setTargets,
-    serialize,
+    setSharedBuffer,
+    setBufferOutdated,
   }
 })
