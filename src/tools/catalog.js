@@ -28,20 +28,29 @@ import Target from '@/logic/target.js'
  * Load catalog from custom ADR format.
  * Expected format per line: Ascension Declination Redshift
  * @param {string} content - The raw file content
+ * @param {number} percent - Subset percentage to load
  * @returns {Array} Array of Target objects
  */
-export function loadCatalogADR(content) {
+export function loadCatalogADR(content, percent=100) {
   const lines = content.split(/\r?\n/)
   const targets = []
+  let selected = 0;
 
-  for (let line of lines) {
-    line = line.trim()
+  if (percent < 1) percent = 1
+  else if (percent > 100) percent = 100
+
+  for (let [processed, line] of lines.entries()) {
     if (!line) continue
+    line = line.trim()
 
     // Split by whitespace
     const parts = line.split(/\s+/)
     if (parts.length < 3) {
       console.warn('Skipping line (not enough parts):', line)
+      continue
+    }
+
+    if (!(targets.length / processed < percent / 100)) {
       continue
     }
 

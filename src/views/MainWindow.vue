@@ -34,6 +34,20 @@
                       size="small"
                     ></v-icon-btn>
                   </div>
+                  <br /><br />
+                  <v-number-input
+                    v-model="catalogSubsetPercent"
+                    label="Subset load percentage"
+                    prepend-icon="mdi-set-split"
+                    :precision="null"
+                    :step="1"
+                    :min="1"
+                    :max="100"
+                    control-variant="split"
+                    density="compact"
+                  >
+                    <template v-slot:append> % </template>
+                  </v-number-input>
                   <br />
                   <div class="text-caption">
                     Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects
@@ -432,6 +446,7 @@ onMounted(() => {
 // File Loading
 const catalogFile = ref(undefined)
 const browsedFile = ref(null)
+const catalogSubsetPercent = ref(100)
 function onFileChange(event) {
   const file = event.target.files[0]
   if (!file) return
@@ -441,7 +456,7 @@ function onFileChange(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const loadedTargets = loadCatalogADR(content)
+      const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
@@ -507,7 +522,7 @@ watch(catalogFile, (newVal) => {
   fetch('/catalogs/' + newVal)
     .then((response) => response.text())
     .then((content) => {
-      const loadedTargets = loadCatalogADR(content)
+      const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedCount(0)
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
