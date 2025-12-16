@@ -7,6 +7,9 @@ export const useStatusStore = defineStore('status', () => {
   const progress = ref(0)
   const statusMessage = ref('')
   const infoMessage = ref('Ready')
+  const viewRefreshRate = ref(0)
+  const totalComputationDuration = ref(0)
+  const projComputationDuration = ref(0)
 
   function increment() {
     busyRefCount.value++
@@ -59,6 +62,22 @@ export const useStatusStore = defineStore('status', () => {
     })
   }
 
+  const isVueImmediateRefreshEnabled = computed(() => viewRefreshRate.value > 100)
+
+  function computationStart() {
+    totalComputationDuration.value = performance.now()
+  }
+  function computationEnd() {
+    totalComputationDuration.value = performance.now() - totalComputationDuration.value
+  }
+  function projComputationStart() {
+    projComputationDuration.value = performance.now()
+  }
+  function projComputationEnd() {
+    projComputationDuration.value = performance.now() - projComputationDuration.value
+    viewRefreshRate.value = 1.0 / (projComputationDuration.value / 1000)
+  }
+
   return {
     busyRefCount,
     busy,
@@ -71,5 +90,13 @@ export const useStatusStore = defineStore('status', () => {
     setStatusMessage,
     infoMessage,
     setInfoMessage,
+    viewRefreshRate,
+    isVueImmediateRefreshEnabled,
+    totalComputationDuration,
+    computationStart,
+    computationEnd,
+    projComputationDuration,
+    projComputationStart,
+    projComputationEnd,
   }
 })

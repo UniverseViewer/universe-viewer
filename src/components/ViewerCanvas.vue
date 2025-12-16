@@ -1017,9 +1017,11 @@ export default {
   bottom: 0;
   pointer-events: none;
   transition: backdrop-filter 0.5s;
+  transition-delay: 0s;
   backdrop-filter: blur(0px);
 }
 .busy .overlay {
+  transition-delay: 0.5s;
   backdrop-filter: blur(6px);
 }
 .selection-rect {

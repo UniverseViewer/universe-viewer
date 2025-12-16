@@ -379,7 +379,7 @@ const targetsStore = useTargetsStore()
 const { targets } = storeToRefs(targetsStore)
 
 const statusStore = useStatusStore()
-const { busy } = storeToRefs(statusStore)
+const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -423,6 +423,21 @@ watch(dec1, (val) => {
 })
 watch(beta, (val) => {
   pendingBeta.value = val
+})
+watch(pendingRa1, (val) => {
+  if (isVueImmediateRefreshEnabled.value) {
+    ra1.value = val
+  }
+})
+watch(pendingDec1, (val) => {
+  if (isVueImmediateRefreshEnabled.value) {
+    dec1.value = val
+  }
+})
+watch(pendingBeta, (val) => {
+  if (isVueImmediateRefreshEnabled.value) {
+    beta.value = val
+  }
 })
 
 // Computed

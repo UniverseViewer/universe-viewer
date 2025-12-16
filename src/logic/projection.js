@@ -616,18 +616,12 @@ export async function updateAll(
   const statusStore = useStatusStore()
   const targetsStore = useTargetsStore()
 
-  console.time('TotalComputation')
+  statusStore.computationStart()
 
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       let buffer = targetsStore.sharedBuffer
-      const totalTargets = targets.length
-
-      // Check if targets are already buffer-backed
-      const isZeroCopy = !!(targets[0] && targets[0].isBufferBacked && buffer)
-
-      console.log(`[Performance] updateAll: ${totalTargets} targets. ZeroCopy: ${isZeroCopy}`)
 
       statusStore.setStatusMessage('Computing angular distances [1/3]')
       statusStore.setProgress(0)
@@ -656,6 +650,7 @@ export async function updateAll(
 
       statusStore.setStatusMessage('Computing projection [3/3]')
       statusStore.setProgress(0)
+      statusStore.projComputationStart()
       await calcTargetsProjParallel(
         targets,
         view,
@@ -666,15 +661,15 @@ export async function updateAll(
         kappa,
         buffer,
       )
+      statusStore.projComputationEnd()
 
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
+      statusStore.computationEnd()
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
       // Fall through to single-threaded version
-    } finally {
-      console.timeEnd('TotalComputation')
     }
   }
 
@@ -682,9 +677,11 @@ export async function updateAll(
   // Single-threaded version for small datasets or fallback
   calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
+  statusStore.projComputationStart()
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  statusStore.projComputationEnd()
   statusStore.setStatusMessage('Ready')
-  console.timeEnd('TotalComputation')
+  statusStore.computationEnd()
 }
 
 /**
@@ -694,18 +691,10 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
   const statusStore = useStatusStore()
   const targetsStore = useTargetsStore()
 
-  console.time('ViewComputation')
-
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       let buffer = targetsStore.sharedBuffer
-      const totalTargets = targets.length
-
-      // Check if targets are already buffer-backed
-      const isZeroCopy = !!(targets[0] && targets[0].isBufferBacked && buffer)
-
-      console.log(`[Performance] updateView: ${totalTargets} targets. ZeroCopy: ${isZeroCopy}`)
 
       statusStore.setStatusMessage('Computing projection')
       statusStore.setProgress(0)
@@ -726,8 +715,6 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
       // Fall through to single-threaded version
-    } finally {
-      console.timeEnd('ViewComputation')
     }
   }
 
@@ -735,5 +722,4 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   statusStore.setStatusMessage('Ready')
-  console.timeEnd('ViewComputation')
 }
