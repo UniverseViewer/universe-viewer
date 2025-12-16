@@ -261,14 +261,14 @@
                   </v-number-input>
                   <v-divider class="my-3"></v-divider>
                   <v-slider
-                    label="Object point size"
-                    v-model="objectPointSize"
+                    label="Target point size"
+                    v-model="targetPointSize"
                     :max="10"
                     :min="0.5"
                     step="0.1"
                   >
                     <template v-slot:append>
-                      {{ objectPointSize.toFixed(1) }}
+                      {{ targetPointSize.toFixed(1) }}
                     </template>
                   </v-slider>
                 </v-expansion-panel-text>
@@ -405,7 +405,7 @@ const beta = computed({
   get: () => Math.round(((12 * userBeta.value) / Math.PI) * 10) / 10,
   set: (val) => store.setUserBeta(val),
 })
-const objectPointSize = computed({
+const targetPointSize = computed({
   get: () => pointSize.value,
   set: (val) => store.setPointSize(val),
 })
