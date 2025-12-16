@@ -296,6 +296,12 @@
             <div class="right-sidebar">
               <ViewerToolbox @resetView="resetView" />
             </div>
+            <div class="bottom-right-info">
+              <SelectionInfo
+                :selected-count="selectedCount"
+                :selected-target="singleSelectedTarget"
+              />
+            </div>
           </v-col>
         </v-row>
       </v-container>
@@ -348,6 +354,7 @@ import About from '@/components/About.vue'
 import Help from '@/components/Help.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
 import StatusBar from '@/components/StatusBar.vue'
+import SelectionInfo from '@/components/SelectionInfo.vue'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
@@ -369,10 +376,14 @@ const {
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()
-const { targets } = storeToRefs(targetsStore)
+const { targets, selectedCount, selectedTargets } = storeToRefs(targetsStore)
 
 const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
+
+const singleSelectedTarget = computed(() => {
+  return selectedTargets.value.length === 1 ? selectedTargets.value[0] : null
+})
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])
@@ -466,7 +477,7 @@ function onFileChange(event) {
       const content = e.target.result
       const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
       targetsStore.setTargets(loadedTargets)
-      targetsStore.setSelectedCount(0)
+      targetsStore.setSelectedTargets([])
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     } catch (err) {
       console.error(err)
@@ -532,7 +543,7 @@ watch(catalogFile, (newVal) => {
     .then((content) => {
       const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
       targetsStore.setTargets(loadedTargets)
-      targetsStore.setSelectedCount(0)
+      targetsStore.setSelectedTargets([])
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     })
     .catch((err) => statusStore.setInfoMessage(`Error: ${err.message}`))
@@ -594,6 +605,12 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
 .right-sidebar {
   position: absolute;
   top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.bottom-right-info {
+  position: absolute;
+  bottom: 10px;
   right: 10px;
   z-index: 10;
 }

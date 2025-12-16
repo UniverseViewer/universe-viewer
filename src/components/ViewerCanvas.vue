@@ -820,7 +820,7 @@ export default {
         }
 
         const t = targets.value || []
-        let nbSelected = 0
+        const selectedRefs = []
 
         // Pre-capture selected state for intersection mode
         const previouslySelected = new Set()
@@ -852,7 +852,12 @@ export default {
               }
               break
           }
-          nbSelected = t.filter((ti) => ti.isSelected()).length
+          // Collect all selected targets
+          for (let i = 0; i < t.length; i++) {
+            if (t[i].isSelected()) {
+              selectedRefs.push(t[i])
+            }
+          }
         } else {
           // Rectangle selection (including clicks with no nearby target)
           for (let i = 0; i < t.length; i++) {
@@ -889,12 +894,12 @@ export default {
             }
 
             if (ti.isSelected()) {
-              nbSelected += 1
+              selectedRefs.push(ti)
             }
           }
         }
 
-        targetsStore.setSelectedCount(nbSelected)
+        targetsStore.setSelectedTargets(selectedRefs)
 
         state.isSelecting = false
 
