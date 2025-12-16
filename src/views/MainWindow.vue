@@ -4,7 +4,7 @@
     <About v-model="aboutOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
-        <v-row no-gutters style="height: calc(100%">
+        <v-row no-gutters style="height: calc(100vh - 32px)">
           <!-- LEFT SIDEBAR -->
           <v-col cols="3" class="pa-2 bg_surface left-panel">
             <v-expansion-panels multiple v-model="opened_panels">
