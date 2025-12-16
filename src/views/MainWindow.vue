@@ -504,7 +504,7 @@ const theme = useTheme()
 // Initialize from localStorage
 const savedTheme = localStorage.getItem('theme_mode')
 if (savedTheme) {
-  theme.global.name.value = savedTheme
+  theme.change(savedTheme)
 }
 
 const isDarkTheme = ref(theme.global.current.value.dark)
@@ -519,7 +519,7 @@ watch(
 
 watch(isDarkTheme, (val) => {
   const newTheme = val ? 'dark' : 'light'
-  theme.global.name.value = newTheme
+  theme.change(newTheme)
   localStorage.setItem('theme_mode', newTheme)
 })
 
