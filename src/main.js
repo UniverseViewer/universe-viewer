@@ -43,5 +43,23 @@ const vuetify = createVuetify({
 })
 
 import { createPinia } from 'pinia'
+const pinia = createPinia()
 
-createApp(App).use(vuetify).use(createPinia()).mount('#app')
+createApp(App).use(vuetify).use(pinia).mount('#app')
+
+import { useStatusStore } from '@/stores/status'
+const statusStore = useStatusStore(pinia)
+window.uv = {
+  perf() {
+    return {
+      'view_refresh_rate_per_sec': statusStore.viewRefreshRate,
+      'view_immediate_refresh_enabled': statusStore.isVueImmediateRefreshEnabled,
+      'total_computation_duration_ms': statusStore.totalComputationDuration,
+      'projections_computation_duration_ms': statusStore.projComputationDuration,
+    }
+  }
+}
+console.info(
+  'Available console helpers:',
+  'uv.perf()'
+)
