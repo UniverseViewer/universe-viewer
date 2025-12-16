@@ -171,12 +171,6 @@
                     density="compact"
                     :disabled="isSkyMode"
                   ></v-switch>
-                  <v-switch
-                    v-model="showRefMarks"
-                    label="Show reference marks"
-                    color="success"
-                    density="compact"
-                  ></v-switch>
                   <v-divider class="my-3"></v-divider>
                   <div class="text-subtitle-2 mb-2">Projection</div>
                   <v-btn-toggle v-model="view" mandatory class="mb-4 views" :disabled="isSkyMode">
@@ -372,7 +366,6 @@ const {
   precisionEnabled,
   pointSize,
   viewerMode,
-  showRefMarks,
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()

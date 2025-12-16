@@ -26,6 +26,14 @@
       rounded="0"
     ></v-btn>
     <v-btn
+      icon="mdi-grid"
+      variant="text"
+      :color="showRefMarks ? 'primary' : undefined"
+      @click="toggleRefMarks"
+      title="Reference marks"
+      rounded="0"
+    ></v-btn>
+    <v-btn
       icon="mdi-image-filter-center-focus"
       variant="text"
       @click="$emit('resetView')"
@@ -41,13 +49,17 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 
 const store = useUniverseStore()
-const { mouseMode, viewerMode } = storeToRefs(store)
+const { mouseMode, viewerMode, showRefMarks } = storeToRefs(store)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
 function toggleSkyMode() {
   const newMode = isSkyMode.value ? 'universe' : 'sky'
   store.setViewerMode(newMode)
+}
+
+function toggleRefMarks() {
+  store.setShowRefMarks(!showRefMarks.value)
 }
 
 const emit = defineEmits(['resetView'])
