@@ -45,7 +45,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const userBeta = ref(0.0) // radians
 
   const viewerCanvas = ref(null)
-  const precisionEnabled = ref(false)
+  const precisionEnabled = ref(true)
   const comovingSpaceFlag = ref(true)
   const pointSize = ref(1.5)
   const viewerMode = ref('universe')
