@@ -290,7 +290,11 @@
 
           <!-- MAIN VIEWER -->
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
-            <ViewerCanvas ref="viewer" :dark-mode="isDarkTheme" />
+            <ViewerCanvas
+              ref="viewer"
+              :dark-mode="isDarkTheme"
+              @update-mouse-coords="onMouseCoordsUpdate"
+            />
 
             <!-- RIGHT SIDEBAR (OVERLAY) -->
             <div class="right-sidebar">
@@ -300,6 +304,13 @@
               <SelectionInfo
                 :selected-count="selectedCount"
                 :selected-target="singleSelectedTarget"
+              />
+            </div>
+            <div class="bottom-left-info">
+              <SkyCoordinates
+                :visible="isSkyMode && mouseRa !== null && mouseDec !== null"
+                :mouse-ra="mouseRa || 0"
+                :mouse-dec="mouseDec || 0"
               />
             </div>
           </v-col>
@@ -355,6 +366,7 @@ import Help from '@/components/Help.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
 import StatusBar from '@/components/StatusBar.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'
+import SkyCoordinates from '@/components/SkyCoordinates.vue'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
@@ -395,6 +407,14 @@ const viewer = ref(null)
 const selectedConst = ref('kappa')
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
+
+const mouseRa = ref(0)
+const mouseDec = ref(0)
+
+function onMouseCoordsUpdate({ x, y }) {
+  mouseRa.value = x
+  mouseDec.value = y
+}
 
 // ra1, dec1, beta need to be computed to convert from rad to hours/deg for sliders
 const ra1 = computed({
@@ -612,6 +632,12 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
   position: absolute;
   bottom: 10px;
   right: 10px;
+  z-index: 10;
+}
+.bottom-left-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   z-index: 10;
 }
 </style>

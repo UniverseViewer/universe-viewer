@@ -47,11 +47,13 @@ import { watch } from 'vue'
 export default {
   name: 'ViewerCanvas',
 
+  emits: ['update-mouse-coords'],
+
   props: {
     darkMode: { type: Boolean, default: true },
   },
 
-  setup(props, { expose }) {
+  setup(props, { expose, emit }) {
     const root = ref(null)
     const overlay = ref(null)
 
@@ -745,11 +747,24 @@ export default {
       state.selectX2 = localX
       state.selectY2 = localY
 
+      // Update world coordinates for display
+      const worldCoords = pixelToWorld(e.clientX, e.clientY)
+      let { worldX: x, worldY: y } = worldCoords
+
+      if (state.mode === state.SKY_MODE) {
+        if (x < 0 || x > 2 * Math.PI || y < -Math.PI / 2 || y > Math.PI / 2) {
+          x = null
+          y = null
+        }
+      }
+
+      emit('update-mouse-coords', { x, y })
+
       if (state.isSelecting) {
         render()
       } else if (state.isDragging) {
         const prev = pixelToWorld(state.mouseX, state.mouseY)
-        const curr = pixelToWorld(e.clientX, e.clientY)
+        const curr = worldCoords
         const offsetX = prev.worldX - curr.worldX
         const offsetY = prev.worldY - curr.worldY
         state.posX += offsetX
