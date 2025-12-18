@@ -24,7 +24,6 @@ export const useTargetsStore = defineStore('targets', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
-  const bufferOutdated = shallowRef(true)
   const lastUpdate = ref(Date.now())
 
   // Computed from selectedTargets array length
@@ -36,15 +35,10 @@ export const useTargetsStore = defineStore('targets', () => {
 
   function setTargets(tArray) {
     targets.value = tArray
-    bufferOutdated.value = true
   }
 
   function setSharedBuffer(buffer) {
     sharedBuffer.value = buffer
-  }
-
-  function setBufferOutdated(val) {
-    bufferOutdated.value = val
   }
 
   function touch() {
@@ -56,13 +50,11 @@ export const useTargetsStore = defineStore('targets', () => {
     selectedTargets,
     targets,
     sharedBuffer,
-    bufferOutdated,
     lastUpdate,
     // Setters
     setSelectedTargets,
     setTargets,
     setSharedBuffer,
-    setBufferOutdated,
     touch,
   }
 })

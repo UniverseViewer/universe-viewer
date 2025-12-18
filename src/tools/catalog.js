@@ -63,7 +63,6 @@ export function loadCatalogADR(content, percent = 100) {
       useBuffer = true
       const targetsStore = useTargetsStore()
       targetsStore.setSharedBuffer(buffer)
-      targetsStore.setBufferOutdated(false)
     } catch (e) {
       console.warn('Failed to create SharedArrayBuffer:', e)
     }
