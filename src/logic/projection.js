@@ -220,7 +220,7 @@ export function calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   let eta1 = new Vect3d()
   let eta2 = new Vect3d()
 
-  if (Math.abs(P1.getX() - 1) > 1e-5) {
+  if (Math.abs(P1.getX()) < 0.9) {
     const i = new Vect3d()
     i.setX(1)
     i.setY(0)

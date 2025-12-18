@@ -493,13 +493,10 @@ export default {
             y = float64View[offset + OFFSET_PROJ_Y]
           }
 
-          positions[3 * i + 0] = x
-          positions[3 * i + 1] = y
+          positions[3 * i + 0] = isNaN(x) ? 0 : x
+          positions[3 * i + 1] = isNaN(y) ? 0 : y
           positions[3 * i + 2] = 0.1
 
-          // Selection still needs object access or a separate buffer?
-          // Target.isSelected() is just a boolean property on the object.
-          // We still have the objects array 't'.
           const selected = t[i].isSelected()
 
           if (selected) {
@@ -525,8 +522,8 @@ export default {
             y = ti.gety ? ti.gety() : 0
           }
 
-          positions[3 * i + 0] = x
-          positions[3 * i + 1] = y
+          positions[3 * i + 0] = isNaN(x) ? 0 : x
+          positions[3 * i + 1] = isNaN(y) ? 0 : y
           positions[3 * i + 2] = 0.1
 
           const selected = ti.isSelected ? ti.isSelected() : false
