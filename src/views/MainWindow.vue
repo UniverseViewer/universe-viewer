@@ -301,10 +301,7 @@
               <ViewerToolbox @resetView="resetView" />
             </div>
             <div class="bottom-right-info">
-              <SelectionInfo
-                :selected-count="selectedCount"
-                :selected-target="singleSelectedTarget"
-              />
+              <SelectionInfo />
             </div>
             <div class="bottom-left-info">
               <SkyCoordinates
@@ -388,14 +385,10 @@ const {
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()
-const { targets, selectedCount, selectedTargets } = storeToRefs(targetsStore)
+const { targets } = storeToRefs(targetsStore)
 
 const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-
-const singleSelectedTarget = computed(() => {
-  return selectedTargets.value.length === 1 ? selectedTargets.value[0] : null
-})
 
 // Side bar
 const opened_panels = ref(['data', 'parameters', 'view'])

@@ -1,0 +1,68 @@
+/*
+ * Copyright (C) 2008-2025 Mathieu Abati <mathieu.abati@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+
+/**
+ * Compute the distance between two targets in reference space (angular distance).
+ *
+ * @param {Target} target1 - First target
+ * @param {Target} target2 - Second target
+ * @param {number} kappa - Curvature parameter
+ * @returns {number} The angular distance between the two targets
+ */
+export function computeReferenceDistance(target1, target2, kappa) {
+  const tau1 = target1.getAngularDist()
+  const tau2 = target2.getAngularDist()
+
+  const ra1 = target1.getAscension()
+  const dec1 = target1.getDeclination()
+  const ra2 = target2.getAscension()
+  const dec2 = target2.getDeclination()
+
+  const cosTheta12 = Math.cos(ra1 - ra2) * Math.cos(dec1) * Math.cos(dec2) + Math.sin(dec1) * Math.sin(dec2)
+
+  if (kappa > 0) {
+    const cosTau12 = cosTheta12 * Math.sin(tau1) * Math.sin(tau2) + Math.cos(tau1) * Math.cos(tau2)
+    // Below, we are clamping between -1 and 1, as even if perfect result is between -1 and 1, computation may lead to imprecisions, and acos only accepts values between -1 and 1
+    return Math.acos(Math.max(-1, Math.min(1, cosTau12)))
+  } else if (kappa < 0) {
+    const coshTau12 = Math.cosh(tau1) * Math.cosh(tau2) - cosTheta12 * Math.sinh(tau1) * Math.sinh(tau2)
+    // Below, we are limiting to minimum 1, as even if perfect result is >= 1, computation may lead to imprecisions, and acosh only accepts values >= 1
+    return Math.acosh(Math.max(1, coshTau12))
+  } else { // kappa = 0
+    return Math.sqrt(Math.max(0, tau1 * tau1 + tau2 * tau2 - 2 * tau1 * tau2 * cosTheta12))
+  }
+}
+
+/**
+ * Compute the distance between two targets in comoving space.
+ *
+ * @param {Target} target1 - First target
+ * @param {Target} target2 - Second target
+ * @param {number} kappa - Curvature parameter
+ * @returns {number} The comoving distance between the two targets
+ */
+export function computeComovingDistance(target1, target2, kappa) {
+  const tau12 = computeReferenceDistance(target1, target2, kappa)
+
+  if (kappa === 0) {
+    return tau12
+  } else {
+    return tau12 / Math.sqrt(Math.abs(kappa))
+  }
+}

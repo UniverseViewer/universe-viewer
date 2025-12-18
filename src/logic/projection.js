@@ -666,6 +666,7 @@ export async function updateAll(
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
       statusStore.computationEnd()
+      targetsStore.touch()
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -682,6 +683,7 @@ export async function updateAll(
   statusStore.projComputationEnd()
   statusStore.setStatusMessage('Ready')
   statusStore.computationEnd()
+  targetsStore.touch()
 }
 
 /**
@@ -711,6 +713,7 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
 
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
+      targetsStore.touch()
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -722,4 +725,5 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
   statusStore.setStatusMessage('Ready')
+  targetsStore.touch()
 }

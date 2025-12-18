@@ -18,13 +18,14 @@
  */
 
 import { defineStore } from 'pinia'
-import { computed, shallowRef } from 'vue'
+import { computed, shallowRef, ref } from 'vue'
 
 export const useTargetsStore = defineStore('targets', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
   const bufferOutdated = shallowRef(true)
+  const lastUpdate = ref(Date.now())
 
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
@@ -46,16 +47,22 @@ export const useTargetsStore = defineStore('targets', () => {
     bufferOutdated.value = val
   }
 
+  function touch() {
+    lastUpdate.value = Date.now()
+  }
+
   return {
     selectedCount,
     selectedTargets,
     targets,
     sharedBuffer,
     bufferOutdated,
+    lastUpdate,
     // Setters
     setSelectedTargets,
     setTargets,
     setSharedBuffer,
     setBufferOutdated,
+    touch,
   }
 })

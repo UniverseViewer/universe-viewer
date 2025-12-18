@@ -5,34 +5,51 @@
     elevation="2"
     rounded
     color="surface"
-    max-width="300"
+    max-width="400"
   >
-    <div v-if="selectedCount === 1 && selectedTarget">
+    <div v-if="selectedCount === 1 && selectedTargets && selectedTargets[0]">
       <div class="text-caption"><strong>Selected:</strong> 1 object</div>
       <v-divider class="my-2"></v-divider>
       <div class="text-caption">
-        <strong>RA:</strong> {{ formatRa(selectedTarget.getAscension()) }} ({{
-          selectedTarget.getAscension().toFixed(4)
+        <strong>RA:</strong> {{ formatRa(selectedTargets[0].getAscension()) }} ({{
+          selectedTargets[0].getAscension().toFixed(4)
         }}
         rad)
       </div>
       <div class="text-caption">
-        <strong>Dec:</strong> {{ formatDec(selectedTarget.getDeclination()) }} ({{
-          selectedTarget.getDeclination().toFixed(4)
+        <strong>Dec:</strong> {{ formatDec(selectedTargets[0].getDeclination()) }} ({{
+          selectedTargets[0].getDeclination().toFixed(4)
         }}
         rad)
       </div>
       <div class="text-caption">
-        <strong>Redshift:</strong> {{ selectedTarget.getRedshift().toFixed(4) }}
+        <strong>Redshift:</strong> {{ selectedTargets[0].getRedshift().toFixed(4) }}
       </div>
       <div class="text-caption">
         <strong>Angular Distance:</strong>
-        {{ selectedTarget.getAngularDist().toFixed(4) }}
+        {{ selectedTargets[0].getAngularDist().toFixed(4) }}
       </div>
-      <div class="text-caption"><strong>X:</strong> {{ selectedTarget.getPos().x.toFixed(4) }}</div>
-      <div class="text-caption"><strong>Y:</strong> {{ selectedTarget.getPos().y.toFixed(4) }}</div>
-      <div class="text-caption"><strong>Z:</strong> {{ selectedTarget.getPos().z.toFixed(4) }}</div>
-      <div class="text-caption"><strong>T:</strong> {{ selectedTarget.getPos().t.toFixed(4) }}</div>
+      <div class="text-caption">
+        <strong>X:</strong> {{ selectedTargets[0].getPos().x.toFixed(4) }}
+      </div>
+      <div class="text-caption">
+        <strong>Y:</strong> {{ selectedTargets[0].getPos().y.toFixed(4) }}
+      </div>
+      <div class="text-caption">
+        <strong>Z:</strong> {{ selectedTargets[0].getPos().z.toFixed(4) }}
+      </div>
+      <div class="text-caption">
+        <strong>T:</strong> {{ selectedTargets[0].getPos().t.toFixed(4) }}
+      </div>
+    </div>
+    <div v-else-if="selectedCount === 2 && selectedTargets && selectedTargets[0] && selectedTargets[1]">
+      <div class="text-caption"><strong>Selected:</strong> 2 objects</div>
+      <v-divider class="my-2"></v-divider>
+      <div class="text-caption">
+        <strong v-if="comovingSpaceFlag">Comoving Distance:</strong>
+        <strong v-else>Reference Distance:</strong>
+        {{ distance }}
+      </div>
     </div>
     <div v-else>
       <div class="text-caption"><strong>Selected:</strong> {{ selectedCount }} objects</div>
@@ -41,18 +58,27 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { computed } from 'vue'
 import { formatRa, formatDec } from '@/tools/coordinates.js'
+import { computeComovingDistance, computeReferenceDistance } from '@/logic/measures.js'
+import { storeToRefs } from 'pinia'
+import { useUniverseStore } from '@/stores/universe.js'
+import { useTargetsStore } from '@/stores/targets.js'
 
-defineProps({
-  selectedCount: {
-    type: Number,
-    required: true,
-  },
-  selectedTarget: {
-    type: Object,
-    default: null,
-  },
+const store = useUniverseStore()
+const targetsStore = useTargetsStore()
+const { kappa, comovingSpaceFlag } = storeToRefs(store)
+const { selectedCount, selectedTargets, lastUpdate } = storeToRefs(targetsStore)
+
+const distance = computed(() => {
+  // Access lastUpdate to trigger re-evaluation when targets are updated
+  lastUpdate.value
+
+  if (comovingSpaceFlag.value === true) {
+    return computeComovingDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
+  } else {
+    return computeReferenceDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
+  }
 })
 </script>
 
