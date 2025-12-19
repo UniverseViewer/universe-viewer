@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" :class="['viewer-root', busy ? 'busy' : '']">
+  <div ref="root" :class="['viewer-root', busy ? 'busy' : '', mouseMode]">
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -1095,6 +1095,7 @@ export default {
       targets,
       updateCanvas,
       busy,
+      mouseMode,
       themeName,
     }
   },
@@ -1108,6 +1109,12 @@ export default {
   height: 100%;
   background: black;
   overflow: hidden;
+}
+.viewer-root.move {
+  cursor: all-scroll;
+}
+.viewer-root.select {
+  cursor: crosshair;
 }
 .overlay {
   position: absolute;
