@@ -42,7 +42,9 @@
         <strong>T:</strong> {{ selectedTargets[0].getPos().t.toFixed(4) }}
       </div>
     </div>
-    <div v-else-if="selectedCount === 2 && selectedTargets && selectedTargets[0] && selectedTargets[1]">
+    <div
+      v-else-if="selectedCount === 2 && selectedTargets && selectedTargets[0] && selectedTargets[1]"
+    >
       <div class="text-caption"><strong>Selected:</strong> 2 objects</div>
       <v-divider class="my-2"></v-divider>
       <div class="text-caption">
@@ -54,6 +56,16 @@
     <div v-else>
       <div class="text-caption"><strong>Selected:</strong> {{ selectedCount }} objects</div>
     </div>
+    <v-divider class="my-2"></v-divider>
+    <v-btn
+      size="small"
+      color="primary"
+      variant="tonal"
+      prepend-icon="mdi-auto-fix"
+      @click="highlight"
+    >
+      Highlight Selection
+    </v-btn>
   </v-sheet>
 </template>
 
@@ -80,6 +92,12 @@ const distance = computed(() => {
     return computeReferenceDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
   }
 })
+
+function highlight() {
+  if (store.viewerCanvas && store.viewerCanvas.highlightSelection) {
+    store.viewerCanvas.highlightSelection()
+  }
+}
 </script>
 
 <style scoped>

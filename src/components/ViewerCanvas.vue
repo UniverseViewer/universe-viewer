@@ -134,6 +134,7 @@ export default {
           pointSelectedB: 0.0,
         },
       },
+      highlightScale: 1.0,
     })
 
     const themeName = computed(() => (props.darkMode ? 'dark' : 'light'))
@@ -303,6 +304,7 @@ export default {
       state.geometry = markRaw(new THREE.BufferGeometry())
       state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
       state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
+      state.geometry.setAttribute('isHighlighted', new THREE.Float32BufferAttribute([], 1))
 
       const circleTexture = createCircleTexture()
 
@@ -316,6 +318,27 @@ export default {
           alphaTest: 0.5,
         }),
       )
+
+      state.material.onBeforeCompile = (shader) => {
+        shader.uniforms.uHighlightScale = { value: state.highlightScale }
+        shader.vertexShader = `
+          attribute float isHighlighted;
+          uniform float uHighlightScale;
+          ${shader.vertexShader}
+        `
+          .replace(
+            'gl_PointSize = size;',
+            'gl_PointSize = size * (1.0 + isHighlighted * (uHighlightScale - 1.0));',
+          )
+          .replace(
+            '#include <project_vertex>',
+            `#include <project_vertex>
+            if (isHighlighted > 0.5 && uHighlightScale > 1.0) {
+              gl_Position.z -= 0.01;
+            }`,
+          )
+        state.material.userData.shader = shader
+      }
 
       state.points = markRaw(new THREE.Points(state.geometry, state.material))
       state.scene.add(state.points)
@@ -443,6 +466,16 @@ export default {
         colors.setXYZ(i, r, g, b)
       }
       colors.needsUpdate = true
+
+      const highlighted = geometry.attributes.isHighlighted
+      if (highlighted && highlighted.count === N) {
+        for (let i = 0; i < N; i++) {
+          const ti = t[i]
+          const selected = ti.isSelected ? ti.isSelected() : false
+          highlighted.setX(i, selected ? 1.0 : 0.0)
+        }
+        highlighted.needsUpdate = true
+      }
     }
 
     function populatePoints() {
@@ -469,13 +502,19 @@ export default {
         if (N === 0) {
           state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
           state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
+          state.geometry.setAttribute('isHighlighted', new THREE.Float32BufferAttribute([], 1))
           return
         }
         positions = new Float32Array(N * 3)
         colors = new Float32Array(N * 3)
+        const highlighted = new Float32Array(N)
         state.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
         state.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+        state.geometry.setAttribute('isHighlighted', new THREE.BufferAttribute(highlighted, 1))
       }
+
+      const highlightedAttr = state.geometry.getAttribute('isHighlighted')
+      const highlighted = highlightedAttr.array
 
       const theme = state.theme[themeName.value]
       const { pointR, pointG, pointB, pointSelectedR, pointSelectedG, pointSelectedB } = theme
@@ -508,6 +547,8 @@ export default {
             colors[3 * i + 1] = pointG
             colors[3 * i + 2] = pointB
           }
+
+          highlighted[i] = selected ? 1.0 : 0.0
         }
       } else {
         // Fallback path (Object Mode)
@@ -536,11 +577,14 @@ export default {
             colors[3 * i + 1] = pointG
             colors[3 * i + 2] = pointB
           }
+
+          highlighted[i] = selected ? 1.0 : 0.0
         }
       }
 
       state.geometry.attributes.position.needsUpdate = true
       state.geometry.attributes.color.needsUpdate = true
+      state.geometry.attributes.isHighlighted.needsUpdate = true
       state.geometry.computeBoundingSphere()
     }
 
@@ -735,7 +779,34 @@ export default {
       setMode(state.mode)
     }
 
-    expose({ resetView })
+    function highlightSelection() {
+      const duration = 1000 // 1 second
+      const startScale = 10.0
+      const endScale = 1.0
+      const startTime = performance.now()
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1.0)
+
+        // Linear reduction from 10x to 1x
+        state.highlightScale = startScale + (endScale - startScale) * progress
+
+        if (state.material && state.material.userData.shader) {
+          state.material.userData.shader.uniforms.uHighlightScale.value = state.highlightScale
+        }
+
+        render()
+
+        if (progress < 1.0) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    }
+
+    expose({ resetView, highlightSelection })
 
     function onMouseMove(e) {
       const rect = root.value.getBoundingClientRect()
@@ -970,6 +1041,7 @@ export default {
 
       universeStore.setViewerCanvas({
         updateCanvas,
+        highlightSelection,
         setShowReferencesMarks: (s) => {
           state.showReferencesMarks = !!s
           drawReferenceMarks()
