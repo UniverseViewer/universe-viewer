@@ -26,8 +26,12 @@
         <strong>Redshift:</strong> {{ selectedTargets[0].getRedshift().toFixed(4) }}
       </div>
       <div class="text-caption">
-        <strong>Angular Distance:</strong>
+        <strong>Angular Distance from Earth:</strong>
         {{ selectedTargets[0].getAngularDist().toFixed(4) }}
+      </div>
+      <div v-if="comovingSpaceFlag" class="text-caption">
+        <strong>Comoving Distance from Earth:</strong>
+        {{ distance.toFixed(4) }}
       </div>
       <div class="text-caption">
         <strong>X:</strong> {{ selectedTargets[0].getPos().x.toFixed(4) }}
@@ -47,10 +51,15 @@
     >
       <div class="text-caption"><strong>Selected:</strong> 2 objects</div>
       <v-divider class="my-2"></v-divider>
+      <div v-if="comovingSpaceFlag">
+        <div class="text-caption">
+          <strong>Comoving Distance:</strong>
+          {{ distance.toFixed(4) }}
+        </div>
+      </div>
       <div class="text-caption">
-        <strong v-if="comovingSpaceFlag">Comoving Distance:</strong>
-        <strong v-else>Reference Distance:</strong>
-        {{ distance }}
+        <strong>Angular Distance:</strong>
+        {{ angularDistanceBetween.toFixed(4) }}
       </div>
     </div>
     <div v-else>
@@ -95,11 +104,38 @@ const distance = computed(() => {
   // Access lastUpdate to trigger re-evaluation when targets are updated
   lastUpdate.value
 
-  if (comovingSpaceFlag.value === true) {
-    return computeComovingDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
-  } else {
+  if (selectedCount.value === 2) {
+    if (comovingSpaceFlag.value === true) {
+      return computeComovingDistance(
+        selectedTargets.value[0],
+        selectedTargets.value[1],
+        kappa.value,
+      )
+    } else {
+      return computeReferenceDistance(
+        selectedTargets.value[0],
+        selectedTargets.value[1],
+        kappa.value,
+      )
+    }
+  } else if (selectedCount.value === 1) {
+    const tau = selectedTargets.value[0].getAngularDist()
+    if (comovingSpaceFlag.value === true) {
+      if (kappa.value === 0) return tau
+      return tau / Math.sqrt(Math.abs(kappa.value))
+    } else {
+      return tau
+    }
+  }
+  return 0
+})
+
+const angularDistanceBetween = computed(() => {
+  lastUpdate.value
+  if (selectedCount.value === 2) {
     return computeReferenceDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
   }
+  return 0
 })
 
 function highlight() {
