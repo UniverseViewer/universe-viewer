@@ -57,15 +57,24 @@
       <div class="text-caption"><strong>Selected:</strong> {{ selectedCount }} objects</div>
     </div>
     <v-divider class="my-2"></v-divider>
-    <v-btn
-      size="small"
-      color="primary"
-      variant="tonal"
-      prepend-icon="mdi-auto-fix"
-      @click="highlight"
-    >
-      Highlight Selection
-    </v-btn>
+    <v-container class="pa-0 ma-0">
+      <v-btn
+        icon="mdi-crosshairs"
+        variant="text"
+        @click="highlight"
+        title="Highlight Selected Objects"
+        rounded="0"
+        size="small"
+      ></v-btn>
+      <v-btn
+        icon="mdi-close"
+        variant="text"
+        @click="clear"
+        title="Clear Selection"
+        rounded="0"
+        size="small"
+      ></v-btn>
+    </v-container>
   </v-sheet>
 </template>
 
@@ -96,6 +105,12 @@ const distance = computed(() => {
 function highlight() {
   if (store.viewerCanvas && store.viewerCanvas.highlightSelection) {
     store.viewerCanvas.highlightSelection()
+  }
+}
+
+function clear() {
+  if (store.viewerCanvas && store.viewerCanvas.clearSelection) {
+    store.viewerCanvas.clearSelection()
   }
 }
 </script>

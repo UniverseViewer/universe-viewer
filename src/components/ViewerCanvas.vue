@@ -806,7 +806,17 @@ export default {
       requestAnimationFrame(animate)
     }
 
-    expose({ resetView, highlightSelection })
+    function clearSelection() {
+      const t = targets.value || []
+      t.forEach((ti) => {
+        if (ti.setSelected) ti.setSelected(false)
+      })
+      targetsStore.setSelectedTargets([])
+      updatePointsColor()
+      render()
+    }
+
+    expose({ resetView, highlightSelection, clearSelection })
 
     function onMouseMove(e) {
       const rect = root.value.getBoundingClientRect()
@@ -1042,6 +1052,7 @@ export default {
       universeStore.setViewerCanvas({
         updateCanvas,
         highlightSelection,
+        clearSelection,
         setShowReferencesMarks: (s) => {
           state.showReferencesMarks = !!s
           drawReferenceMarks()
