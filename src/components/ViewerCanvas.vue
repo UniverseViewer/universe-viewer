@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" :class="['viewer-root', busy ? 'busy' : '', mouseMode]">
+  <div ref="root" :class="['viewer-root', (busy && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode]">
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -77,7 +77,7 @@ export default {
       mouseMode,
       showRefMarks,
     } = storeToRefs(universeStore)
-    const { busy } = storeToRefs(statusStore)
+    const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
     const { targets } = storeToRefs(targetsStore)
 
     const state = reactive({
@@ -1095,6 +1095,7 @@ export default {
       targets,
       updateCanvas,
       busy,
+      isVueImmediateRefreshEnabled,
       mouseMode,
       themeName,
     }
