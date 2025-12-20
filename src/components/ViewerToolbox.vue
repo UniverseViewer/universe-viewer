@@ -61,8 +61,6 @@ function toggleSkyMode() {
 function toggleRefMarks() {
   store.setShowRefMarks(!showRefMarks.value)
 }
-
-const emit = defineEmits(['resetView'])
 </script>
 
 <style scoped></style>

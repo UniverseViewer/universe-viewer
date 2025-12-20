@@ -166,8 +166,6 @@ function calcProj(data) {
     RA1,
     Dec1,
     Beta,
-    comovingSpaceFlag,
-    kappa,
     stride,
     offsetPosX,
     offsetPosY,
@@ -177,7 +175,7 @@ function calcProj(data) {
     offsetProjY,
   } = data
 
-  const projVects = calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  const projVects = calcProjVects(RA1, Dec1, Beta)
   const E0 = projVects.E0
   const E1 = projVects.E1
   const E2 = projVects.E2

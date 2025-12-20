@@ -206,7 +206,7 @@ export function calcTargetsPos(
 /**
  * Compute projection vectors.
  */
-export function calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+export function calcProjVects(RA1, Dec1, Beta) {
   const E0 = new Vect4d()
   const E1 = new Vect4d()
   const E2 = new Vect4d()
@@ -274,10 +274,10 @@ export function calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
 /**
  * Compute projection for all targets.
  */
-export function calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+export function calcTargetsProj(targets, view, RA1, Dec1, Beta) {
   if (!targets) return
 
-  const projVects = calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  const projVects = calcProjVects(RA1, Dec1, Beta)
   const E0 = projVects.E0
   const E1 = projVects.E1
   const E2 = projVects.E2
@@ -516,8 +516,6 @@ export async function calcTargetsProjParallel(
   RA1,
   Dec1,
   Beta,
-  comovingSpaceFlag,
-  kappa,
   sharedBuffer = null,
 ) {
   if (!targets || targets.length === 0) return
@@ -559,8 +557,6 @@ export async function calcTargetsProjParallel(
           RA1,
           Dec1,
           Beta,
-          comovingSpaceFlag,
-          kappa,
           stride: STRIDE,
           offsetPosX: OFFSET_POS_X,
           offsetPosY: OFFSET_POS_Y,
@@ -589,7 +585,7 @@ export async function calcTargetsProjParallel(
     }
   } catch (error) {
     console.warn('Parallel calcTargetsProj failed, falling back to single-threaded:', error)
-    calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+    calcTargetsProj(targets, view, RA1, Dec1, Beta)
   }
 }
 
@@ -653,8 +649,6 @@ export async function updateAll(
         RA1,
         Dec1,
         Beta,
-        comovingSpaceFlag,
-        kappa,
         buffer,
       )
       statusStore.projComputationEnd()
@@ -675,7 +669,7 @@ export async function updateAll(
   calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled)
   calcTargetsPos(targets, comovingSpaceFlag, kappa, lambda, omega, alpha, precisionEnabled)
   statusStore.projComputationStart()
-  calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  calcTargetsProj(targets, view, RA1, Dec1, Beta)
   statusStore.projComputationEnd()
   statusStore.setStatusMessage('Ready')
   statusStore.computationEnd()
@@ -685,7 +679,7 @@ export async function updateAll(
 /**
  * Compute projection for all targets, with parallelization if relevant.
  */
-export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
+export async function updateView(targets, view, RA1, Dec1, Beta) {
   const statusStore = useStatusStore()
   const targetsStore = useTargetsStore()
 
@@ -702,8 +696,6 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
         RA1,
         Dec1,
         Beta,
-        comovingSpaceFlag,
-        kappa,
         buffer,
       )
 
@@ -719,7 +711,7 @@ export async function updateView(targets, view, RA1, Dec1, Beta, comovingSpaceFl
 
   statusStore.setStatusMessage('Computing (single-threaded)')
   // Single-threaded version for small datasets or fallback
-  calcTargetsProj(targets, view, RA1, Dec1, Beta, comovingSpaceFlag, kappa)
+  calcTargetsProj(targets, view, RA1, Dec1, Beta)
   statusStore.setStatusMessage('Ready')
   targetsStore.touch()
 }

@@ -407,8 +407,6 @@ export default {
           userRA1.value,
           userDec1.value,
           userBeta.value,
-          comovingSpaceFlag.value,
-          kappa.value,
         )
         updateCanvas()
       })

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <Help v-model="helpOpened" :tab="helpTab" />
+    <AppHelp v-model="helpOpened" :tab="helpTab" />
     <About v-model="aboutOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
@@ -359,7 +359,7 @@ import { useStatusStore } from '@/stores/status.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
-import Help from '@/components/Help.vue'
+import AppHelp from '@/components/AppHelp.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
 import StatusBar from '@/components/StatusBar.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'

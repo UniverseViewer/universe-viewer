@@ -1,12 +1,12 @@
 <template>
   <v-dialog v-model="visible" width="auto">
     <v-card max-width="600" prepend-icon="mdi-information" title="Help">
-      <v-tabs v-model="tab">
+      <v-tabs v-model="currentTab">
         <v-tab value="controls">Controls</v-tab>
         <v-tab value="data_format">Data format</v-tab>
       </v-tabs>
       <v-card-text>
-        <v-window v-model="tab">
+        <v-window v-model="currentTab">
           <v-window-item value="controls">
             <strong>Zoom:</strong> scroll<br />
             <strong>Drag view or select (depends on mouse mode):</strong> left click<br />
@@ -61,7 +61,7 @@
 import { ref, watch } from 'vue'
 
 export default {
-  name: 'Help',
+  name: 'AppHelp',
 
   props: {
     modelValue: { type: Boolean, default: false },
@@ -71,7 +71,7 @@ export default {
 
   setup(props, { emit }) {
     const visible = ref(props.modelValue)
-    const tab = ref(props.tab || 'controls')
+    const currentTab = ref(props.tab || 'controls')
 
     // Sync with parent
     watch(visible, (value) => {
@@ -88,13 +88,13 @@ export default {
     watch(
       () => props.tab,
       (val) => {
-        tab.value = val || 'controls'
+        currentTab.value = val || 'controls'
       },
     )
 
     return {
       visible,
-      tab,
+      currentTab,
     }
   },
 }
