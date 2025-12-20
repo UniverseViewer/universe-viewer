@@ -322,6 +322,8 @@
       >
       </v-overlay>
 
+      <LoadingPopup v-if="isLoading" :title="loadingTitle" :percentage="loadingPercentage" />
+
       <!-- BOTTOM INFO BAR -->
       <StatusBar />
     </v-main>
@@ -364,6 +366,7 @@ import ViewerToolbox from '@/components/ViewerToolbox.vue'
 import StatusBar from '@/components/StatusBar.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'
 import SkyCoordinates from '@/components/SkyCoordinates.vue'
+import LoadingPopup from '@/components/LoadingPopup.vue'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
@@ -398,6 +401,9 @@ const viewer = ref(null)
 
 // Local State
 const selectedConst = ref('kappa')
+const isLoading = ref(false)
+const loadingTitle = ref('')
+const loadingPercentage = ref(0)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -483,22 +489,43 @@ function onFileChange(event) {
   const file = event.target.files[0]
   if (!file) return
   statusStore.increment()
+  isLoading.value = true
+  loadingTitle.value = 'Reading file...'
+  loadingPercentage.value = 0
 
   const reader = new FileReader()
+
+  reader.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const pct = (e.loaded / e.total) * 100
+      loadingPercentage.value = pct > 100 ? 100 : pct
+    }
+  }
+
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
-      targetsStore.setTargets(loadedTargets)
-      targetsStore.setSelectedTargets([])
-      statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+      statusStore.runBusyTask(() => {
+        const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
+        targetsStore.setTargets(loadedTargets)
+        targetsStore.setSelectedTargets([])
+        statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+      }, 'Loading catalog')
     } catch (err) {
       console.error(err)
       statusStore.setInfoMessage(`Error: ${err.message}`)
     } finally {
       statusStore.decrement()
+      isLoading.value = false
     }
   }
+
+  reader.onerror = () => {
+    statusStore.setInfoMessage('Error reading file')
+    statusStore.decrement()
+    isLoading.value = false
+  }
+
   catalogFile.value = undefined
   reader.readAsText(file)
 }
@@ -547,22 +574,55 @@ watch(isDarkTheme, (val) => {
   localStorage.setItem('theme_mode', newTheme)
 })
 
-watch(catalogFile, (newVal) => {
+watch(catalogFile, async (newVal) => {
   if (newVal === undefined || newVal === null) return
   statusStore.increment()
   browsedFile.value = null
-  fetch('/catalogs/' + newVal)
-    .then((response) => response.text())
-    .then((content) => {
+  isLoading.value = true
+
+  loadingTitle.value = 'Downloading catalog...'
+  loadingPercentage.value = 0
+  try {
+    const response = await fetch('/catalogs/' + newVal)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const contentLength = response.headers.get('content-length')
+    const total = contentLength ? parseInt(contentLength, 10) : 0
+    let loaded = 0
+    const reader = response.body.getReader()
+    const chunks = []
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      chunks.push(value)
+      loaded += value.length
+      if (total) {
+        const pct = (loaded / total) * 100
+        loadingPercentage.value = pct > 100 ? 100 : pct // can exceed 100% as content-length is compressed size and chunk lenght is real size
+      }
+    }
+    const allChunks = new Uint8Array(loaded)
+    let position = 0
+    for (const chunk of chunks) {
+      allChunks.set(chunk, position)
+      position += chunk.length
+    }
+    const decoder = new TextDecoder('utf-8')
+    const content = decoder.decode(allChunks)
+
+    statusStore.runBusyTask(() => {
       const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
       targetsStore.setTargets(loadedTargets)
       targetsStore.setSelectedTargets([])
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
-    })
-    .catch((err) => statusStore.setInfoMessage(`Error: ${err.message}`))
-    .finally(() => {
-      statusStore.decrement()
-    })
+    }, "Loading catalog")
+  } catch (err) {
+    statusStore.setInfoMessage(`Error: ${err.message}`)
+  } finally {
+    statusStore.decrement()
+    isLoading.value = false
+  }
 })
 
 watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
