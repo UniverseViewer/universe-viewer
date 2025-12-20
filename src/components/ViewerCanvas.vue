@@ -216,6 +216,7 @@ export default {
         state.yMax = 1
         state.posX = 0 // Center of -1 to 1
         state.posY = 0 // Center of -1 to 1
+        state.zoom = 0.5
       } else if (m === state.SKY_MODE) {
         state.xMin = 0
         state.yMin = -Math.PI / 2
@@ -223,10 +224,10 @@ export default {
         state.yMax = Math.PI / 2
         state.posX = Math.PI // Center of 0 to 2*PI
         state.posY = 0 // Center of -Math.PI/2 to Math.PI/2
+        state.zoom = 1
       } else {
         return
       }
-      state.zoom = 1
       state.mode = m
       onResize() // Trigger full recalculation of viewSpans and camera bounds
     }
