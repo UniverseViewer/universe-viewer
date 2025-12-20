@@ -644,19 +644,20 @@ export default {
               yScale = 1.0 / Math.sqrt(Math.abs(kappa.value))
             }
           }
+          const shift = comovingSpaceFlag.value ? 1.0 : 0.0
           for (let dist = 0; dist <= maxDist; dist += step) {
             let cx, cy
             if (kappa.value > 0) {
               // Spherical
               // Earth is at (1,0) in projection (u0 axis).
               // u0 = cos(chi), ui = sin(chi)
-              cx = Math.cos(dist) // Horizontal axis (Time/Radial)
+              cx = (Math.cos(dist) - shift) * yScale // Horizontal axis (Time/Radial)
               cy = Math.sin(dist) * yScale // Vertical axis (Transverse)
             } else if (kappa.value < 0) {
               // Hyperbolic
               // Earth is at (1,0). u0 = cosh(chi), ui = sinh(chi)
-              cx = Math.cosh(dist)
-              cy = Math.sinh(dist) * yScale
+              cx = (Math.cosh(dist) - shift) * yScale
+              cy = Math.sinh(dist) * yScale // Vertical axis (Transverse)
             } else {
               // Flat
               cx = 0

@@ -98,13 +98,13 @@ export function computePos(
       v.setX(s * Math.sinh(angularDist) * Math.cos(ascension) * Math.cos(declination))
       v.setY(s * Math.sinh(angularDist) * Math.sin(ascension) * Math.cos(declination))
       v.setZ(s * Math.sinh(angularDist) * Math.sin(declination))
-      v.setT(s * Math.cosh(angularDist))
+      v.setT(s * (Math.cosh(angularDist) - 1.0))
     } else if (kappa > 0.0) {
       const s = 1 / Math.sqrt(kappa)
       v.setX(s * Math.sin(angularDist) * Math.cos(ascension) * Math.cos(declination))
       v.setY(s * Math.sin(angularDist) * Math.sin(ascension) * Math.cos(declination))
       v.setZ(s * Math.sin(angularDist) * Math.sin(declination))
-      v.setT(s * Math.cos(angularDist))
+      v.setT(s * (Math.cos(angularDist) - 1.0))
     } else {
       const cd = comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled)
       v.setX(cd * Math.cos(ascension) * Math.cos(declination))
@@ -254,11 +254,7 @@ export function calcProjVects(RA1, Dec1, Beta, comovingSpaceFlag, kappa) {
   E0.setX(0.0)
   E0.setY(0.0)
   E0.setZ(0.0)
-  if (comovingSpaceFlag && kappa !== 0) {
-    E0.setT(Math.sqrt(Math.abs(kappa)))
-  } else {
-    E0.setT(1.0)
-  }
+  E0.setT(1.0)
   E1.setX(P1.getX())
   E1.setY(P1.getY())
   E1.setZ(P1.getZ())
