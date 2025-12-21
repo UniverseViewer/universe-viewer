@@ -74,6 +74,7 @@
                           label="Lambda"
                           :precision="null"
                           :step="0.05"
+                          :min="0"
                           control-variant="split"
                           density="compact"
                         ></v-number-input>
@@ -94,6 +95,7 @@
                           label="Omega"
                           :precision="null"
                           :step="0.05"
+                          :min="Number.EPSILON"
                           control-variant="split"
                           density="compact"
                         ></v-number-input>
@@ -134,6 +136,7 @@
                           label="Alpha"
                           :precision="null"
                           :step="0.05"
+                          :min="Number.EPSILON"
                           control-variant="split"
                           density="compact"
                         ></v-number-input>
@@ -465,7 +468,14 @@ watch(pendingBeta, (val) => {
 
 // Computed
 const sumConsts = computed(() => lambda.value - kappa.value + omega.value + alpha.value)
-const isConstraintValid = computed(() => Math.abs(sumConsts.value - 1.0) < 1e-4)
+const isConstraintValid = computed(() => {
+  return (
+    (Math.abs(sumConsts.value - 1.0) < 1e-4)
+    && lambda.value >= 0
+    && omega.value > 0
+    && alpha.value > 0
+  )
+})
 
 // Initialization
 onMounted(() => {
