@@ -371,6 +371,8 @@ import SelectionInfo from '@/components/SelectionInfo.vue'
 import SkyCoordinates from '@/components/SkyCoordinates.vue'
 import LoadingPopup from '@/components/LoadingPopup.vue'
 
+import { getSumConsts, isCosmoParamsValid } from '@/logic/paramsConstraints.js'
+
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
 // Stores setup
@@ -467,14 +469,9 @@ watch(pendingBeta, (val) => {
 })
 
 // Computed
-const sumConsts = computed(() => lambda.value - kappa.value + omega.value + alpha.value)
+const sumConsts = computed(() => getSumConsts(lambda.value, omega.value, kappa.value, alpha.value))
 const isConstraintValid = computed(() => {
-  return (
-    (Math.abs(sumConsts.value - 1.0) < 1e-4)
-    && lambda.value >= 0
-    && omega.value > 0
-    && alpha.value > 0
-  )
+  return isCosmoParamsValid(lambda.value, omega.value, kappa.value, alpha.value, comovingSpaceFlag.value)
 })
 
 // Initialization

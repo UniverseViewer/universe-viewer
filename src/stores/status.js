@@ -41,6 +41,7 @@ export const useStatusStore = defineStore('status', () => {
   }
 
   function runBusyTask(task, statusMessage = 'Computing') {
+    setInfoMessage('Ready')
     setStatusMessage(statusMessage)
     increment()
     return new Promise((resolve, reject) => {

@@ -25,11 +25,7 @@ import { ref, computed } from 'vue'
 import * as trapezoidalIntegral from '@/logic/trapezoidalIntegral.js'
 import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
-
-function roundTo(n, digits) {
-  const factor = Math.pow(10, digits)
-  return Math.round(n * factor) / factor
-}
+import { validateCosmoParams } from '@/logic/paramsConstraints.js'
 
 export const useUniverseStore = defineStore('universe', () => {
   const version = ref(pkg.version)
@@ -88,18 +84,7 @@ export const useUniverseStore = defineStore('universe', () => {
   })
 
   function setCosmoParams(newlambda, newomega, newkappa, newalpha) {
-    if (roundTo(newlambda - newkappa + newomega + newalpha, 5) !== 1.0) {
-      throw new Error('Constraint broken:\nlambda - kappa + omega + alpha = 1.0 not verified!')
-    }
-    if (newomega < 0) {
-      throw new Error('Constraint broken:\nomega > 0 not verified!')
-    }
-    if (!((27.0 / 4.0) * newlambda * newomega * newomega > newkappa * newkappa * newkappa)) {
-      throw new Error('Constraint broken:\n(27/4) * lambda * omega² > kappa^3 not verified!')
-    }
-    if (!comovingSpaceFlag.value && newkappa === 0) {
-      throw new Error('kappa cannot be equal to zero if comovingSpace is not enabled!')
-    }
+    validateCosmoParams(newlambda, newomega, newkappa, newalpha, comovingSpaceFlag.value)
     lambda.value = newlambda
     omega.value = newomega
     kappa.value = newkappa
