@@ -35,6 +35,8 @@ export const useUniverseStore = defineStore('universe', () => {
   const kappa = ref(0)
   const alpha = ref(0)
 
+  const constraintError = ref(null)
+
   const view = ref(4)
   const userRA1 = ref(0.0) // radians
   const userDec1 = ref(0.0) // radians
@@ -84,11 +86,17 @@ export const useUniverseStore = defineStore('universe', () => {
   })
 
   function setCosmoParams(newlambda, newomega, newkappa, newalpha) {
-    validateCosmoParams(newlambda, newomega, newkappa, newalpha, comovingSpaceFlag.value)
     lambda.value = newlambda
     omega.value = newomega
     kappa.value = newkappa
     alpha.value = newalpha
+    constraintError.value = null
+    try {
+      validateCosmoParams(newlambda, newomega, newkappa, newalpha, comovingSpaceFlag.value)
+    } catch (e) {
+      constraintError.value = e.message
+      throw e
+    }
   }
 
   function setUserRa1(RA1_hours) {
@@ -117,10 +125,14 @@ export const useUniverseStore = defineStore('universe', () => {
   }
 
   function setComovingSpace(flag) {
-    if (!flag) {
-      if (kappa.value === 0) throw new Error('Cant disable comoving space option: Kappa = 0!')
-    }
     comovingSpaceFlag.value = !!flag
+    constraintError.value = null
+    try {
+      validateCosmoParams(lambda.value, omega.value, kappa.value, alpha.value, flag)
+    } catch (e) {
+      constraintError.value = e.message
+      throw e
+    }
   }
 
   function setPointSize(size) {
@@ -146,6 +158,7 @@ export const useUniverseStore = defineStore('universe', () => {
     omega,
     kappa,
     alpha,
+    constraintError,
     view,
     userRA1,
     userDec1,

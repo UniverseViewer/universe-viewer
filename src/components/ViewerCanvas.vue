@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" :class="['viewer-root', (busy && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode]">
+  <div ref="root" :class="['viewer-root', (busy && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode, constraintError ? 'constraint-error' : '']">
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -9,6 +9,14 @@
     <!-- HUD (mode, points count) -->
     <div :class="['hud', themeName]">
       <div>{{ modeName }}</div>
+    </div>
+
+    <!-- Constraint Error Message -->
+    <div v-if="constraintError" class="error-message-overlay">
+      <div class="error-message-box">
+        <div class="error-message-title">You broke the Universe!</div>
+        <pre class="error-message-details">{{ constraintError }}</pre>
+      </div>
     </div>
   </div>
 </template>
@@ -76,6 +84,7 @@ export default {
       precisionEnabled,
       mouseMode,
       showRefMarks,
+      constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
     const { targets } = storeToRefs(targetsStore)
@@ -349,7 +358,12 @@ export default {
 
       onResize() // Set initial camera projection based on current size
 
-      updateCanvas()
+      // Check if there's an existing constraint error on mount
+      if (constraintError.value) {
+        clearCanvasContent()
+      } else {
+        updateCanvas() // Initial update if no error
+      }
     }
 
     watch(viewerMode, (newMode) => {
@@ -478,6 +492,7 @@ export default {
     }
 
     function populatePoints() {
+      if (constraintError.value) { return } // Exit early if constraint error is active
       const t = targets.value || []
       const N = t.length
 
@@ -588,6 +603,7 @@ export default {
     }
 
     function drawReferenceMarks() {
+      if (constraintError.value) { return } // Exit early if constraint error is active
       while (state.refGroup.children.length) state.refGroup.remove(state.refGroup.children[0])
       if (!showRefMarks.value) return
       if (!Number.isFinite(horizonAngularDistance.value)) return
@@ -730,11 +746,45 @@ export default {
       state.renderer.render(state.scene, state.camera)
     }
 
+    function clearCanvasContent() {
+      // Clear points
+      if (state.geometry) {
+        state.geometry.setAttribute('position', new THREE.Float32BufferAttribute([], 3))
+        state.geometry.setAttribute('color', new THREE.Float32BufferAttribute([], 3))
+        state.geometry.setAttribute('isHighlighted', new THREE.Float32BufferAttribute([], 1))
+        state.geometry.attributes.position.needsUpdate = true
+        state.geometry.attributes.color.needsUpdate = true
+        state.geometry.attributes.isHighlighted.needsUpdate = true
+      }
+      // Clear reference marks
+      if (state.refGroup) {
+        while (state.refGroup.children.length) {
+          const child = state.refGroup.children[0]
+          state.refGroup.remove(child)
+          if (child.geometry) child.geometry.dispose()
+          if (child.material) child.material.dispose()
+        }
+      }
+      render() // Render empty scene
+    }
+
     function updateCanvas() {
+      if (constraintError.value) { // If there's an error, don't update with data
+        clearCanvasContent() // Ensure canvas is empty
+        return
+      }
       populatePoints()
       drawReferenceMarks()
       render()
     }
+
+    watch(constraintError, (newError) => {
+      if (newError) {
+        clearCanvasContent()
+      } else {
+        updateCanvas() // Re-draw content if error is cleared
+      }
+    })
 
     function onWheel(e) {
       e.preventDefault()
@@ -1098,6 +1148,7 @@ export default {
       isVueImmediateRefreshEnabled,
       mouseMode,
       themeName,
+      constraintError,
     }
   },
 }
@@ -1116,6 +1167,9 @@ export default {
 }
 .viewer-root.select {
   cursor: crosshair;
+}
+.viewer-root.constraint-error {
+  cursor: not-allowed !important;
 }
 .overlay {
   position: absolute;
@@ -1152,4 +1206,39 @@ export default {
 .hud.light {
   color: black;
 }
+
+.error-message-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.error-message-box {
+  border: 1px solid red;
+  color: red;
+  padding: 20px;
+  text-align: center;
+  max-width: 60%;
+  pointer-events: all; /* Make box interactive to prevent interaction with canvas beneath */
+}
+
+.error-message-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.error-message-details {
+  white-space: pre-wrap; /* Preserve newlines and spaces */
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
 </style>

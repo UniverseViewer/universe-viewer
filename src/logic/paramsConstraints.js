@@ -26,24 +26,25 @@ export function getSumConsts(lambda, omega, kappa, alpha) {
   return lambda - kappa + omega + alpha
 }
 
+const CONSTRAINT_BROKEN_PREFIX = "Cosmological constraint broken:\n"
 export function validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFlag) {
   if (roundTo(getSumConsts(lambda, omega, kappa, alpha), 5) !== 1.0) {
-    throw new Error('Constraint broken:\nlambda - kappa + omega + alpha = 1.0 not verified!')
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'lambda - kappa + omega + alpha = 1.0 not verified!')
   }
   if (omega <= 0) {
-    throw new Error('Constraint broken:\nomega > 0 not verified!')
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'omega > 0 not verified!')
   }
   if (lambda < 0) {
-    throw new Error('Constraint broken:\nlambda >= 0 not verified!')
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'lambda >= 0 not verified!')
   }
   if (alpha <= 0) {
-    throw new Error('Constraint broken:\nalpha > 0 not verified!')
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'alpha > 0 not verified!')
   }
   if (!((27.0 / 4.0) * lambda * omega * omega > kappa * kappa * kappa)) {
-    throw new Error('Constraint broken:\n(27/4) * lambda * omega² > kappa^3 not verified!')
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + '(27/4) * lambda * omega² > kappa^3 not verified!')
   }
   if (comovingSpaceFlag !== undefined && !comovingSpaceFlag && kappa === 0) {
-    throw new Error('kappa cannot be equal to zero if comovingSpace is not enabled!')
+    throw new Error('kappa can be equal to zero only if comoving space is enabled!')
   }
 }
 

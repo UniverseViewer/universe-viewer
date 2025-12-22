@@ -147,11 +147,11 @@
                     <span>Sum: {{ sumConsts.toFixed(5) }}</span>
                     <span
                       :class="{
-                        'text-error': !isConstraintValid,
-                        'text-success': isConstraintValid,
+                        'text-error': constraintError !== null,
+                        'text-success': constraintError === null,
                       }"
                     >
-                      {{ isConstraintValid ? 'Valid' : 'Invalid' }}
+                      {{ constraintError === null ? 'Valid' : 'Invalid' }}
                     </span>
                   </div>
                   <v-checkbox
@@ -300,13 +300,13 @@
             />
 
             <!-- RIGHT SIDEBAR (OVERLAY) -->
-            <div class="right-sidebar">
+            <div v-if="constraintError === null" class="right-sidebar">
               <ViewerToolbox @resetView="resetView" />
             </div>
-            <div class="bottom-right-info">
+            <div v-if="constraintError === null" class="bottom-right-info">
               <SelectionInfo />
             </div>
-            <div class="bottom-left-info">
+            <div v-if="constraintError === null" class="bottom-left-info">
               <SkyCoordinates
                 :visible="isSkyMode && mouseRa !== null && mouseDec !== null"
                 :mouse-ra="mouseRa || 0"
@@ -390,6 +390,7 @@ const {
   precisionEnabled,
   pointSize,
   viewerMode,
+  constraintError,
 } = storeToRefs(store)
 
 const targetsStore = useTargetsStore()
@@ -470,9 +471,6 @@ watch(pendingBeta, (val) => {
 
 // Computed
 const sumConsts = computed(() => getSumConsts(lambda.value, omega.value, kappa.value, alpha.value))
-const isConstraintValid = computed(() => {
-  return isCosmoParamsValid(lambda.value, omega.value, kappa.value, alpha.value, comovingSpaceFlag.value)
-})
 
 // Initialization
 onMounted(() => {
@@ -632,9 +630,7 @@ watch(catalogFile, async (newVal) => {
   }
 })
 
-watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
-  if (Math.abs(sumConsts.value - 1) < 1e-5) return
-
+watch([lambda, omega, kappa, alpha, comovingSpaceFlag], async (newVals, oldVals) => {
   let newLambda = lambda.value,
     newOmega = omega.value,
     newKappa = kappa.value,
@@ -652,12 +648,8 @@ watch([lambda, omega, kappa, alpha], async (newVals, oldVals) => {
     if (selectedConst.value !== 'omega') omega.value = newOmega
     if (selectedConst.value !== 'kappa') kappa.value = newKappa
     if (selectedConst.value !== 'alpha') alpha.value = newAlpha
-  } catch {
+  } catch (e) {
     if (oldVals) {
-      lambda.value = oldVals[0]
-      omega.value = oldVals[1]
-      kappa.value = oldVals[2]
-      alpha.value = oldVals[3]
       statusStore.setInfoMessage('Constraint limit reached')
     }
     return
