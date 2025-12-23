@@ -163,9 +163,7 @@ function highlight() {
 }
 
 function clear() {
-  if (store.viewerCanvas && store.viewerCanvas.clearSelection) {
-    store.viewerCanvas.clearSelection()
-  }
+  statusStore.runBusyTask(targetsStore.clearSelectedTargets)
 }
 
 function remove() {

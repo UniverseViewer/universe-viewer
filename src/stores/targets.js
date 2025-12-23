@@ -102,6 +102,16 @@ export const useTargetsStore = defineStore('targets', () => {
     touch();
   }
 
+  function clearSelectedTargets() {
+    const currentTargets = targets.value || [];
+    currentTargets.forEach((ti) => {
+      if (ti.setSelected) {
+        ti.setSelected(false);
+      }
+    });
+    selectedTargets.value = [];
+    touch();
+  }
 
   function setTargets(tArray) {
     targets.value = tArray
@@ -125,6 +135,7 @@ export const useTargetsStore = defineStore('targets', () => {
     setSelectedTargets,
     removeSelectedTargets,
     reverseSelectedTargets,
+    clearSelectedTargets,
     setTargets,
     setSharedBuffer,
     touch,

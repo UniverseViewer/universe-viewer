@@ -1100,7 +1100,6 @@ export default {
       universeStore.setViewerCanvas({
         updateCanvas,
         highlightSelection,
-        clearSelection,
         setShowReferencesMarks: (s) => {
           state.showReferencesMarks = !!s
           drawReferenceMarks()
