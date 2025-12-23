@@ -110,9 +110,11 @@ import { computeComovingDistance, computeReferenceDistance } from '@/logic/measu
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useTargetsStore } from '@/stores/targets.js'
+import { useStatusStore } from '@/stores/status.js'
 
 const store = useUniverseStore()
 const targetsStore = useTargetsStore()
+const statusStore = useStatusStore()
 const { kappa, comovingSpaceFlag } = storeToRefs(store)
 const { selectedCount, selectedTargets, lastUpdate } = storeToRefs(targetsStore)
 
@@ -167,17 +169,11 @@ function clear() {
 }
 
 function remove() {
-  targetsStore.removeSelectedTargets()
-  if (store.viewerCanvas && store.viewerCanvas.updateCanvas) {
-    store.viewerCanvas.updateCanvas()
-  }
+  statusStore.runBusyTask(targetsStore.removeSelectedTargets)
 }
 
 function reverse() {
-  targetsStore.reverseSelectedTargets()
-  if (store.viewerCanvas && store.viewerCanvas.updateCanvas) {
-    store.viewerCanvas.updateCanvas()
-  }
+  statusStore.runBusyTask(targetsStore.reverseSelectedTargets)
 }
 
 </script>

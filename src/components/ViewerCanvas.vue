@@ -87,7 +87,7 @@ export default {
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-    const { targets } = storeToRefs(targetsStore)
+    const { targets, lastUpdate } = storeToRefs(targetsStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -442,6 +442,10 @@ export default {
     watch(showRefMarks, () => {
       drawReferenceMarks()
       render()
+    })
+
+    watch(lastUpdate, () => {
+      updateCanvas()
     })
 
     function updatePointsColor() {
