@@ -87,6 +87,22 @@ export const useTargetsStore = defineStore('targets', () => {
     touch();
   }
 
+  function reverseSelectedTargets() {
+    const currentTargets = targets.value || [];
+    const selectedItems = selectedTargets.value || [];
+    const selectedSet = new Set(selectedItems);
+    const unselectedItems = currentTargets.filter(target => !selectedSet.has(target));
+    selectedItems.forEach((ti) => {
+      ti.setSelected(false)
+    })
+    unselectedItems.forEach((ti) => {
+      ti.setSelected(true)
+    })
+    selectedTargets.value = unselectedItems;
+    touch();
+  }
+
+
   function setTargets(tArray) {
     targets.value = tArray
   }
@@ -107,9 +123,10 @@ export const useTargetsStore = defineStore('targets', () => {
     lastUpdate,
     // Setters
     setSelectedTargets,
+    removeSelectedTargets,
+    reverseSelectedTargets,
     setTargets,
     setSharedBuffer,
     touch,
-    removeSelectedTargets,
   }
 })

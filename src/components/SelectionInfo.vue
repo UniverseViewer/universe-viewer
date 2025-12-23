@@ -84,6 +84,14 @@
         size="small"
       ></v-btn>
       <v-btn
+        icon="mdi-select-inverse"
+        variant="text"
+        @click="reverse"
+        title="Reverse Selection"
+        rounded="0"
+        size="small"
+      ></v-btn>
+      <v-btn
         icon="mdi-close"
         variant="text"
         @click="clear"
@@ -164,6 +172,14 @@ function remove() {
     store.viewerCanvas.updateCanvas()
   }
 }
+
+function reverse() {
+  targetsStore.reverseSelectedTargets()
+  if (store.viewerCanvas && store.viewerCanvas.updateCanvas) {
+    store.viewerCanvas.updateCanvas()
+  }
+}
+
 </script>
 
 <style scoped>
