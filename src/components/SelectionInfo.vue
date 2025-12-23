@@ -76,6 +76,14 @@
         size="small"
       ></v-btn>
       <v-btn
+        icon="mdi-select-remove"
+        variant="text"
+        @click="remove"
+        title="Remove Selected Objects"
+        rounded="0"
+        size="small"
+      ></v-btn>
+      <v-btn
         icon="mdi-close"
         variant="text"
         @click="clear"
@@ -147,6 +155,13 @@ function highlight() {
 function clear() {
   if (store.viewerCanvas && store.viewerCanvas.clearSelection) {
     store.viewerCanvas.clearSelection()
+  }
+}
+
+function remove() {
+  targetsStore.removeSelectedTargets()
+  if (store.viewerCanvas && store.viewerCanvas.updateCanvas) {
+    store.viewerCanvas.updateCanvas()
   }
 }
 </script>
