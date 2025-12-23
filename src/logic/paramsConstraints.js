@@ -31,14 +31,14 @@ export function validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFl
   if (roundTo(getSumConsts(lambda, omega, kappa, alpha), 5) !== 1.0) {
     throw new Error(CONSTRAINT_BROKEN_PREFIX + 'lambda - kappa + omega + alpha = 1.0 not verified!')
   }
-  if (omega <= 0) {
-    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'omega > 0 not verified!')
+  if (omega < 0) {
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'omega >= 0 not verified!')
   }
   if (lambda < 0) {
     throw new Error(CONSTRAINT_BROKEN_PREFIX + 'lambda >= 0 not verified!')
   }
-  if (alpha <= 0) {
-    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'alpha > 0 not verified!')
+  if (alpha < 0) {
+    throw new Error(CONSTRAINT_BROKEN_PREFIX + 'alpha >= 0 not verified!')
   }
   if (!((27.0 / 4.0) * lambda * omega * omega > kappa * kappa * kappa)) {
     throw new Error(CONSTRAINT_BROKEN_PREFIX + '(27/4) * lambda * omega² > kappa^3 not verified!')

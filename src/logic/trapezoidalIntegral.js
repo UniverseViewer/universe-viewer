@@ -31,6 +31,7 @@
  * @returns {number}
  */
 export function integrate(limitA, limitB, stepH, funcToIntegrate) {
+  if (limitA === limitB) return 0
   let sum = 0
 
   // Calculate number of steps to cover the interval exactly
