@@ -52,7 +52,7 @@ export function isCosmoParamsValid(lambda, omega, kappa, alpha, comovingSpaceFla
   try {
     validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFlag)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }

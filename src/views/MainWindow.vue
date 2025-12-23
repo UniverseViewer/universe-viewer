@@ -371,7 +371,7 @@ import SelectionInfo from '@/components/SelectionInfo.vue'
 import SkyCoordinates from '@/components/SkyCoordinates.vue'
 import LoadingPopup from '@/components/LoadingPopup.vue'
 
-import { getSumConsts, isCosmoParamsValid } from '@/logic/paramsConstraints.js'
+import { getSumConsts } from '@/logic/paramsConstraints.js'
 
 import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
@@ -648,7 +648,7 @@ watch([lambda, omega, kappa, alpha, comovingSpaceFlag], async (newVals, oldVals)
     if (selectedConst.value !== 'omega') omega.value = newOmega
     if (selectedConst.value !== 'kappa') kappa.value = newKappa
     if (selectedConst.value !== 'alpha') alpha.value = newAlpha
-  } catch (e) {
+  } catch {
     if (oldVals) {
       statusStore.setInfoMessage('Constraint limit reached')
     }

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import * as projection from '@/logic/projection.js'
-import Vect3d from '@/logic/vect3d.js'
 import Vect4d from '@/logic/vect4d.js'
 
 // Define spies using vi.hoisted so they can be used in mocking and test bodies
@@ -160,7 +159,7 @@ describe('Projection Logic', () => {
 
   describe('calcProjVects', () => {
     it('should return 4 orthogonal vectors E0, E1, E2, E3', () => {
-      const { E0, E1, E2, E3 } = projection.calcProjVects(0, 0, 0)
+      const { E0, E1, E2 } = projection.calcProjVects(0, 0, 0)
       expect(E0).toBeInstanceOf(Vect4d)
       expect(E0.getT()).toBe(1)
       expect(E1.dotProd4d(E2)).toBeCloseTo(0, 5)
