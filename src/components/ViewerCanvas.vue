@@ -923,7 +923,7 @@ export default {
 
         if (isClick) {
           // Find the nearest target within a small threshold
-          const clickThresholdWorld = 0.01 / state.zoom // Small threshold in world coordinates
+          const clickThresholdWorld = 0.03 / state.zoom // Small threshold in world coordinates
           const clickX = p1.worldX
           const clickY = p1.worldY
 
@@ -948,12 +948,6 @@ export default {
               nearestTarget = ti
             }
           }
-
-          // Create a tiny selection area for the logic below
-          selX1 = clickX - 0.0001
-          selX2 = clickX + 0.0001
-          selY1 = clickY - 0.0001
-          selY2 = clickY + 0.0001
         } else {
           // Regular rectangle selection
           selX1 = Math.min(p1.worldX, p2.worldX)
