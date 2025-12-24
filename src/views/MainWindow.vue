@@ -358,7 +358,7 @@ import { useTheme } from 'vuetify'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
-import { useTargetsStore } from '@/stores/targets.js'
+import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
@@ -392,8 +392,8 @@ const {
   constraintError,
 } = storeToRefs(store)
 
-const targetsStore = useTargetsStore()
-const { targets } = storeToRefs(targetsStore)
+const catalogStore = useCatalogStore()
+const { targets } = storeToRefs(catalogStore)
 
 const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
@@ -510,9 +510,7 @@ function onFileChange(event) {
     try {
       const content = e.target.result
       statusStore.runBusyTask(() => {
-        const loadedTargets = targetsStore.load(content, catalogSubsetPercent.value)
-        targetsStore.setSelectedTargets([])
-        statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+        catalogStore.load(content, catalogSubsetPercent.value)
       }, 'Loading catalog')
     } catch (err) {
       console.error(err)
@@ -615,9 +613,7 @@ watch(catalogFile, async (newVal) => {
     const content = decoder.decode(allChunks)
 
     statusStore.runBusyTask(() => {
-      const loadedTargets = targetsStore.load(content, catalogSubsetPercent.value)
-      targetsStore.setSelectedTargets([])
-      statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
+      catalogStore.load(content, catalogSubsetPercent.value)
     }, "Loading catalog")
   } catch (err) {
     statusStore.setInfoMessage(`Error: ${err.message}`)

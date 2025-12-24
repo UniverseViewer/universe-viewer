@@ -109,14 +109,14 @@ import { formatRa, formatDec } from '@/tools/coordinates.js'
 import { computeComovingDistance, computeReferenceDistance } from '@/logic/measures.js'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
-import { useTargetsStore } from '@/stores/targets.js'
+import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 
 const store = useUniverseStore()
-const targetsStore = useTargetsStore()
+const catalogStore = useCatalogStore()
 const statusStore = useStatusStore()
 const { kappa, comovingSpaceFlag } = storeToRefs(store)
-const { selectedCount, selectedTargets, lastUpdate } = storeToRefs(targetsStore)
+const { selectedCount, selectedTargets, lastUpdate } = storeToRefs(catalogStore)
 
 const distance = computed(() => {
   // Access lastUpdate to trigger re-evaluation when targets are updated
@@ -163,15 +163,15 @@ function highlight() {
 }
 
 function clear() {
-  statusStore.runBusyTask(targetsStore.clearSelectedTargets)
+  statusStore.runBusyTask(catalogStore.clearSelectedTargets)
 }
 
 function remove() {
-  statusStore.runBusyTask(targetsStore.removeSelectedTargets)
+  statusStore.runBusyTask(catalogStore.removeSelectedTargets)
 }
 
 function reverse() {
-  statusStore.runBusyTask(targetsStore.reverseSelectedTargets)
+  statusStore.runBusyTask(catalogStore.reverseSelectedTargets)
 }
 
 </script>

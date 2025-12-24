@@ -48,7 +48,7 @@ import * as THREE from 'three'
 import * as projection from '@/logic/projection.js'
 import { OFFSET_RA, OFFSET_DEC, OFFSET_PROJ_X, OFFSET_PROJ_Y, STRIDE } from '@/logic/target.js'
 import { useUniverseStore } from '@/stores/universe.js'
-import { useTargetsStore } from '@/stores/targets.js'
+import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 import { watch } from 'vue'
 
@@ -66,7 +66,7 @@ export default {
     const overlay = ref(null)
 
     const universeStore = useUniverseStore()
-    const targetsStore = useTargetsStore()
+    const catalogStore = useCatalogStore()
     const statusStore = useStatusStore()
     const {
       kappa,
@@ -87,7 +87,7 @@ export default {
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-    const { targets, lastUpdate } = storeToRefs(targetsStore)
+    const { targets, lastUpdate } = storeToRefs(catalogStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -501,7 +501,7 @@ export default {
       const N = t.length
 
       // Check for SharedArrayBuffer support
-      const buffer = targetsStore.sharedBuffer
+      const buffer = catalogStore.sharedBuffer
       const isZeroCopy = t[0] && t[0].isBufferBacked && buffer
       let float64View = null
       if (isZeroCopy) {
@@ -865,7 +865,7 @@ export default {
       t.forEach((ti) => {
         if (ti.setSelected) ti.setSelected(false)
       })
-      targetsStore.setSelectedTargets([])
+      catalogStore.setSelectedTargets([])
       updatePointsColor()
       render()
     }
@@ -1040,7 +1040,7 @@ export default {
           }
         }
 
-        targetsStore.setSelectedTargets(selectedRefs)
+        catalogStore.setSelectedTargets(selectedRefs)
 
         state.isSelecting = false
 

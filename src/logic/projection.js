@@ -25,7 +25,7 @@ import * as rombergIntegral from '@/logic/rombergIntegral.js'
 import { evolutionIntegrand } from '@/logic/evolutionIntegrand.js'
 import { getProjectionWorkerPool } from '@/logic/workerPool.js'
 import { useStatusStore } from '@/stores/status.js'
-import { useTargetsStore } from '@/stores/targets.js'
+import { useCatalogStore } from '@/stores/catalog.js'
 
 // Targets number threshold for using parallel computation
 const PARALLEL_THRESHOLD = 300000
@@ -606,14 +606,14 @@ export async function updateAll(
   precisionEnabled,
 ) {
   const statusStore = useStatusStore()
-  const targetsStore = useTargetsStore()
+  const catalogStore = useCatalogStore()
 
   statusStore.computationStart()
 
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
-      let buffer = targetsStore.sharedBuffer
+      let buffer = catalogStore.sharedBuffer
 
       statusStore.setStatusMessage('Computing angular distances [1/3]')
       statusStore.setProgress(0)
@@ -656,7 +656,7 @@ export async function updateAll(
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
       statusStore.computationEnd()
-      targetsStore.touch()
+      catalogStore.touch()
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -673,7 +673,7 @@ export async function updateAll(
   statusStore.projComputationEnd()
   statusStore.setStatusMessage('Ready')
   statusStore.computationEnd()
-  targetsStore.touch()
+  catalogStore.touch()
 }
 
 /**
@@ -681,12 +681,12 @@ export async function updateAll(
  */
 export async function updateView(targets, view, RA1, Dec1, Beta) {
   const statusStore = useStatusStore()
-  const targetsStore = useTargetsStore()
+  const catalogStore = useCatalogStore()
 
   // Use parallel computation for large datasets
   if (targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
-      let buffer = targetsStore.sharedBuffer
+      let buffer = catalogStore.sharedBuffer
 
       statusStore.setStatusMessage('Computing projection')
       statusStore.setProgress(0)
@@ -701,7 +701,7 @@ export async function updateView(targets, view, RA1, Dec1, Beta) {
 
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
-      targetsStore.touch()
+      catalogStore.touch()
       return
     } catch (error) {
       console.warn('Parallel computation failed, falling back to single-threaded:', error)
@@ -713,5 +713,5 @@ export async function updateView(targets, view, RA1, Dec1, Beta) {
   // Single-threaded version for small datasets or fallback
   calcTargetsProj(targets, view, RA1, Dec1, Beta)
   statusStore.setStatusMessage('Ready')
-  targetsStore.touch()
+  catalogStore.touch()
 }

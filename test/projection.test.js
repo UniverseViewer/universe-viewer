@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => {
       projComputationStart: vi.fn(),
       projComputationEnd: vi.fn(),
     },
-    targetsStore: {
+    catalogStore: {
       touch: vi.fn(),
       sharedBuffer: null,
     },
@@ -31,8 +31,8 @@ vi.mock('@/stores/status.js', () => ({
   useStatusStore: () => mocks.statusStore,
 }))
 
-vi.mock('@/stores/targets.js', () => ({
-  useTargetsStore: () => mocks.targetsStore,
+vi.mock('@/stores/catalog.js', () => ({
+  useCatalogStore: () => mocks.catalogStore,
 }))
 
 vi.mock('@/logic/workerPool.js', () => ({
@@ -374,8 +374,8 @@ describe('Projection Logic', () => {
       mocks.statusStore.setProgress.mockReset()
       mocks.statusStore.projComputationStart.mockReset()
       mocks.statusStore.projComputationEnd.mockReset()
-      mocks.targetsStore.touch.mockReset()
-      mocks.targetsStore.sharedBuffer = null
+      mocks.catalogStore.touch.mockReset()
+      mocks.catalogStore.sharedBuffer = null
 
       mocks.workerPool.getProjectionWorkerPool.mockResolvedValue({
         getWorkerCount: () => 2,
@@ -524,10 +524,12 @@ describe('Projection Logic', () => {
 
       await projection.updateAll(lotsOfTargets, 4, 0, 0, 0, false, 0, 0.7, 0.3, 0, false)
 
-      expect(mocks.statusStore.setStatusMessage).toHaveBeenCalledWith(
-        'Computing angular distances [1/3]',
-      )
-    })
+    // Verify status updates
+    expect(mocks.statusStore.computationStart).toHaveBeenCalled()
+    expect(mocks.statusStore.setStatusMessage).toHaveBeenCalledWith('Computing angular distances [1/3]')
+    expect(mocks.statusStore.computationEnd).toHaveBeenCalled()
+    expect(mocks.catalogStore.touch).toHaveBeenCalled()
+  })
 
     it('should return early if targets array is empty', async () => {
       resetMocks()
@@ -562,7 +564,7 @@ describe('Projection Logic', () => {
       // Also test updateAll with stored buffer
       resetMocks()
       mocks.workerPool.getProjectionWorkerPool.mockResolvedValue(mockPool)
-      mocks.targetsStore.sharedBuffer = buffer
+      mocks.catalogStore.sharedBuffer = buffer
 
       const lotsOfTargets = new Array(300001).fill(createMockTarget())
       await projection.updateAll(lotsOfTargets, 4, 0, 0, 0, false, 0, 0.7, 0.3, 0, false)

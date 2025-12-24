@@ -21,7 +21,7 @@ import { defineStore } from 'pinia'
 import { computed, shallowRef, ref } from 'vue'
 import Target, { STRIDE, OFFSET_REDSHIFT, OFFSET_RA, OFFSET_DEC } from '@/logic/target.js'
 
-export const useTargetsStore = defineStore('targets', () => {
+export const useCatalogStore = defineStore('catalog', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
@@ -109,7 +109,7 @@ export const useTargetsStore = defineStore('targets', () => {
     }
 
     targets.value = newTargets
-    return newTargets
+    setSelectedTargets([])
   }
 
   function removeSelectedTargets() {
