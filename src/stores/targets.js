@@ -19,7 +19,7 @@
 
 import { defineStore } from 'pinia'
 import { computed, shallowRef, ref } from 'vue'
-import Target, { STRIDE } from '@/logic/target.js'
+import Target, { STRIDE, OFFSET_REDSHIFT, OFFSET_RA, OFFSET_DEC } from '@/logic/target.js'
 
 export const useTargetsStore = defineStore('targets', () => {
   const selectedTargets = shallowRef([])
@@ -32,6 +32,84 @@ export const useTargetsStore = defineStore('targets', () => {
 
   function setSelectedTargets(t) {
     selectedTargets.value = t
+  }
+
+  /*
+   * Load catalog from custom ADR format.
+   * If SharedArrayBuffer is supported, targets are loaded in a such buffer, else they are loaded as regular objects.
+   * Expected format per line: Ascension Declination Redshift
+   * @param {string} content - The raw file content
+   * @param {number} percent - Subset percentage to load
+   * @returns {Array} Array of Target objects
+   */
+  function load(content, percent = 100) {
+    const lines = content.split(/\r?\n/)
+    const newTargets = []
+
+    if (percent < 1) percent = 1
+    else if (percent > 100) percent = 100
+
+    // Allocate Buffer (if supported)
+    let buffer = null
+    let float64View = null
+    let useBuffer = false
+
+    if (typeof SharedArrayBuffer === 'undefined') {
+      let msg = 'SharedArrayBuffer is not available. Parallel computation will be disabled.'
+      if (typeof self !== 'undefined') {
+        if (!self.isSecureContext) {
+          msg += ' Reason: Not in a Secure Context (HTTPS is required).'
+        } else if (!self.crossOriginIsolated) {
+          msg += ' Reason: Not Cross-Origin Isolated. Check COOP/COEP headers and ensure they are served over HTTPS.'
+        }
+      }
+      console.warn(msg)
+    } else {
+      try {
+        buffer = new SharedArrayBuffer(lines.length * STRIDE * Float64Array.BYTES_PER_ELEMENT)
+        float64View = new Float64Array(buffer)
+        useBuffer = true
+        sharedBuffer.value = buffer
+      } catch (e) {
+        console.warn('Failed to create SharedArrayBuffer:', e)
+      }
+    }
+
+    // Populate targets
+    let currentIdx = 0
+    for (let [processed, line] of lines.entries()) {
+      if (!line) continue
+      line = line.trim()
+      const parts = line.split(/\s+/)
+      if (parts.length < 3) continue
+
+      if (!(currentIdx / processed < percent / 100)) {
+        continue
+      }
+
+      const asc = parseFloat(parts[0])
+      const dec = parseFloat(parts[1])
+      const redshift = parseFloat(parts[2])
+
+      if (isNaN(asc) || isNaN(dec) || isNaN(redshift)) continue
+
+      if (useBuffer) {
+        // Direct write to buffer
+        const offset = currentIdx * STRIDE
+        float64View[offset + OFFSET_RA] = asc
+        float64View[offset + OFFSET_DEC] = dec
+        float64View[offset + OFFSET_REDSHIFT] = redshift
+        // Create lightweight Target view
+        newTargets.push(new Target({ bufferView: float64View, index: currentIdx }))
+      } else {
+        // Fallback to object
+        newTargets.push(new Target({ asc, dec, redshift }))
+      }
+      currentIdx++
+    }
+
+    targets.value = newTargets
+    return newTargets
   }
 
   function removeSelectedTargets() {
@@ -133,6 +211,7 @@ export const useTargetsStore = defineStore('targets', () => {
     lastUpdate,
     // Setters
     setSelectedTargets,
+    load,
     removeSelectedTargets,
     reverseSelectedTargets,
     clearSelectedTargets,

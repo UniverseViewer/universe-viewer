@@ -362,7 +362,6 @@ import { useTargetsStore } from '@/stores/targets.js'
 import { useStatusStore } from '@/stores/status.js'
 
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
-import { loadCatalogADR } from '@/tools/catalog.js'
 import About from '@/components/About.vue'
 import AppHelp from '@/components/AppHelp.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
@@ -511,8 +510,7 @@ function onFileChange(event) {
     try {
       const content = e.target.result
       statusStore.runBusyTask(() => {
-        const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
-        targetsStore.setTargets(loadedTargets)
+        const loadedTargets = targetsStore.load(content, catalogSubsetPercent.value)
         targetsStore.setSelectedTargets([])
         statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
       }, 'Loading catalog')
@@ -617,8 +615,7 @@ watch(catalogFile, async (newVal) => {
     const content = decoder.decode(allChunks)
 
     statusStore.runBusyTask(() => {
-      const loadedTargets = loadCatalogADR(content, catalogSubsetPercent.value)
-      targetsStore.setTargets(loadedTargets)
+      const loadedTargets = targetsStore.load(content, catalogSubsetPercent.value)
       targetsStore.setSelectedTargets([])
       statusStore.setInfoMessage(`Loaded ${loadedTargets.length.toLocaleString()} objects`)
     }, "Loading catalog")
