@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeReferenceDistance, computeComovingDistance } from '@/logic/measures.js'
+import { computeReferenceDistance, computeComovingDistance, computeComovingDistanceMpc } from '@/logic/measures.js'
 
 // Mock Target class factory
 const createTarget = (tau, ra, dec) => ({
@@ -132,6 +132,30 @@ describe('Measures Logic', () => {
         // Comoving = 0.5 / 0.5 = 1.0
         const dist = computeComovingDistance(t1, t2, k)
         expect(dist).toBeCloseTo(1.0, 5)
+    })
+  })
+
+  describe('computeComovingDistanceMpc', () => {
+    const C_KM_S = 299792.458
+
+    it('should calculate correct Mpc distance for standard values', () => {
+      const tau = 0.5
+      const h0 = 70
+      const expected = (0.5 * C_KM_S) / 70
+      expect(computeComovingDistanceMpc(tau, h0)).toBeCloseTo(expected, 5)
+    })
+
+    it('should return 0 if tau is 0', () => {
+      expect(computeComovingDistanceMpc(0, 70)).toBe(0)
+    })
+
+    it('should return 0 if h0 is 0', () => {
+      expect(computeComovingDistanceMpc(1.0, 0)).toBe(0)
+    })
+
+    it('should return 0 if h0 is missing (null/undefined)', () => {
+      expect(computeComovingDistanceMpc(1.0, null)).toBe(0)
+      expect(computeComovingDistanceMpc(1.0, undefined)).toBe(0)
     })
   })
 })
