@@ -112,6 +112,28 @@ export const useCatalogStore = defineStore('catalog', () => {
     setSelectedTargets([])
   }
 
+  function save(filename='uv_catalog.dat') {
+    if (!targets.value || targets.value.length === 0) return
+
+    let content = ''
+    const tList = targets.value
+    const len = tList.length
+    for (let i = 0; i < len; i++) {
+      const t = tList[i]
+      content += `${t.getAscension()} ${t.getDeclination()} ${t.getRedshift()}\n`
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   function removeSelectedTargets() {
     const currentTargets = targets.value || [];
     const selectedItems = selectedTargets.value || [];
@@ -212,6 +234,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     // Setters
     setSelectedTargets,
     load,
+    save,
     removeSelectedTargets,
     reverseSelectedTargets,
     clearSelectedTargets,

@@ -8,8 +8,8 @@
           <!-- LEFT SIDEBAR -->
           <v-col cols="3" class="pa-2 bg_surface left-panel">
             <v-expansion-panels multiple v-model="opened_panels">
-              <!-- DATA LOADING -->
-              <v-expansion-panel title="Data" value="data">
+              <!-- CATALOG -->
+              <v-expansion-panel title="Catalog" value="catalog">
                 <v-expansion-panel-text>
                   <CatalogBrowser v-model="catalogFile" />
                   or<br /><br />
@@ -49,8 +49,17 @@
                     <template v-slot:append> % </template>
                   </v-number-input>
                   <br />
-                  <div class="text-caption">
-                    Loaded: {{ targets ? targets.length.toLocaleString() : 0 }} objects
+                  <div class="d-flex align-center justify-space-between text-caption">
+                    <span>Current data set: {{ targets ? targets.length.toLocaleString() : 0 }} targets</span>
+                    <v-btn
+                      icon="mdi-download"
+                      variant="text"
+                      density="compact"
+                      size="small"
+                      @click="downloadCatalog"
+                      title="Export catalog"
+                      :disabled="!targets || targets.length === 0"
+                    ></v-btn>
                   </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
@@ -399,7 +408,7 @@ const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
 
 // Side bar
-const opened_panels = ref(['data', 'parameters', 'view'])
+const opened_panels = ref(['catalog', 'parameters', 'view'])
 
 // Viewer Ref
 const viewer = ref(null)
@@ -414,6 +423,13 @@ const isSkyMode = computed(() => viewerMode.value === 'sky')
 
 const mouseRa = ref(0)
 const mouseDec = ref(0)
+
+function downloadCatalog() {
+  let filename = (browsedFile.value === null) ? ((catalogFile.value === undefined) ? '' : catalogFile.value) : browsedFile.value.name
+  filename = filename.replace(/\.[^/.]+$/, '')
+  filename += '.dat'
+  catalogStore.save(filename)
+}
 
 function onMouseCoordsUpdate({ x, y }) {
   mouseRa.value = x
