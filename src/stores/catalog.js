@@ -18,14 +18,13 @@
  */
 
 import { defineStore } from 'pinia'
-import { computed, shallowRef, ref } from 'vue'
+import { computed, shallowRef } from 'vue'
 import Target, { STRIDE, OFFSET_REDSHIFT, OFFSET_RA, OFFSET_DEC } from '@/logic/target.js'
 
 export const useCatalogStore = defineStore('catalog', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
-  const lastUpdate = ref(Date.now())
 
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
@@ -145,7 +144,6 @@ export const useCatalogStore = defineStore('catalog', () => {
       const updatedTargets = currentTargets.filter(target => !selectedSet.has(target));
       targets.value = updatedTargets;
       selectedTargets.value = [];
-      touch();
       return;
     }
 
@@ -184,7 +182,6 @@ export const useCatalogStore = defineStore('catalog', () => {
     sharedBuffer.value = newBuffer;
     targets.value = newTargetsArray;
     selectedTargets.value = [];
-    touch();
   }
 
   function reverseSelectedTargets() {
@@ -199,7 +196,6 @@ export const useCatalogStore = defineStore('catalog', () => {
       ti.setSelected(true)
     })
     selectedTargets.value = unselectedItems;
-    touch();
   }
 
   function clearSelectedTargets() {
@@ -210,7 +206,6 @@ export const useCatalogStore = defineStore('catalog', () => {
       }
     });
     selectedTargets.value = [];
-    touch();
   }
 
   function setTargets(tArray) {
@@ -221,16 +216,11 @@ export const useCatalogStore = defineStore('catalog', () => {
     sharedBuffer.value = buffer
   }
 
-  function touch() {
-    lastUpdate.value = Date.now()
-  }
-
   return {
     selectedCount,
     selectedTargets,
     targets,
     sharedBuffer,
-    lastUpdate,
     // Setters
     setSelectedTargets,
     load,
@@ -240,6 +230,5 @@ export const useCatalogStore = defineStore('catalog', () => {
     clearSelectedTargets,
     setTargets,
     setSharedBuffer,
-    touch,
   }
 })

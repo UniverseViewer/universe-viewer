@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => {
       projComputationEnd: vi.fn(),
     },
     catalogStore: {
-      touch: vi.fn(),
       sharedBuffer: null,
     },
     workerPool: {
@@ -374,7 +373,6 @@ describe('Projection Logic', () => {
       mocks.statusStore.setProgress.mockReset()
       mocks.statusStore.projComputationStart.mockReset()
       mocks.statusStore.projComputationEnd.mockReset()
-      mocks.catalogStore.touch.mockReset()
       mocks.catalogStore.sharedBuffer = null
 
       mocks.workerPool.getProjectionWorkerPool.mockResolvedValue({
@@ -528,7 +526,6 @@ describe('Projection Logic', () => {
     expect(mocks.statusStore.computationStart).toHaveBeenCalled()
     expect(mocks.statusStore.setStatusMessage).toHaveBeenCalledWith('Computing angular distances [1/3]')
     expect(mocks.statusStore.computationEnd).toHaveBeenCalled()
-    expect(mocks.catalogStore.touch).toHaveBeenCalled()
   })
 
     it('should return early if targets array is empty', async () => {

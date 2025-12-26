@@ -116,11 +116,11 @@ const store = useUniverseStore()
 const catalogStore = useCatalogStore()
 const statusStore = useStatusStore()
 const { kappa, comovingSpaceFlag } = storeToRefs(store)
-const { selectedCount, selectedTargets, lastUpdate } = storeToRefs(catalogStore)
+const { selectedCount, selectedTargets } = storeToRefs(catalogStore)
 
 const distance = computed(() => {
-  // Access lastUpdate to trigger re-evaluation when targets are updated
-  lastUpdate.value
+  // Access selectedTargets to trigger re-evaluation when selection is changed
+  selectedTargets.value
 
   if (selectedCount.value === 2) {
     if (comovingSpaceFlag.value === true) {
@@ -149,7 +149,8 @@ const distance = computed(() => {
 })
 
 const angularDistanceBetween = computed(() => {
-  lastUpdate.value
+  // Access selectedTargets to trigger re-evaluation when selection is changed
+  selectedTargets.value
   if (selectedCount.value === 2) {
     return computeReferenceDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
   }

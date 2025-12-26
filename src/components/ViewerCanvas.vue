@@ -87,7 +87,7 @@ export default {
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-    const { targets, lastUpdate } = storeToRefs(catalogStore)
+    const { targets, selectedTargets } = storeToRefs(catalogStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -444,7 +444,7 @@ export default {
       render()
     })
 
-    watch(lastUpdate, () => {
+    watch(selectedTargets, () => {
       updateCanvas()
     })
 
