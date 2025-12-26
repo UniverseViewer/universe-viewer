@@ -163,6 +163,18 @@
                       {{ constraintError === null ? 'Valid' : 'Invalid' }}
                     </span>
                   </div>
+                  <br />
+                  <v-number-input
+                    v-model="h0"
+                    label="Hubble constant"
+                    :precision="null"
+                    :step="0.05"
+                    :min="Number.EPSILON"
+                    control-variant="split"
+                    density="compact"
+                  >
+                    <template v-slot:append> km&nbsp;s<sup>-1</sup>&nbsp;Mpc<sup>-1</sup> </template>
+                  </v-number-input>
                   <v-checkbox
                     v-model="precisionEnabled"
                     label="High precision integration"
@@ -390,6 +402,7 @@ const {
   omega,
   kappa,
   alpha,
+  h0,
   view,
   userRA1,
   userDec1,

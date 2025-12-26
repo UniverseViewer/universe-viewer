@@ -66,3 +66,19 @@ export function computeComovingDistance(target1, target2, kappa) {
     return tau12 / Math.sqrt(Math.abs(kappa))
   }
 }
+
+/**
+ * Converts the dimensionless scale-free comoving distance to a physical distance in Megaparsecs (Mpc).
+ * We have r = tau / H0, to get Mpc, we use (tau * c) / H0
+ *
+ * @param {number} tau - The dimensionless comoving distance.
+ * @param {number} h0 - The Hubble constant.
+ * @returns {number} The physical distance in Mpc.
+ */
+export function computeComovingDistanceMpc(tau, h0) {
+  const C_KM_S = 299792.458; // Speed of light in km/s
+  if (!h0) {
+    return 0
+  }
+  return (tau * C_KM_S) / h0;
+}

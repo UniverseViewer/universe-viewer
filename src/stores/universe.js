@@ -37,6 +37,8 @@ export const useUniverseStore = defineStore('universe', () => {
 
   const constraintError = ref(null)
 
+  const h0 = ref(67.4) // Hubble constant (km s-1 Mpc-1)
+
   const view = ref(4)
   const userRA1 = ref(0.0) // radians
   const userDec1 = ref(0.0) // radians
@@ -159,6 +161,7 @@ export const useUniverseStore = defineStore('universe', () => {
     kappa,
     alpha,
     constraintError,
+    h0,
     view,
     userRA1,
     userDec1,

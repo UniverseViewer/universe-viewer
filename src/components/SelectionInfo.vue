@@ -5,7 +5,7 @@
     elevation="2"
     rounded
     color="surface"
-    max-width="400"
+    max-width="500"
   >
     <div v-if="selectedCount === 1 && selectedTargets && selectedTargets[0]">
       <div class="text-caption"><strong>Selected:</strong> 1 object</div>
@@ -30,8 +30,12 @@
         {{ selectedTargets[0].getAngularDist().toFixed(4) }}
       </div>
       <div v-if="comovingSpaceFlag" class="text-caption">
-        <strong>Comoving Distance from Earth:</strong>
+        <strong>Comoving Distance from Earth (dimensionless):</strong>
         {{ distance.toFixed(4) }}
+      </div>
+      <div v-if="comovingSpaceFlag" class="text-caption">
+        <strong>Comoving Distance from Earth (Mpc):</strong>
+        {{ distanceMpc.toFixed(4) }}
       </div>
       <div class="text-caption">
         <strong>X:</strong> {{ selectedTargets[0].getPos().x.toFixed(4) }}
@@ -53,8 +57,14 @@
       <v-divider class="my-2"></v-divider>
       <div v-if="comovingSpaceFlag">
         <div class="text-caption">
-          <strong>Comoving Distance:</strong>
+          <strong>Comoving Distance (dimensionless):</strong>
           {{ distance.toFixed(4) }}
+        </div>
+      </div>
+      <div v-if="comovingSpaceFlag">
+        <div class="text-caption">
+          <strong>Comoving Distance (Mpc):</strong>
+          {{ distanceMpc.toFixed(4) }}
         </div>
       </div>
       <div class="text-caption">
@@ -106,7 +116,7 @@
 <script setup>
 import { computed } from 'vue'
 import { formatRa, formatDec } from '@/tools/coordinates.js'
-import { computeComovingDistance, computeReferenceDistance } from '@/logic/measures.js'
+import { computeComovingDistance, computeComovingDistanceMpc, computeReferenceDistance } from '@/logic/measures.js'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
@@ -115,7 +125,7 @@ import { useStatusStore } from '@/stores/status.js'
 const store = useUniverseStore()
 const catalogStore = useCatalogStore()
 const statusStore = useStatusStore()
-const { kappa, comovingSpaceFlag } = storeToRefs(store)
+const { kappa, comovingSpaceFlag, h0 } = storeToRefs(store)
 const { selectedCount, selectedTargets } = storeToRefs(catalogStore)
 
 const distance = computed(() => {
@@ -146,6 +156,10 @@ const distance = computed(() => {
     }
   }
   return 0
+})
+
+const distanceMpc = computed(() => {
+  return computeComovingDistanceMpc(distance.value, h0.value)
 })
 
 const angularDistanceBetween = computed(() => {
