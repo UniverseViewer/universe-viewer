@@ -25,6 +25,8 @@ export const useCatalogStore = defineStore('catalog', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
+  const minRedshift = shallowRef(0.0)
+  const maxRedshift = shallowRef(0.0)
 
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
@@ -44,6 +46,8 @@ export const useCatalogStore = defineStore('catalog', () => {
   function load(content, percent = 100) {
     const lines = content.split(/\r?\n/)
     const newTargets = []
+    let newMinRedshift = Number.MAX_VALUE
+    let newMaxRedshift = 0
 
     if (percent < 1) percent = 1
     else if (percent > 100) percent = 100
@@ -89,6 +93,11 @@ export const useCatalogStore = defineStore('catalog', () => {
       const asc = parseFloat(parts[0])
       const dec = parseFloat(parts[1])
       const redshift = parseFloat(parts[2])
+      if (redshift > newMaxRedshift) {
+        newMaxRedshift = redshift
+      } else if (redshift < newMinRedshift) {
+        newMinRedshift = redshift
+      }
 
       if (isNaN(asc) || isNaN(dec) || isNaN(redshift)) continue
 
@@ -108,6 +117,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
 
     targets.value = newTargets
+    minRedshift.value = newMinRedshift
+    maxRedshift.value = newMaxRedshift
     setSelectedTargets([])
   }
 
@@ -220,6 +231,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     selectedCount,
     selectedTargets,
     targets,
+    minRedshift,
+    maxRedshift,
     sharedBuffer,
     // Setters
     setSelectedTargets,

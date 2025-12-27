@@ -30,7 +30,15 @@
       variant="text"
       :color="showRefMarks ? 'primary' : undefined"
       @click="toggleRefMarks"
-      title="Reference marks"
+      title="Reference Marks"
+      rounded="0"
+    ></v-btn>
+    <v-btn
+      icon="mdi-palette"
+      variant="text"
+      :color="showRedshiftGradient ? 'primary' : undefined"
+      @click="toggleRedshiftGradient"
+      title="Redshift Gradient"
       rounded="0"
     ></v-btn>
     <v-btn
@@ -49,7 +57,7 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 
 const store = useUniverseStore()
-const { mouseMode, viewerMode, showRefMarks } = storeToRefs(store)
+const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient } = storeToRefs(store)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -60,6 +68,10 @@ function toggleSkyMode() {
 
 function toggleRefMarks() {
   store.setShowRefMarks(!showRefMarks.value)
+}
+
+function toggleRedshiftGradient() {
+  store.setShowRedshiftGradient(!showRedshiftGradient.value)
 }
 </script>
 

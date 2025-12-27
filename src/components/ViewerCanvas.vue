@@ -18,6 +18,16 @@
         <pre class="error-message-details">{{ constraintError }}</pre>
       </div>
     </div>
+
+    <!-- Redshift Gradient Legend -->
+    <div v-if="showRedshiftGradient" class="redshift-legend">
+      <v-sheet class="d-flex align-center px-4 py-1" elevation="2" rounded color="surface">
+        <span class="text-caption mr-2">Redshift</span>
+        <span class="text-caption mr-1">{{ minRedshift ? minRedshift.toFixed(2) : '0.00' }}</span>
+        <div :style="gradientStyle" class="mr-1 rounded"></div>
+        <span class="text-caption">{{ maxRedshift ? maxRedshift.toFixed(2) : '0.00' }}</span>
+      </v-sheet>
+    </div>
   </div>
 </template>
 
@@ -84,10 +94,11 @@ export default {
       precisionEnabled,
       mouseMode,
       showRefMarks,
+      showRedshiftGradient,
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-    const { targets, selectedTargets } = storeToRefs(catalogStore)
+    const { targets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -119,7 +130,7 @@ export default {
       geometry: null,
       material: null,
       refGroup: null,
-      theme: {
+      themes: {
         dark: {
           background: 0x000000,
           markOutline: 0xaaaaaa,
@@ -130,6 +141,16 @@ export default {
           pointSelectedR: 0.0,
           pointSelectedG: 1.0,
           pointSelectedB: 0.0,
+          redshiftNearColor: {
+            r: 0.0,
+            g: 0.0,
+            b: 1.0,
+          },
+          redshiftFarColor: {
+            r: 1.0,
+            g: 0.0,
+            b: 0.0,
+          },
         },
         light: {
           background: 0xe4e4e4,
@@ -141,12 +162,23 @@ export default {
           pointSelectedR: 1.0,
           pointSelectedG: 0.0,
           pointSelectedB: 0.0,
+          redshiftNearColor: {
+            r: 0.0,
+            g: 1.0,
+            b: 0.0,
+          },
+          redshiftFarColor: {
+            r: 0.0,
+            g: 0.0,
+            b: 1.0,
+          },
         },
       },
       highlightScale: 1.0,
     })
 
     const themeName = computed(() => (props.darkMode ? 'dark' : 'light'))
+    const theme = computed(() => state.themes[themeName.value])
 
     const modeName = computed(() => {
       let value
@@ -157,6 +189,20 @@ export default {
         value = 'Sky view'
       }
       return value
+    })
+
+    const gradientStyle = computed(() => {
+      const t = theme.value
+      const c1 = t.redshiftNearColor
+      const c2 = t.redshiftFarColor
+      const color1 = `rgb(${Math.round(c1.r * 255)}, ${Math.round(c1.g * 255)}, ${Math.round(c1.b * 255)})`
+      const color2 = `rgb(${Math.round(c2.r * 255)}, ${Math.round(c2.g * 255)}, ${Math.round(c2.b * 255)})`
+      return {
+        background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`,
+        width: '120px',
+        height: '12px',
+        border: props.darkMode ? '1px solid #555' : '1px solid #ccc'
+      }
     })
 
     const selectionStyle = computed(() => {
@@ -308,7 +354,7 @@ export default {
       root.value.appendChild(state.renderer.domElement)
 
       state.scene = markRaw(new THREE.Scene())
-      state.scene.background = new THREE.Color(state.theme[themeName.value].background)
+      state.scene.background = new THREE.Color(theme.value.background)
       state.camera = markRaw(createOrthoCamera())
 
       state.geometry = markRaw(new THREE.BufferGeometry())
@@ -384,10 +430,10 @@ export default {
       }
     })
 
-    watch(themeName, (newVal) => {
+    watch(theme, () => {
       statusStore.runBusyTask(() => {
         if (state.scene) {
-          state.scene.background = new THREE.Color(state.theme[newVal].background)
+          state.scene.background = new THREE.Color(theme.value.background)
           updatePointsColor()
           drawReferenceMarks()
           render()
@@ -439,6 +485,13 @@ export default {
       recomputeAll()
     })
 
+    watch(showRedshiftGradient, () => {
+      statusStore.runBusyTask(() => {
+        updatePointsColor()
+        render()
+      })
+    })
+
     watch(showRefMarks, () => {
       drawReferenceMarks()
       render()
@@ -447,6 +500,15 @@ export default {
     watch(selectedTargets, () => {
       updateCanvas()
     })
+
+    function redshiftToColor(redshift) {
+      let v = redshift / maxRedshift.value
+      return {
+        r: theme.value.redshiftNearColor.r + (theme.value.redshiftFarColor.r - theme.value.redshiftNearColor.r) * v,
+        g: theme.value.redshiftNearColor.g + (theme.value.redshiftFarColor.g - theme.value.redshiftNearColor.g) * v,
+        b: theme.value.redshiftNearColor.b + (theme.value.redshiftFarColor.b - theme.value.redshiftNearColor.b) * v
+      }
+    }
 
     function updatePointsColor() {
       const geometry = state.geometry
@@ -468,17 +530,24 @@ export default {
       for (let i = 0; i < N; i++) {
         const ti = t[i]
         const selected = ti.isSelected ? ti.isSelected() : false
-        const theme = state.theme[themeName.value]
+        const currentTheme = theme.value
 
         let r, g, b
         if (selected) {
-          r = theme.pointSelectedR
-          g = theme.pointSelectedG
-          b = theme.pointSelectedB
+          r = currentTheme.pointSelectedR
+          g = currentTheme.pointSelectedG
+          b = currentTheme.pointSelectedB
         } else {
-          r = theme.pointR
-          g = theme.pointG
-          b = theme.pointB
+          if (showRedshiftGradient.value === true) {
+            const c = redshiftToColor(ti.getRedshift())
+            r = c.r
+            g = c.g
+            b = c.b
+          } else {
+            r = currentTheme.pointR
+            g = currentTheme.pointG
+            b = currentTheme.pointB
+          }
         }
         colors.setXYZ(i, r, g, b)
       }
@@ -534,8 +603,8 @@ export default {
       const highlightedAttr = state.geometry.getAttribute('isHighlighted')
       const highlighted = highlightedAttr.array
 
-      const theme = state.theme[themeName.value]
-      const { pointR, pointG, pointB, pointSelectedR, pointSelectedG, pointSelectedB } = theme
+      const currentTheme = theme.value
+      const { pointR, pointG, pointB, pointSelectedR, pointSelectedG, pointSelectedB } = currentTheme
 
       // Fast path for Zero-Copy
       if (isZeroCopy) {
@@ -561,9 +630,16 @@ export default {
             colors[3 * i + 1] = pointSelectedG
             colors[3 * i + 2] = pointSelectedB
           } else {
-            colors[3 * i + 0] = pointR
-            colors[3 * i + 1] = pointG
-            colors[3 * i + 2] = pointB
+            if (showRedshiftGradient.value === true) {
+              const { r, g, b } = redshiftToColor(t[i].getRedshift())
+              colors[3 * i + 0] = r
+              colors[3 * i + 1] = g
+              colors[3 * i + 2] = b
+            } else {
+              colors[3 * i + 0] = currentTheme.pointR
+              colors[3 * i + 1] = currentTheme.pointG
+              colors[3 * i + 2] = currentTheme.pointB
+            }
           }
 
           highlighted[i] = selected ? 1.0 : 0.0
@@ -693,7 +769,7 @@ export default {
         // Create outline
         const geom = new THREE.BufferGeometry().setFromPoints(shapePts)
         const outlineMat = new THREE.LineBasicMaterial({
-          color: state.theme[themeName.value].markOutline,
+          color: theme.value.markOutline,
         })
         state.refGroup.add(new THREE.Line(geom, outlineMat))
         // Create filled area
@@ -706,13 +782,13 @@ export default {
           shape.closePath()
           const shapeGeom = new THREE.ShapeGeometry(shape)
           const areaMat = new THREE.MeshBasicMaterial({
-            color: state.theme[themeName.value].horizonBackground,
+            color: theme.value.horizonBackground,
           })
           state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         }
       } else {
         // SKY_MODE
-        const mat = new THREE.LineBasicMaterial({ color: state.theme[themeName.value].markOutline })
+        const mat = new THREE.LineBasicMaterial({ color: theme.value.markOutline })
         // Create outline
         const borderPts = []
         borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
@@ -731,7 +807,7 @@ export default {
         shape.closePath()
         const shapeGeom = new THREE.ShapeGeometry(shape)
         const areaMat = new THREE.MeshBasicMaterial({
-          color: state.theme[themeName.value].horizonBackground,
+          color: theme.value.horizonBackground,
         })
         state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
         // Create X axis
@@ -1146,6 +1222,10 @@ export default {
       mouseMode,
       themeName,
       constraintError,
+      gradientStyle,
+      showRedshiftGradient,
+      minRedshift,
+      maxRedshift,
     }
   },
 }
@@ -1238,4 +1318,15 @@ export default {
   font-size: 1.1em;
 }
 
+.redshift-legend {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+}
+.redshift-legend .v-sheet {
+  pointer-events: auto;
+}
 </style>
