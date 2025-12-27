@@ -82,7 +82,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       const parts = line.split(/\s+/)
       if (parts.length < 3) continue
 
-      if (!(currentIdx / processed < percent / 100)) {
+      if (!(currentIdx / (processed + 1) < percent / 100)) {
         continue
       }
 
