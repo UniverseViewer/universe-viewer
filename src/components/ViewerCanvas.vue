@@ -60,16 +60,13 @@ import { OFFSET_RA, OFFSET_DEC, OFFSET_PROJ_X, OFFSET_PROJ_Y, STRIDE } from '@/l
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
+import { useThemeStore } from '@/stores/theme.js'
 import { watch } from 'vue'
 
 export default {
   name: 'ViewerCanvas',
 
   emits: ['update-mouse-coords'],
-
-  props: {
-    darkMode: { type: Boolean, default: true },
-  },
 
   setup(props, { expose, emit }) {
     const root = ref(null)
@@ -78,6 +75,7 @@ export default {
     const universeStore = useUniverseStore()
     const catalogStore = useCatalogStore()
     const statusStore = useStatusStore()
+    const themeStore = useThemeStore()
     const {
       kappa,
       lambda,
@@ -99,6 +97,7 @@ export default {
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
     const { targets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
+    const { canvasTheme: theme, themeName, darkMode } = storeToRefs(themeStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -130,63 +129,8 @@ export default {
       geometry: null,
       material: null,
       refGroup: null,
-      themes: {
-        dark: {
-          background: 0x000000,
-          markOutline: 0xaaaaaa,
-          horizonBackground: 0x000030,
-          point: {
-            r: 1.0,
-            g: 1.0,
-            b: 1.0,
-          },
-          selectedPoint: {
-            r: 0.0,
-            g: 1.0,
-            b: 0.0,
-          },
-          redshiftNear: {
-            r: 0.0,
-            g: 0.0,
-            b: 1.0,
-          },
-          redshiftFar: {
-            r: 1.0,
-            g: 0.0,
-            b: 0.0,
-          },
-        },
-        light: {
-          background: 0xe4e4e4,
-          markOutline: 0x000000,
-          horizonBackground: 0xffffff,
-          point: {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-          },
-          selectedPoint: {
-            r: 1.0,
-            g: 0.0,
-            b: 0.0,
-          },
-          redshiftNear: {
-            r: 0.0,
-            g: 1.0,
-            b: 0.0,
-          },
-          redshiftFar: {
-            r: 0.0,
-            g: 0.0,
-            b: 1.0,
-          },
-        },
-      },
       highlightScale: 1.0,
     })
-
-    const themeName = computed(() => (props.darkMode ? 'dark' : 'light'))
-    const theme = computed(() => state.themes[themeName.value])
 
     const modeName = computed(() => {
       let value
@@ -209,7 +153,7 @@ export default {
         background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`,
         width: '120px',
         height: '12px',
-        border: props.darkMode ? '1px solid #555' : '1px solid #ccc'
+        border: darkMode.value ? '1px solid #555' : '1px solid #ccc'
       }
     })
 
@@ -495,7 +439,10 @@ export default {
 
     watch(showRedshiftGradient, () => {
       statusStore.runBusyTask(() => {
+        const startTime = performance.now()
         updatePointsColor()
+        const endTime = performance.now()
+        console.log(`Call to updatePointsColor took ${endTime - startTime} milliseconds`)
         render()
       })
     })

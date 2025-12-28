@@ -294,7 +294,7 @@
             </v-expansion-panels>
             <v-container>
               <v-switch
-                v-model="isDarkTheme"
+                v-model="darkMode"
                 prepend-icon="mdi-theme-light-dark"
                 label="Dark mode theme"
                 color="success"
@@ -316,7 +316,6 @@
           <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
             <ViewerCanvas
               ref="viewer"
-              :dark-mode="isDarkTheme"
               @update-mouse-coords="onMouseCoordsUpdate"
             />
 
@@ -381,6 +380,7 @@ import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
+import { useThemeStore } from '@/stores/theme.js'
 
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import About from '@/components/About.vue'
@@ -419,6 +419,9 @@ const { targets } = storeToRefs(catalogStore)
 
 const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
+
+const themeStore = useThemeStore()
+const { darkMode } = storeToRefs(themeStore)
 
 // Side bar
 const opened_panels = ref(['catalog', 'parameters', 'view'])
@@ -504,6 +507,7 @@ const sumConsts = computed(() => getSumConsts(lambda.value, omega.value, kappa.v
 onMounted(() => {
   try {
     store.initialize()
+    themeStore.initialize()
     // Initialize sliders
     pendingRa1.value = ra1.value
     pendingDec1.value = dec1.value
@@ -582,27 +586,10 @@ function resetView() {
 // Watchers
 const theme = useTheme()
 
-// Initialize from localStorage
-const savedTheme = localStorage.getItem('theme_mode')
-if (savedTheme) {
-  theme.change(savedTheme)
-}
-
-const isDarkTheme = ref(theme.global.current.value.dark)
-
-// Sync ref if theme changed externally (e.e. initial load)
-watch(
-  () => theme.global.current.value.dark,
-  (val) => {
-    isDarkTheme.value = val
-  },
-)
-
-watch(isDarkTheme, (val) => {
-  const newTheme = val ? 'dark' : 'light'
-  theme.change(newTheme)
-  localStorage.setItem('theme_mode', newTheme)
-})
+// Sync Vuetify theme with store
+watch(darkMode, (val) => {
+  theme.global.name.value = val ? 'dark' : 'light'
+}, { immediate: true })
 
 watch(catalogFile, async (newVal) => {
   if (newVal === undefined || newVal === null) return
