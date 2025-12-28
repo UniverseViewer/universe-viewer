@@ -135,18 +135,22 @@ export default {
           background: 0x000000,
           markOutline: 0xaaaaaa,
           horizonBackground: 0x000030,
-          pointR: 1.0,
-          pointG: 1.0,
-          pointB: 1.0,
-          pointSelectedR: 0.0,
-          pointSelectedG: 1.0,
-          pointSelectedB: 0.0,
-          redshiftNearColor: {
+          point: {
+            r: 1.0,
+            g: 1.0,
+            b: 1.0,
+          },
+          selectedPoint: {
+            r: 0.0,
+            g: 1.0,
+            b: 0.0,
+          },
+          redshiftNear: {
             r: 0.0,
             g: 0.0,
             b: 1.0,
           },
-          redshiftFarColor: {
+          redshiftFar: {
             r: 1.0,
             g: 0.0,
             b: 0.0,
@@ -156,18 +160,22 @@ export default {
           background: 0xe4e4e4,
           markOutline: 0x000000,
           horizonBackground: 0xffffff,
-          pointR: 0.0,
-          pointG: 0.0,
-          pointB: 0.0,
-          pointSelectedR: 1.0,
-          pointSelectedG: 0.0,
-          pointSelectedB: 0.0,
-          redshiftNearColor: {
+          point: {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+          },
+          selectedPoint: {
+            r: 1.0,
+            g: 0.0,
+            b: 0.0,
+          },
+          redshiftNear: {
             r: 0.0,
             g: 1.0,
             b: 0.0,
           },
-          redshiftFarColor: {
+          redshiftFar: {
             r: 0.0,
             g: 0.0,
             b: 1.0,
@@ -193,8 +201,8 @@ export default {
 
     const gradientStyle = computed(() => {
       const t = theme.value
-      const c1 = t.redshiftNearColor
-      const c2 = t.redshiftFarColor
+      const c1 = t.redshiftNear
+      const c2 = t.redshiftFar
       const color1 = `rgb(${Math.round(c1.r * 255)}, ${Math.round(c1.g * 255)}, ${Math.round(c1.b * 255)})`
       const color2 = `rgb(${Math.round(c2.r * 255)}, ${Math.round(c2.g * 255)}, ${Math.round(c2.b * 255)})`
       return {
@@ -504,9 +512,9 @@ export default {
     function redshiftToColor(redshift) {
       let v = redshift / maxRedshift.value
       return {
-        r: theme.value.redshiftNearColor.r + (theme.value.redshiftFarColor.r - theme.value.redshiftNearColor.r) * v,
-        g: theme.value.redshiftNearColor.g + (theme.value.redshiftFarColor.g - theme.value.redshiftNearColor.g) * v,
-        b: theme.value.redshiftNearColor.b + (theme.value.redshiftFarColor.b - theme.value.redshiftNearColor.b) * v
+        r: theme.value.redshiftNear.r + (theme.value.redshiftFar.r - theme.value.redshiftNear.r) * v,
+        g: theme.value.redshiftNear.g + (theme.value.redshiftFar.g - theme.value.redshiftNear.g) * v,
+        b: theme.value.redshiftNear.b + (theme.value.redshiftFar.b - theme.value.redshiftNear.b) * v
       }
     }
 
@@ -530,13 +538,12 @@ export default {
       for (let i = 0; i < N; i++) {
         const ti = t[i]
         const selected = ti.isSelected ? ti.isSelected() : false
-        const currentTheme = theme.value
 
         let r, g, b
         if (selected) {
-          r = currentTheme.pointSelectedR
-          g = currentTheme.pointSelectedG
-          b = currentTheme.pointSelectedB
+          r = theme.value.selectedPoint.r
+          g = theme.value.selectedPoint.g
+          b = theme.value.selectedPoint.b
         } else {
           if (showRedshiftGradient.value === true) {
             const c = redshiftToColor(ti.getRedshift())
@@ -544,9 +551,9 @@ export default {
             g = c.g
             b = c.b
           } else {
-            r = currentTheme.pointR
-            g = currentTheme.pointG
-            b = currentTheme.pointB
+            r = theme.value.point.r
+            g = theme.value.point.g
+            b = theme.value.point.b
           }
         }
         colors.setXYZ(i, r, g, b)
@@ -603,9 +610,6 @@ export default {
       const highlightedAttr = state.geometry.getAttribute('isHighlighted')
       const highlighted = highlightedAttr.array
 
-      const currentTheme = theme.value
-      const { pointR, pointG, pointB, pointSelectedR, pointSelectedG, pointSelectedB } = currentTheme
-
       // Fast path for Zero-Copy
       if (isZeroCopy) {
         for (let i = 0; i < N; i++) {
@@ -626,9 +630,9 @@ export default {
           const selected = t[i].isSelected()
 
           if (selected) {
-            colors[3 * i + 0] = pointSelectedR
-            colors[3 * i + 1] = pointSelectedG
-            colors[3 * i + 2] = pointSelectedB
+            colors[3 * i + 0] = theme.value.selectedPoint.r
+            colors[3 * i + 1] = theme.value.selectedPoint.g
+            colors[3 * i + 2] = theme.value.selectedPoint.b
           } else {
             if (showRedshiftGradient.value === true) {
               const { r, g, b } = redshiftToColor(t[i].getRedshift())
@@ -636,9 +640,9 @@ export default {
               colors[3 * i + 1] = g
               colors[3 * i + 2] = b
             } else {
-              colors[3 * i + 0] = currentTheme.pointR
-              colors[3 * i + 1] = currentTheme.pointG
-              colors[3 * i + 2] = currentTheme.pointB
+              colors[3 * i + 0] = theme.value.point.r
+              colors[3 * i + 1] = theme.value.point.g
+              colors[3 * i + 2] = theme.value.point.b
             }
           }
 
@@ -663,13 +667,13 @@ export default {
 
           const selected = ti.isSelected ? ti.isSelected() : false
           if (selected) {
-            colors[3 * i + 0] = pointSelectedR
-            colors[3 * i + 1] = pointSelectedG
-            colors[3 * i + 2] = pointSelectedB
+            colors[3 * i + 0] = theme.value.selectedPoint.r
+            colors[3 * i + 1] = theme.value.selectedPoint.g
+            colors[3 * i + 2] = theme.value.selectedPoint.b
           } else {
-            colors[3 * i + 0] = pointR
-            colors[3 * i + 1] = pointG
-            colors[3 * i + 2] = pointB
+            colors[3 * i + 0] = theme.value.point.r
+            colors[3 * i + 1] = theme.value.point.g
+            colors[3 * i + 2] = theme.value.point.b
           }
 
           highlighted[i] = selected ? 1.0 : 0.0
