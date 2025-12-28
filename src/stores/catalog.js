@@ -32,28 +32,34 @@ export const useCatalogStore = defineStore('catalog', () => {
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
 
-  const redshiftDistribution = computed(() => {
-    if (!targets.value || targets.value.length === 0) return []
+  function computeRedshiftDistribution(targets, min, max, resolution) {
+    if (!targets || targets.length === 0) return []
 
-    const dist = new Array(resolution.value).fill(0)
-    const min = minRedshift.value
-    const max = maxRedshift.value
+    const dist = new Array(resolution).fill(0)
 
     if (max <= min) return dist
 
-    const step = (max - min) / resolution.value
+    const step = (max - min) / resolution
 
-    const tList = targets.value
-    const len = tList.length
+    const list = targets
+    const len = list.length
     for (let i = 0; i < len; i++) {
-      const r = tList[i].getRedshift()
+      const r = list[i].getRedshift()
       let idx = Math.floor((r - min) / step)
-      if (idx >= resolution.value) idx = resolution.value - 1
+      if (idx >= resolution) idx = resolution - 1
       if (idx < 0) idx = 0
       dist[idx]++
     }
 
     return dist
+  }
+
+  const redshiftDistribution = computed(() => {
+    return computeRedshiftDistribution(targets.value, minRedshift.value, maxRedshift.value, resolution.value)
+  })
+
+  const selectionRedshiftDistribution = computed(() => {
+    return computeRedshiftDistribution(selectedTargets.value, minRedshift.value, maxRedshift.value, resolution.value)
   })
 
   function setSelectedTargets(t) {
@@ -262,6 +268,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     sharedBuffer,
     resolution,
     redshiftDistribution,
+    selectionRedshiftDistribution,
     // Setters
     setSelectedTargets,
     load,
