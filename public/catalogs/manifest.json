@@ -42,7 +42,7 @@
   {
     "name": "2MASS Redshift Survey",
     "year": 2012,
-    "targets_number": 44599,
+    "targets_number": 44574,
     "file": "twomassrsc/2mrs.gz",
     "author": "Huchra J.P., Macri L.M., Masters K.L., Jarrett T.H., Berlind P., Calkins M., Crook A.C., Cutri R., Erdogdu P., Falco E., George T., Hutcheson C.M., Lahav O., Mader J., Mink J.D., Martimbeau N., Schneider S., Skrutskie M., Tokarz S., Westover M. <Astrophys. J. Suppl. 199, 26 (2012)>",
     "link": "https://heasarc.gsfc.nasa.gov/W3Browse/all/twomassrsc.html"
