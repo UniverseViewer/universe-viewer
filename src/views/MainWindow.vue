@@ -61,6 +61,9 @@
                       :disabled="!targets || targets.length === 0"
                     ></v-btn>
                   </div>
+                  <div v-if="targets && targets.length" class="text-caption">
+                    Redshift range: {{ minRedshift.toLocaleString() }} to {{ maxRedshift.toLocaleString() }}
+                  </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
 
@@ -414,7 +417,7 @@ const {
 } = storeToRefs(store)
 
 const catalogStore = useCatalogStore()
-const { targets } = storeToRefs(catalogStore)
+const { targets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
 
 const statusStore = useStatusStore()
 const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
