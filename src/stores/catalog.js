@@ -27,9 +27,34 @@ export const useCatalogStore = defineStore('catalog', () => {
   const sharedBuffer = shallowRef(null)
   const minRedshift = shallowRef(0.0)
   const maxRedshift = shallowRef(0.0)
+  const resolution = shallowRef(10)
 
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
+
+  const redshiftDistribution = computed(() => {
+    if (!targets.value || targets.value.length === 0) return []
+
+    const dist = new Array(resolution.value).fill(0)
+    const min = minRedshift.value
+    const max = maxRedshift.value
+
+    if (max <= min) return dist
+
+    const step = (max - min) / resolution.value
+
+    const tList = targets.value
+    const len = tList.length
+    for (let i = 0; i < len; i++) {
+      const r = tList[i].getRedshift()
+      let idx = Math.floor((r - min) / step)
+      if (idx >= resolution.value) idx = resolution.value - 1
+      if (idx < 0) idx = 0
+      dist[idx]++
+    }
+
+    return dist
+  })
 
   function setSelectedTargets(t) {
     selectedTargets.value = t
@@ -95,7 +120,8 @@ export const useCatalogStore = defineStore('catalog', () => {
       const redshift = parseFloat(parts[2])
       if (redshift > newMaxRedshift) {
         newMaxRedshift = redshift
-      } else if (redshift < newMinRedshift) {
+      }
+      if (redshift < newMinRedshift) {
         newMinRedshift = redshift
       }
 
@@ -234,6 +260,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     minRedshift,
     maxRedshift,
     sharedBuffer,
+    resolution,
+    redshiftDistribution,
     // Setters
     setSelectedTargets,
     load,

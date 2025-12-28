@@ -2,6 +2,7 @@
   <v-app>
     <AppHelp v-model="helpOpened" :tab="helpTab" />
     <About v-model="aboutOpened" />
+    <RedshiftDistribution v-model="redshiftDistributionOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
         <v-row no-gutters style="height: calc(100vh - 32px)">
@@ -61,8 +62,20 @@
                       :disabled="!targets || targets.length === 0"
                     ></v-btn>
                   </div>
-                  <div v-if="targets && targets.length" class="text-caption">
-                    Redshift range: {{ minRedshift.toLocaleString() }} to {{ maxRedshift.toLocaleString() }}
+                  <div v-if="targets && targets.length" class="text-caption d-flex align-center justify-space-between">
+                    <span>Redshift range: {{ minRedshift.toLocaleString() }} to {{ maxRedshift.toLocaleString() }}</span>
+                    <v-tooltip text="Show Redshift Distribution">
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          icon="mdi-chart-bar"
+                          variant="text"
+                          density="compact"
+                          size="small"
+                          @click="redshiftDistributionOpened = true"
+                        ></v-btn>
+                      </template>
+                    </v-tooltip>
                   </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
@@ -387,6 +400,7 @@ import { useThemeStore } from '@/stores/theme.js'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import About from '@/components/About.vue'
 import AppHelp from '@/components/AppHelp.vue'
+import RedshiftDistribution from '@/components/RedshiftDistribution.vue'
 import ViewerToolbox from '@/components/ViewerToolbox.vue'
 import StatusBar from '@/components/StatusBar.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'
@@ -433,6 +447,7 @@ const viewer = ref(null)
 
 // Local State
 const selectedConst = ref('kappa')
+const redshiftDistributionOpened = ref(false)
 const isLoading = ref(false)
 const loadingTitle = ref('')
 const loadingPercentage = ref(0)
