@@ -97,7 +97,7 @@ export default {
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
     const { targets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
-    const { canvasTheme: theme, themeName, darkMode } = storeToRefs(themeStore)
+    const { canvasTheme: theme, themeName, darkMode, redshiftGradient } = storeToRefs(themeStore)
 
     const state = reactive({
       zoom: 0.5,
@@ -456,15 +456,6 @@ export default {
       updateCanvas()
     })
 
-    function redshiftToColor(redshift) {
-      let v = redshift / maxRedshift.value
-      return {
-        r: theme.value.redshiftNear.r + (theme.value.redshiftFar.r - theme.value.redshiftNear.r) * v,
-        g: theme.value.redshiftNear.g + (theme.value.redshiftFar.g - theme.value.redshiftNear.g) * v,
-        b: theme.value.redshiftNear.b + (theme.value.redshiftFar.b - theme.value.redshiftNear.b) * v
-      }
-    }
-
     function updatePointsColor() {
       const geometry = state.geometry
       if (!geometry) return
@@ -482,25 +473,43 @@ export default {
 
       if (N === 0) return
 
+      const themeVal = theme.value
+      const gradient = redshiftGradient.value
+      const showGradient = showRedshiftGradient.value
+      const minRed = minRedshift.value
+      const maxRed = maxRedshift.value
+      const rangeInv = (maxRed - minRed) > 1e-9 ? 1.0 / (maxRed - minRed) : 0
+      
+      const pointR = themeVal.point.r
+      const pointG = themeVal.point.g
+      const pointB = themeVal.point.b
+      const selR = themeVal.selectedPoint.r
+      const selG = themeVal.selectedPoint.g
+      const selB = themeVal.selectedPoint.b
+
       for (let i = 0; i < N; i++) {
         const ti = t[i]
         const selected = ti.isSelected ? ti.isSelected() : false
 
         let r, g, b
         if (selected) {
-          r = theme.value.selectedPoint.r
-          g = theme.value.selectedPoint.g
-          b = theme.value.selectedPoint.b
+          r = selR
+          g = selG
+          b = selB
         } else {
-          if (showRedshiftGradient.value === true) {
-            const c = redshiftToColor(ti.getRedshift())
-            r = c.r
-            g = c.g
-            b = c.b
+          if (showGradient) {
+            let val = (ti.getRedshift() - minRed) * rangeInv
+            if (val < 0) val = 0
+            if (val > 1) val = 1
+            const lutIdx = (val * 255) | 0
+            const offset = lutIdx * 3
+            r = gradient[offset]
+            g = gradient[offset + 1]
+            b = gradient[offset + 2]
           } else {
-            r = theme.value.point.r
-            g = theme.value.point.g
-            b = theme.value.point.b
+            r = pointR
+            g = pointG
+            b = pointB
           }
         }
         colors.setXYZ(i, r, g, b)
@@ -557,6 +566,20 @@ export default {
       const highlightedAttr = state.geometry.getAttribute('isHighlighted')
       const highlighted = highlightedAttr.array
 
+      const themeVal = theme.value
+      const gradient = redshiftGradient.value
+      const showGradient = showRedshiftGradient.value
+      const minRed = minRedshift.value
+      const maxRed = maxRedshift.value
+      const rangeInv = (maxRed - minRed) > 1e-9 ? 1.0 / (maxRed - minRed) : 0
+      
+      const pointR = themeVal.point.r
+      const pointG = themeVal.point.g
+      const pointB = themeVal.point.b
+      const selR = themeVal.selectedPoint.r
+      const selG = themeVal.selectedPoint.g
+      const selB = themeVal.selectedPoint.b
+
       // Fast path for Zero-Copy
       if (isZeroCopy) {
         for (let i = 0; i < N; i++) {
@@ -577,19 +600,23 @@ export default {
           const selected = t[i].isSelected()
 
           if (selected) {
-            colors[3 * i + 0] = theme.value.selectedPoint.r
-            colors[3 * i + 1] = theme.value.selectedPoint.g
-            colors[3 * i + 2] = theme.value.selectedPoint.b
+            colors[3 * i + 0] = selR
+            colors[3 * i + 1] = selG
+            colors[3 * i + 2] = selB
           } else {
-            if (showRedshiftGradient.value === true) {
-              const { r, g, b } = redshiftToColor(t[i].getRedshift())
-              colors[3 * i + 0] = r
-              colors[3 * i + 1] = g
-              colors[3 * i + 2] = b
+            if (showGradient) {
+              let val = (t[i].getRedshift() - minRed) * rangeInv
+              if (val < 0) val = 0
+              if (val > 1) val = 1
+              const lutIdx = (val * 255) | 0
+              const lutOffset = lutIdx * 3
+              colors[3 * i + 0] = gradient[lutOffset]
+              colors[3 * i + 1] = gradient[lutOffset + 1]
+              colors[3 * i + 2] = gradient[lutOffset + 2]
             } else {
-              colors[3 * i + 0] = theme.value.point.r
-              colors[3 * i + 1] = theme.value.point.g
-              colors[3 * i + 2] = theme.value.point.b
+              colors[3 * i + 0] = pointR
+              colors[3 * i + 1] = pointG
+              colors[3 * i + 2] = pointB
             }
           }
 
@@ -614,13 +641,24 @@ export default {
 
           const selected = ti.isSelected ? ti.isSelected() : false
           if (selected) {
-            colors[3 * i + 0] = theme.value.selectedPoint.r
-            colors[3 * i + 1] = theme.value.selectedPoint.g
-            colors[3 * i + 2] = theme.value.selectedPoint.b
+            colors[3 * i + 0] = selR
+            colors[3 * i + 1] = selG
+            colors[3 * i + 2] = selB
           } else {
-            colors[3 * i + 0] = theme.value.point.r
-            colors[3 * i + 1] = theme.value.point.g
-            colors[3 * i + 2] = theme.value.point.b
+            if (showGradient) {
+              let val = (ti.getRedshift() - minRed) * rangeInv
+              if (val < 0) val = 0
+              if (val > 1) val = 1
+              const lutIdx = (val * 255) | 0
+              const lutOffset = lutIdx * 3
+              colors[3 * i + 0] = gradient[lutOffset]
+              colors[3 * i + 1] = gradient[lutOffset + 1]
+              colors[3 * i + 2] = gradient[lutOffset + 2]
+            } else {
+              colors[3 * i + 0] = pointR
+              colors[3 * i + 1] = pointG
+              colors[3 * i + 2] = pointB
+            }
           }
 
           highlighted[i] = selected ? 1.0 : 0.0
@@ -1172,6 +1210,7 @@ export default {
       isVueImmediateRefreshEnabled,
       mouseMode,
       themeName,
+      redshiftGradient,
       constraintError,
       gradientStyle,
       showRedshiftGradient,

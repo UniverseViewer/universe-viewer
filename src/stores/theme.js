@@ -58,6 +58,21 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   const canvasTheme = computed(() => (darkMode.value ? canvasThemes.dark : canvasThemes.light))
+
+  const redshiftGradient = computed(() => {
+    const theme = canvasTheme
+    const gradient = new Float32Array(256 * 3)
+    const near = theme.value.redshiftNear
+    const far = theme.value.redshiftFar
+    for (let i = 0; i < 256; i++) {
+      const v = i / 255.0
+      gradient[i * 3] = near.r + (far.r - near.r) * v
+      gradient[i * 3 + 1] = near.g + (far.g - near.g) * v
+      gradient[i * 3 + 2] = near.b + (far.b - near.b) * v
+    }
+    return gradient
+  })
+
   const themeName = computed(() => (darkMode.value ? 'dark' : 'light'))
 
   function toggleDarkMode() {
@@ -83,6 +98,7 @@ export const useThemeStore = defineStore('theme', () => {
     darkMode,
     canvasTheme,
     themeName,
+    redshiftGradient,
     toggleDarkMode,
     setDarkMode,
     initialize,
