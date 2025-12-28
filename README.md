@@ -82,6 +82,13 @@ Here is a summary of included catalogs.
 - [Website](https://ui.adsabs.harvard.edu/abs/2010yCat.7258....0V/abstract)
 - [More details here](/public/catalogs/vii_258/README.md)
 
+### 2MASS Redshift Survey
+
+- **Authors:** Huchra J.P., Macri L.M., Masters K.L., Jarrett T.H., Berlind P., Calkins M., Crook A.C., Cutri R., Erdogdu P., Falco E., George T., Hutcheson C.M., Lahav O., Mader J., Mink J.D., Martimbeau N., Schneider S., Skrutskie M., Tokarz S., Westover M. <Astrophys. J. Suppl. 199, 26 (2012)>
+- **Date:** 2012
+- [Website](https://heasarc.gsfc.nasa.gov/W3Browse/all/twomassrsc.html)
+- [More details here](/public/catalogs/twomassrsc/README.md)
+
 ### SDSS QSO Catalog: DR16Q
 
 - **Authors:** Lyke et al.
