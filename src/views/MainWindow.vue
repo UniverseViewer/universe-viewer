@@ -374,7 +374,6 @@
  */
 
 import { ref, onMounted, watch, computed } from 'vue'
-import { useTheme } from 'vuetify'
 import { storeToRefs } from 'pinia'
 import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
@@ -506,8 +505,6 @@ const sumConsts = computed(() => getSumConsts(lambda.value, omega.value, kappa.v
 // Initialization
 onMounted(() => {
   try {
-    store.initialize()
-    themeStore.initialize()
     // Initialize sliders
     pendingRa1.value = ra1.value
     pendingDec1.value = dec1.value
@@ -584,12 +581,6 @@ function resetView() {
 }
 
 // Watchers
-const theme = useTheme()
-
-// Sync Vuetify theme with store
-watch(darkMode, (val) => {
-  theme.global.name.value = val ? 'dark' : 'light'
-}, { immediate: true })
 
 watch(catalogFile, async (newVal) => {
   if (newVal === undefined || newVal === null) return

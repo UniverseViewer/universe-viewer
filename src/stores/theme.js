@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
   const darkMode = ref(true)
+  let vuetifyTheme = null
 
   const canvasThemes = {
     dark: {
@@ -83,15 +84,25 @@ export const useThemeStore = defineStore('theme', () => {
     darkMode.value = value
   }
 
-  function initialize() {
+  function initialize(themeInstance = null) {
+    if (themeInstance) {
+      vuetifyTheme = themeInstance
+    }
     const savedTheme = localStorage.getItem('theme_mode')
     if (savedTheme) {
       darkMode.value = savedTheme === 'dark'
+    }
+    if (vuetifyTheme) {
+      vuetifyTheme.change(darkMode.value ? 'dark' : 'light')
     }
   }
 
   watch(darkMode, (val) => {
     localStorage.setItem('theme_mode', val ? 'dark' : 'light')
+    // Sync Vuetify theme with store
+    if (vuetifyTheme) {
+      vuetifyTheme.change(val ? 'dark' : 'light')
+    }
   })
 
   return {

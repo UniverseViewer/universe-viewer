@@ -439,10 +439,7 @@ export default {
 
     watch(showRedshiftGradient, () => {
       statusStore.runBusyTask(() => {
-        const startTime = performance.now()
         updatePointsColor()
-        const endTime = performance.now()
-        console.log(`Call to updatePointsColor took ${endTime - startTime} milliseconds`)
         render()
       })
     })

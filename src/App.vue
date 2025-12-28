@@ -25,10 +25,21 @@
 import MainWindow from './views/MainWindow.vue'
 import { storeToRefs } from 'pinia'
 import { useStatusStore } from '@/stores/status.js'
-import { watch } from 'vue'
+import { useUniverseStore } from '@/stores/universe.js'
+import { useThemeStore } from '@/stores/theme.js'
+import { watch, onMounted } from 'vue'
+import { useTheme } from 'vuetify'
 
 const statusStore = useStatusStore()
+const universeStore = useUniverseStore()
+const themeStore = useThemeStore()
 const { busy } = storeToRefs(statusStore)
+const vuetifyTheme = useTheme()
+
+onMounted(() => {
+  universeStore.initialize()
+  themeStore.initialize(vuetifyTheme)
+})
 
 watch(busy, (isBusy) => {
   if (isBusy) {
