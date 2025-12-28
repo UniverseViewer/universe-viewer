@@ -61,9 +61,12 @@ with fits.open(fits_file) as hdul:
     z_list = []
 
     for row in tqdm(qso_data, desc="Processing QSOs"):
+        z = row["Z"]
+        if z < 0:
+          continue
         ra_list.append(np.deg2rad(row["RA"]))
         dec_list.append(np.deg2rad(row["DEC"]))
-        z_list.append(row["Z"])
+        z_list.append(z)
 
     df = pd.DataFrame({
         "RA_rad": ra_list,

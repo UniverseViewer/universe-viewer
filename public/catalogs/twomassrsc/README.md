@@ -2,6 +2,10 @@
 
 It has been converted to UniverseViewer data format using the `extract.py` script.
 
+The following filtering has been made on original catalog:
+- Radial velocity convertion to get redshift
+- Negative redshift entries removed
+
 The result has been compressed with:
 ```
 gzip -c 2mrs.dat > 2mrs.gz

@@ -1,6 +1,8 @@
 # MILLIQUAS - Million Quasars Catalog, Version 8
 
 It has been converted to UniverseViewer data format using the `extract.py` script.
+The following filtering has been made on original catalog:
+- Negative redshift entries removed
 
 The result has been compressed with:
 ```

@@ -4,6 +4,7 @@ It has been converted to UniverseViewer data format using the `extract.py` scrip
 
 The following filtering has been made on original catalog:
 - Radial velocity convertion to get redshift
+- Negative redshift entries removed
 
 The result has been compressed with:
 ```

@@ -18,7 +18,7 @@
   {
     "name": "6dF Galaxy Survey",
     "year": 2009,
-    "targets_number": 124647,
+    "targets_number": 124503,
     "file": "vii_259_6dF/6dfgs.gz",
     "author": "Jones et al.",
     "link": "https://ui.adsabs.harvard.edu/abs/2009MNRAS.399..683J/abstract"
@@ -50,7 +50,7 @@
   {
     "name": "SDSS QSO Catalog: DR16Q v3 Superset",
     "year": 2020,
-    "targets_number": 1189251,
+    "targets_number": 1024691,
     "file": "sdss_qso/dr16q_v3.gz",
     "author": "Lyke et al.",
     "link": "https://www.sdss.org/dr16/algorithms/qso_catalog/"
@@ -58,7 +58,7 @@
   {
     "name": "SDSS QSO Catalog: DR16Q v4",
     "year": 2020,
-    "targets_number": 638022,
+    "targets_number": 638020,
     "file": "sdss_qso/dr16q_v4.gz",
     "author": "Lyke et al.",
     "link": "https://www.sdss.org/dr16/algorithms/qso_catalog/"
@@ -66,7 +66,7 @@
   {
     "name": "Million Quasars Catalog, Version 8",
     "year": 2023,
-    "targets_number": 1012635,
+    "targets_number": 1012634,
     "file": "milliquas/milliquas_v8.gz",
     "author": "Eric W. Flesch",
     "link": "https://quasars.org/milliquas.htm"

@@ -43,6 +43,10 @@ with fits.open(fits_file) as hdul:
     z_list = []
 
     for row in tqdm(data, desc="Processing objects"):
+        cz = row["cz"]
+        if cz < 0:
+          continue
+
         # RA in hours, degrees, radians
         ra_hours = row["RAh"] + row["RAm"] / 60.0 + row["RAs"] / 3600.0
         ra_rad = np.deg2rad(15.0 * ra_hours)
@@ -54,7 +58,7 @@ with fits.open(fits_file) as hdul:
 
         ra_list.append(ra_rad)
         dec_list.append(dec_rad)
-        z_list.append(row["cz"] / 299792.458)
+        z_list.append(cz / 299792.458)
 
     df = pd.DataFrame({
         "RA_rad": ra_list,
