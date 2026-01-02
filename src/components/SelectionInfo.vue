@@ -68,8 +68,12 @@
         </div>
       </div>
       <div class="text-caption">
-        <strong>Angular Distance:</strong>
+        <strong>Geodesic Angular Distance:</strong>
         {{ angularDistanceBetween.toFixed(4) }}
+      </div>
+      <div class="text-caption">
+        <strong>Angular Separation (rad):</strong>
+        {{ angularSeparation.toFixed(4) }}
       </div>
     </div>
     <div v-else>
@@ -116,7 +120,7 @@
 <script setup>
 import { computed } from 'vue'
 import { formatRa, formatDec } from '@/tools/coordinates.js'
-import { computeComovingDistance, computeComovingDistanceMpc, computeReferenceDistance } from '@/logic/measures.js'
+import { computeComovingDistance, comovingDistanceToMpc, computeAngularDistance, computeAngularSeparation } from '@/logic/measures.js'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
@@ -140,7 +144,7 @@ const distance = computed(() => {
         kappa.value,
       )
     } else {
-      return computeReferenceDistance(
+      return computeAngularDistance(
         selectedTargets.value[0],
         selectedTargets.value[1],
         kappa.value,
@@ -159,14 +163,23 @@ const distance = computed(() => {
 })
 
 const distanceMpc = computed(() => {
-  return computeComovingDistanceMpc(distance.value, h0.value)
+  return comovingDistanceToMpc(distance.value, h0.value)
 })
 
 const angularDistanceBetween = computed(() => {
   // Access selectedTargets to trigger re-evaluation when selection is changed
   selectedTargets.value
   if (selectedCount.value === 2) {
-    return computeReferenceDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
+    return computeAngularDistance(selectedTargets.value[0], selectedTargets.value[1], kappa.value)
+  }
+  return 0
+})
+
+const angularSeparation = computed(() => {
+  // Access selectedTargets to trigger re-evaluation when selection is changed
+  selectedTargets.value
+  if (selectedCount.value === 2) {
+    return computeAngularSeparation(selectedTargets.value[0], selectedTargets.value[1])
   }
   return 0
 })

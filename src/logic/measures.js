@@ -18,23 +18,44 @@
  */
 
 /**
- * Compute the distance between two targets in reference space (angular distance).
+ * Compute euclidian scalar product between two targets celestial directions vectors.
+ *
+ * @param {Target} target1 - First target
+ * @param {Target} target2 - Second target
+ * @return {number} The scalar product between the two targets celestial directions vectors.
+ */
+export function computeEuclidianScalarProduct(target1, target2) {
+  const ra1 = target1.getAscension()
+  const dec1 = target1.getDeclination()
+  const ra2 = target2.getAscension()
+  const dec2 = target2.getDeclination()
+  return Math.cos(ra1 - ra2) * Math.cos(dec1) * Math.cos(dec2) + Math.sin(dec1) * Math.sin(dec2)
+}
+
+/**
+ * Compute the apparent angular celestial separation between two targets.
+ *
+ * @param {Target} target1 - First target
+ * @param {Target} target2 - Second target
+ * @return {number} The angular separation between the two targets (radians)
+ */
+export function computeAngularSeparation(target1, target2) {
+  const cosTheta12 = computeEuclidianScalarProduct(target1, target2)
+  return Math.acos(Math.max(-1, Math.min(1, cosTheta12)))
+}
+
+/**
+ * Compute the geodesic angular distance between two targets.
  *
  * @param {Target} target1 - First target
  * @param {Target} target2 - Second target
  * @param {number} kappa - Curvature parameter
  * @returns {number} The angular distance between the two targets
  */
-export function computeReferenceDistance(target1, target2, kappa) {
+export function computeAngularDistance(target1, target2, kappa) {
   const tau1 = target1.getAngularDist()
   const tau2 = target2.getAngularDist()
-
-  const ra1 = target1.getAscension()
-  const dec1 = target1.getDeclination()
-  const ra2 = target2.getAscension()
-  const dec2 = target2.getDeclination()
-
-  const cosTheta12 = Math.cos(ra1 - ra2) * Math.cos(dec1) * Math.cos(dec2) + Math.sin(dec1) * Math.sin(dec2)
+  const cosTheta12 = computeEuclidianScalarProduct(target1, target2)
 
   if (kappa > 0) {
     const cosTau12 = cosTheta12 * Math.sin(tau1) * Math.sin(tau2) + Math.cos(tau1) * Math.cos(tau2)
@@ -50,7 +71,7 @@ export function computeReferenceDistance(target1, target2, kappa) {
 }
 
 /**
- * Compute the distance between two targets in comoving space.
+ * Compute the comoving distance between two targets.
  *
  * @param {Target} target1 - First target
  * @param {Target} target2 - Second target
@@ -58,7 +79,7 @@ export function computeReferenceDistance(target1, target2, kappa) {
  * @returns {number} The comoving distance between the two targets
  */
 export function computeComovingDistance(target1, target2, kappa) {
-  const tau12 = computeReferenceDistance(target1, target2, kappa)
+  const tau12 = computeAngularDistance(target1, target2, kappa)
 
   if (kappa === 0) {
     return tau12
@@ -75,7 +96,7 @@ export function computeComovingDistance(target1, target2, kappa) {
  * @param {number} h0 - The Hubble constant.
  * @returns {number} The physical distance in Mpc.
  */
-export function computeComovingDistanceMpc(tau, h0) {
+export function comovingDistanceToMpc(tau, h0) {
   const C_KM_S = 299792.458; // Speed of light in km/s
   if (!h0) {
     return 0

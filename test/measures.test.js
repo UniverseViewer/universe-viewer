@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeReferenceDistance, computeComovingDistance, computeComovingDistanceMpc } from '@/logic/measures.js'
+import { computeAngularDistance, computeComovingDistance, comovingDistanceToMpc, computeAngularSeparation } from '@/logic/measures.js'
 
 // Mock Target class factory
 const createTarget = (tau, ra, dec) => ({
@@ -9,7 +9,57 @@ const createTarget = (tau, ra, dec) => ({
 })
 
 describe('Measures Logic', () => {
-  describe('computeReferenceDistance', () => {
+  describe('computeAngularSeparation', () => {
+    it('should return 0 for identical targets', () => {
+      const t1 = createTarget(1, Math.PI / 4, Math.PI / 4)
+      const t2 = createTarget(1, Math.PI / 4, Math.PI / 4)
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(0, 5)
+    })
+
+    it('should return PI/2 for targets separated by 90 degrees (along equator)', () => {
+      const t1 = createTarget(1, 0, 0)
+      const t2 = createTarget(1, Math.PI / 2, 0)
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(Math.PI / 2, 5)
+    })
+
+    it('should return PI for targets separated by 180 degrees (antipodal)', () => {
+      const t1 = createTarget(1, 0, 0)
+      const t2 = createTarget(1, Math.PI, 0)
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(Math.PI, 5)
+    })
+
+    it('should return PI/2 for targets separated by 90 degrees (pole to equator)', () => {
+      const t1 = createTarget(1, 0, Math.PI / 2) // North Pole
+      const t2 = createTarget(1, 0, 0) // On equator
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(Math.PI / 2, 5)
+    })
+
+    it('should correctly calculate separation for arbitrary points', () => {
+      // Example from spherical trigonometry: A(0, 0), B(PI/4, PI/4)
+      // cos(separation) = cos(decA)cos(decB)cos(raA-raB) + sin(decA)sin(decB)
+      // cos(separation) = cos(0)cos(PI/4)cos(0-PI/4) + sin(0)sin(PI/4)
+      // cos(separation) = 1 * (1/sqrt(2)) * (1/sqrt(2)) + 0
+      // cos(separation) = 1/2
+      // separation = acos(1/2) = PI/3
+      const t1 = createTarget(1, 0, 0)
+      const t2 = createTarget(1, Math.PI / 4, Math.PI / 4)
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(Math.PI / 3, 5)
+    })
+
+    it('should handle negative declinations correctly', () => {
+      const t1 = createTarget(1, 0, -Math.PI / 4)
+      const t2 = createTarget(1, Math.PI / 4, -Math.PI / 4)
+      // For t1(ra=0, dec=-PI/4), t2(ra=PI/4, dec=-PI/4)
+      // cos(delta) = cos(dec1)cos(dec2)cos(ra1-ra2) + sin(dec1)sin(dec2)
+      // cos(delta) = cos(-PI/4)cos(-PI/4)cos(-PI/4) + sin(-PI/4)sin(-PI/4)
+      // cos(delta) = (1/sqrt(2))*(1/sqrt(2))*(1/sqrt(2)) + (-1/sqrt(2))*(-1/sqrt(2))
+      // cos(delta) = 1/(2*sqrt(2)) + 1/2 = sqrt(2)/4 + 1/2 = (sqrt(2)+2)/4
+      const expectedSeparation = Math.acos((Math.sqrt(2) + 2) / 4)
+      expect(computeAngularSeparation(t1, t2)).toBeCloseTo(expectedSeparation, 5)
+    })
+  })
+
+  describe('computeAngularDistance', () => {
 
     describe('Kappa = 0 (Flat Space)', () => {
       it('should calculate Euclidean distance along radial line (same line of sight)', () => {
@@ -17,7 +67,7 @@ describe('Measures Logic', () => {
         const t1 = createTarget(10, 0, 0)
         const t2 = createTarget(20, 0, 0)
         // In flat space, d^2 = r1^2 + r2^2 - 2*r1*r2*cos(0) = (r1-r2)^2 => d = |r1-r2|
-        const dist = computeReferenceDistance(t1, t2, 0)
+        const dist = computeAngularDistance(t1, t2, 0)
         expect(dist).toBeCloseTo(10, 5)
       })
 
@@ -27,13 +77,13 @@ describe('Measures Logic', () => {
         const t2 = createTarget(10, Math.PI / 2, 0)
         // cosTheta = cos(pi/2)*... = 0
         // d^2 = 10^2 + 10^2 - 0 = 200 => d = 10*sqrt(2)
-        const dist = computeReferenceDistance(t1, t2, 0)
+        const dist = computeAngularDistance(t1, t2, 0)
         expect(dist).toBeCloseTo(10 * Math.SQRT2, 5)
       })
 
       it('should return 0 for identical points', () => {
         const t1 = createTarget(5, 1, 1)
-        const dist = computeReferenceDistance(t1, t1, 0)
+        const dist = computeAngularDistance(t1, t1, 0)
         expect(dist).toBe(0)
       })
     })
@@ -47,7 +97,7 @@ describe('Measures Logic', () => {
         // d = |t1 - t2|
         const t1 = createTarget(0.5, 0, 0)
         const t2 = createTarget(0.2, 0, 0)
-        const dist = computeReferenceDistance(t1, t2, k)
+        const dist = computeAngularDistance(t1, t2, k)
         expect(dist).toBeCloseTo(0.3, 5)
       })
 
@@ -58,7 +108,7 @@ describe('Measures Logic', () => {
         // d = PI/2
         const t1 = createTarget(Math.PI / 2, 0, 0)
         const t2 = createTarget(Math.PI / 2, Math.PI / 2, 0)
-        const dist = computeReferenceDistance(t1, t2, k)
+        const dist = computeAngularDistance(t1, t2, k)
         expect(dist).toBeCloseTo(Math.PI / 2, 5)
       })
 
@@ -66,7 +116,7 @@ describe('Measures Logic', () => {
         // cos(d) calculation might slightly exceed 1.0 due to float precision
         const t1 = createTarget(1.0, 0.5, 0.5)
         // Force same object
-        const dist = computeReferenceDistance(t1, t1, k)
+        const dist = computeAngularDistance(t1, t1, k)
         expect(dist).toBe(0) // acos(1)
       })
     })
@@ -80,7 +130,7 @@ describe('Measures Logic', () => {
         // d = |t1 - t2|
         const t1 = createTarget(2.0, 0, 0)
         const t2 = createTarget(1.0, 0, 0)
-        const dist = computeReferenceDistance(t1, t2, k)
+        const dist = computeAngularDistance(t1, t2, k)
         expect(dist).toBeCloseTo(1.0, 5)
       })
 
@@ -92,13 +142,13 @@ describe('Measures Logic', () => {
         const t2 = createTarget(1.0, Math.PI / 2, 0)
 
         const expectedCosh = Math.cosh(1.0) ** 2
-        const dist = computeReferenceDistance(t1, t2, k)
+        const dist = computeAngularDistance(t1, t2, k)
         expect(Math.cosh(dist)).toBeCloseTo(expectedCosh, 5)
       })
 
       it('should handle clamping for identical points', () => {
         const t1 = createTarget(1.5, 0.1, 0.2)
-        const dist = computeReferenceDistance(t1, t1, k)
+        const dist = computeAngularDistance(t1, t1, k)
         expect(dist).toBeCloseTo(0, 5) // acosh(1)
       })
     })
@@ -135,27 +185,27 @@ describe('Measures Logic', () => {
     })
   })
 
-  describe('computeComovingDistanceMpc', () => {
+  describe('comovingDistanceToMpc', () => {
     const C_KM_S = 299792.458
 
     it('should calculate correct Mpc distance for standard values', () => {
       const tau = 0.5
       const h0 = 70
       const expected = (0.5 * C_KM_S) / 70
-      expect(computeComovingDistanceMpc(tau, h0)).toBeCloseTo(expected, 5)
+      expect(comovingDistanceToMpc(tau, h0)).toBeCloseTo(expected, 5)
     })
 
     it('should return 0 if tau is 0', () => {
-      expect(computeComovingDistanceMpc(0, 70)).toBe(0)
+      expect(comovingDistanceToMpc(0, 70)).toBe(0)
     })
 
     it('should return 0 if h0 is 0', () => {
-      expect(computeComovingDistanceMpc(1.0, 0)).toBe(0)
+      expect(comovingDistanceToMpc(1.0, 0)).toBe(0)
     })
 
     it('should return 0 if h0 is missing (null/undefined)', () => {
-      expect(computeComovingDistanceMpc(1.0, null)).toBe(0)
-      expect(computeComovingDistanceMpc(1.0, undefined)).toBe(0)
+      expect(comovingDistanceToMpc(1.0, null)).toBe(0)
+      expect(comovingDistanceToMpc(1.0, undefined)).toBe(0)
     })
   })
 })
