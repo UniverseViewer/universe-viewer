@@ -49,5 +49,7 @@ public/catalogs/vii_259_6dF/*.fits
 public/catalogs/vii_259_6dF/*.dat
 public/catalogs/twomassrsc/*.fits
 public/catalogs/twomassrsc/*.dat
+public/catalogs/quaia/*.fits
+public/catalogs/quaia/*.dat
 
 sync.sh

@@ -72,6 +72,24 @@
     "link": "https://quasars.org/milliquas.htm"
   },
   {
+    "name": "Quaia: The Gaia-unWISE Quasar Catalog, G20.0",
+    "year": 2023,
+    "targets_number": 755850,
+    "file": "quaia/quaia_G20.0.gz",
+    "author": "Storey-Fisher Kate, Hogg David W., Rix Hans-Walter, Eilers Anna-Christina, Fabbian Giulio, Blanton Michael, Alonso David",
+    "link": "https://zenodo.org/records/10403370",
+    "license": "Creative Commons Attribution 4.0 International"
+  },
+  {
+    "name": "Quaia: The Gaia-unWISE Quasar Catalog, G20.5",
+    "year": 2023,
+    "targets_number": 1295502,
+    "file": "quaia/quaia_G20.5.gz",
+    "author": "Storey-Fisher Kate, Hogg David W., Rix Hans-Walter, Eilers Anna-Christina, Fabbian Giulio, Blanton Michael, Alonso David",
+    "link": "https://zenodo.org/records/10403370",
+    "license": "Creative Commons Attribution 4.0 International"
+  },
+  {
     "name": "AGN/QSO Value-Added Catalog for DESI DR1",
     "year": 2025,
     "targets_number": 1647301,

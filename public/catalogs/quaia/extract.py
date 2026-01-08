@@ -1,5 +1,5 @@
 """
- * Copyright (C) 2025 Mathieu Abati <mathieu.abati@gmail.com>
+ * Copyright (C) 2026 Mathieu Abati <mathieu.abati@gmail.com>
  * Copyright (C) 2025 Roland Triay <triay@cpt.univ-mrs.fr>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,32 +22,46 @@ from astropy.io import fits
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from sys import argv, exit, stderr
 
-fits_file = "J_ApJS_199_26_table3.dat.gz.fits"
-dat_file = "2mrs.dat"
+def usage():
+  print(f"Usage: {argv[0]} <catalog>", file=stderr)
+  print("\tWith catalog in: quaia_G20.0, quaia_G20.5", file=stderr)
+  exit(1)
+
+if len(argv) != 2:
+  usage()
+if argv[1] == "quaia_G20.0":
+    fits_file = "quaia_G20.0.fits"
+    dat_file = "quaia_G20.0.dat"
+elif argv[1] == "quaia_G20.5":
+    fits_file = "quaia_G20.5.fits"
+    dat_file = "quaia_G20.5.dat"
+else:
+    usage()
 
 max_qso = None
 
 print(f"Loading {fits_file} ...", end="", flush=True)
 with fits.open(fits_file) as hdul:
-    data = hdul[1].data
+    qso_data = hdul[1].data
 
     if max_qso is not None:
-        data = data[:max_qso]
+        qso_data = qso_data[:max_qso]
 
-    print(f" {len(data):,} objects selected")
+    print(f" {len(qso_data):,} QSOs selected")
 
     ra_list = []
     dec_list = []
     z_list = []
 
-    for row in tqdm(data, desc="Processing objects"):
-        cz = row["cz"]
-        if cz < 0:
+    for row in tqdm(qso_data, desc="Processing QSOs"):
+        z = row["redshift_quaia"]
+        if z < 0:
           continue
-        ra_list.append(np.deg2rad(row["RAdeg"]))
-        dec_list.append(np.deg2rad(row["DEdeg"]))
-        z_list.append(cz / 299792.458)
+        ra_list.append(np.deg2rad(row["ra"]))
+        dec_list.append(np.deg2rad(row["dec"]))
+        z_list.append(z)
 
     df = pd.DataFrame({
         "RA_rad": ra_list,

@@ -22,7 +22,6 @@ from astropy.io import fits
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from sys import argv, exit, stderr
 
 fits_file = "VII_259_6dfgs.dat.gz.fits"
 dat_file = "6dfgs.dat"
