@@ -26,14 +26,17 @@ import MainWindow from './views/MainWindow.vue'
 import { storeToRefs } from 'pinia'
 import { useStatusStore } from '@/stores/status.js'
 import { useUniverseStore } from '@/stores/universe.js'
+import { useCatalogStore } from '@/stores/catalog.js'
 import { useThemeStore } from '@/stores/theme.js'
 import { watch, onMounted } from 'vue'
 import { useTheme } from 'vuetify'
 
 const statusStore = useStatusStore()
 const universeStore = useUniverseStore()
+const catalogStore = useCatalogStore()
 const themeStore = useThemeStore()
-const { busy } = storeToRefs(statusStore)
+const { busy, viewRefreshRate } = storeToRefs(statusStore)
+const { targets, subsetTargets } = storeToRefs(catalogStore)
 const vuetifyTheme = useTheme()
 
 onMounted(() => {
@@ -47,6 +50,22 @@ watch(busy, (isBusy) => {
   } else {
     document.body.classList.remove('busy-cursor')
   }
+})
+
+watch(viewRefreshRate, (rate) => {
+  if (subsetTargets.value && subsetTargets.value.length !== 0) return
+  if (!targets.value || targets.value.length === 0) return
+  if (rate <= 0) return
+
+  // Approximation: 100 fps target.
+  const total = targets.value.length
+  const budget = Math.floor(total * (rate / 100.0))
+
+  // Keep it reasonably sized (at least 1000 or 1%)
+  const minBudget = Math.max(1000, Math.floor(total * 0.01))
+  const finalBudget = Math.max(minBudget, budget)
+
+  catalogStore.updateSubset(finalBudget)
 })
 </script>
 

@@ -681,8 +681,9 @@ export async function updateView(targets, view, RA1, Dec1, Beta) {
   const statusStore = useStatusStore()
   const catalogStore = useCatalogStore()
 
-  // Use parallel computation for large datasets
-  if (targets && targets.length >= PARALLEL_THRESHOLD) {
+  // Use parallel computation for large datasets.
+  // Do not use it for partial datasets used to have smooth view upgrade, because targets are not contiguous in buffer.
+  if (targets && targets === catalogStore.targets && targets.length >= PARALLEL_THRESHOLD) {
     try {
       let buffer = catalogStore.sharedBuffer
 

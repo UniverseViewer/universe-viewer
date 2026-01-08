@@ -229,7 +229,8 @@
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="ra1 = pendingRa1"
+                    @start="statusStore.setInteracting(true)"
+                    @end="statusStore.setInteracting(false); ra1 = pendingRa1"
                   ></v-slider>
                   <v-number-input
                     v-model="pendingRa1"
@@ -253,7 +254,8 @@
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="dec1 = pendingDec1"
+                    @start="statusStore.setInteracting(true)"
+                    @end="statusStore.setInteracting(false); dec1 = pendingDec1"
                   ></v-slider>
                   <v-number-input
                     v-model="pendingDec1"
@@ -277,7 +279,8 @@
                     hide-details
                     density="compact"
                     :disabled="isSkyMode"
-                    @end="beta = pendingBeta"
+                    @start="statusStore.setInteracting(true)"
+                    @end="statusStore.setInteracting(false); beta = pendingBeta"
                   ></v-slider>
                   <v-number-input
                     v-model="pendingBeta"
@@ -434,7 +437,7 @@ const catalogStore = useCatalogStore()
 const { targets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
 
 const statusStore = useStatusStore()
-const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
+const { busy } = storeToRefs(statusStore)
 
 const themeStore = useThemeStore()
 const { darkMode } = storeToRefs(themeStore)
@@ -502,19 +505,13 @@ watch(beta, (val) => {
   pendingBeta.value = val
 })
 watch(pendingRa1, (val) => {
-  if (isVueImmediateRefreshEnabled.value) {
-    ra1.value = val
-  }
+  ra1.value = val
 })
 watch(pendingDec1, (val) => {
-  if (isVueImmediateRefreshEnabled.value) {
-    dec1.value = val
-  }
+  dec1.value = val
 })
 watch(pendingBeta, (val) => {
-  if (isVueImmediateRefreshEnabled.value) {
-    beta.value = val
-  }
+  beta.value = val
 })
 
 // Computed

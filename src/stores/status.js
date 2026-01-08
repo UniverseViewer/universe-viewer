@@ -10,6 +10,7 @@ export const useStatusStore = defineStore('status', () => {
   const viewRefreshRate = ref(0)
   const totalComputationDuration = ref(0)
   const projComputationDuration = ref(0)
+  const isInteracting = ref(false)
 
   function increment() {
     busyRefCount.value++
@@ -26,6 +27,10 @@ export const useStatusStore = defineStore('status', () => {
       // This indicates a potential logic error in the calling code
       console.warn('busyStore.decrement() called when count is already zero.')
     }
+  }
+
+  function setInteracting(value) {
+    isInteracting.value = value
   }
 
   function setProgress(value) {
@@ -99,5 +104,7 @@ export const useStatusStore = defineStore('status', () => {
     projComputationDuration,
     projComputationStart,
     projComputationEnd,
+    isInteracting,
+    setInteracting,
   }
 })

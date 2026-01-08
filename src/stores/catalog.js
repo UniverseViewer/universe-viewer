@@ -24,6 +24,7 @@ import Target, { STRIDE, OFFSET_REDSHIFT, OFFSET_RA, OFFSET_DEC } from '@/logic/
 export const useCatalogStore = defineStore('catalog', () => {
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
+  const subsetTargets = shallowRef(null)
   const sharedBuffer = shallowRef(null)
   const minRedshift = shallowRef(0.0)
   const maxRedshift = shallowRef(0.0)
@@ -148,10 +149,31 @@ export const useCatalogStore = defineStore('catalog', () => {
       currentIdx++
     }
 
+    subsetTargets.value = []
+    setSelectedTargets([])
     targets.value = newTargets
     minRedshift.value = newMinRedshift
     maxRedshift.value = newMaxRedshift
-    setSelectedTargets([])
+  }
+
+  function updateSubset(count) {
+    if (!targets.value) {
+      subsetTargets.value = []
+      return
+    }
+
+    const total = targets.value.length
+    if (count >= total) {
+      subsetTargets.value = targets.value
+      return
+    }
+
+    const step = total / count
+    const subset = []
+    for (let i = 0; i < total; i += step) {
+      subset.push(targets.value[Math.floor(i)])
+    }
+    subsetTargets.value = subset
   }
 
   function save(filename='uv_catalog.dat') {
@@ -263,6 +285,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     selectedCount,
     selectedTargets,
     targets,
+    subsetTargets,
     minRedshift,
     maxRedshift,
     sharedBuffer,
@@ -272,6 +295,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     // Setters
     setSelectedTargets,
     load,
+    updateSubset,
     save,
     removeSelectedTargets,
     reverseSelectedTargets,

@@ -519,6 +519,7 @@ describe('Projection Logic', () => {
         getDeclination: () => 0,
       }
       const lotsOfTargets = new Array(300001).fill(minimalTarget)
+      mocks.catalogStore.targets = lotsOfTargets
 
       await projection.updateAll(lotsOfTargets, 4, 0, 0, 0, false, 0, 0.7, 0.3, 0, false)
 
@@ -564,6 +565,7 @@ describe('Projection Logic', () => {
       mocks.catalogStore.sharedBuffer = buffer
 
       const lotsOfTargets = new Array(300001).fill(createMockTarget())
+      mocks.catalogStore.targets = lotsOfTargets
       await projection.updateAll(lotsOfTargets, 4, 0, 0, 0, false, 0, 0.7, 0.3, 0, false)
 
       // Verify that the buffer from store was passed down
@@ -606,6 +608,7 @@ describe('Projection Logic', () => {
         getDeclination: () => 0,
       }
       const lotsOfTargets = new Array(300001).fill(minimalTarget)
+      mocks.catalogStore.targets = lotsOfTargets
 
       // Mock setStatusMessage to throw on the first call to trigger the catch block in updateAll
       mocks.statusStore.setStatusMessage.mockImplementationOnce(() => {
@@ -631,6 +634,7 @@ describe('Projection Logic', () => {
         sety: () => {},
       }
       const lotsOfTargets = new Array(300001).fill(minimalTarget)
+      mocks.catalogStore.targets = lotsOfTargets
 
       await projection.updateView(lotsOfTargets, 4, 0, 0, 0)
       expect(mocks.statusStore.setStatusMessage).toHaveBeenCalledWith('Computing projection')
@@ -647,6 +651,7 @@ describe('Projection Logic', () => {
         sety: () => {},
       }
       const lotsOfTargets = new Array(300001).fill(minimalTarget)
+      mocks.catalogStore.targets = lotsOfTargets
 
       // Mock setStatusMessage to throw on the first call to trigger the catch block in updateView
       // The first call is 'Computing projection'

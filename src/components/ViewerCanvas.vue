@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" :class="['viewer-root', (busy && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode, constraintError ? 'constraint-error' : '']">
+  <div ref="root" :class="['viewer-root', (busy && !isInteracting && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode, constraintError ? 'constraint-error' : '']">
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -56,7 +56,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, markRaw } from 'vu
 import { storeToRefs } from 'pinia'
 import * as THREE from 'three'
 import * as projection from '@/logic/projection.js'
-import { OFFSET_RA, OFFSET_DEC, OFFSET_PROJ_X, OFFSET_PROJ_Y, STRIDE } from '@/logic/target.js'
+import { OFFSET_RA, OFFSET_DEC, OFFSET_PROJ_X, OFFSET_PROJ_Y } from '@/logic/target.js'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
@@ -95,9 +95,16 @@ export default {
       showRedshiftGradient,
       constraintError,
     } = storeToRefs(universeStore)
-    const { busy, isVueImmediateRefreshEnabled } = storeToRefs(statusStore)
-    const { targets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
+    const { busy, isVueImmediateRefreshEnabled, isInteracting } = storeToRefs(statusStore)
+    const { targets, subsetTargets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
     const { canvasTheme: theme, themeName, darkMode, redshiftGradient } = storeToRefs(themeStore)
+
+    const activeTargets = computed(() => {
+      if (isInteracting.value && !isVueImmediateRefreshEnabled.value) {
+        return subsetTargets.value
+      }
+      return targets.value
+    })
 
     const state = reactive({
       zoom: 0.5,
@@ -396,7 +403,7 @@ export default {
     async function recomputeAll() {
       await statusStore.runBusyTask(async () => {
         await projection.updateAll(
-          targets.value,
+          activeTargets.value,
           view.value,
           userRA1.value,
           userDec1.value,
@@ -415,7 +422,7 @@ export default {
     async function recomputeView() {
       await statusStore.runBusyTask(async () => {
         await projection.updateView(
-          targets.value,
+          activeTargets.value,
           view.value,
           userRA1.value,
           userDec1.value,
@@ -457,7 +464,7 @@ export default {
       const geometry = state.geometry
       if (!geometry) return
 
-      const t = targets.value || []
+      const t = activeTargets.value || []
       const N = t.length
 
       const colors = geometry.attributes.color
@@ -526,7 +533,7 @@ export default {
 
     function populatePoints() {
       if (constraintError.value) { return } // Exit early if constraint error is active
-      const t = targets.value || []
+      const t = activeTargets.value || []
       const N = t.length
 
       // Check for SharedArrayBuffer support
@@ -580,7 +587,7 @@ export default {
       // Fast path for Zero-Copy
       if (isZeroCopy) {
         for (let i = 0; i < N; i++) {
-          const offset = i * STRIDE
+          const offset = t[i].offset
           let x, y
           if (state.mode === state.SKY_MODE) {
             x = float64View[offset + OFFSET_RA]
@@ -923,7 +930,7 @@ export default {
     }
 
     function clearSelection() {
-      const t = targets.value || []
+      const t = activeTargets.value || []
       t.forEach((ti) => {
         if (ti.setSelected) ti.setSelected(false)
       })
@@ -993,7 +1000,7 @@ export default {
           const clickX = p1.worldX
           const clickY = p1.worldY
 
-          const t = targets.value || []
+          const t = activeTargets.value || []
           let minDistance = clickThresholdWorld
 
           for (let i = 0; i < t.length; i++) {
@@ -1022,7 +1029,7 @@ export default {
           selY2 = Math.max(p1.worldY, p2.worldY)
         }
 
-        const t = targets.value || []
+        const t = activeTargets.value || []
         const selectedRefs = []
 
         // Pre-capture selected state for intersection mode
@@ -1132,6 +1139,15 @@ export default {
       handlePressedKeys()
     }
 
+    watch(activeTargets, (newT) => {
+      // When switching between subset and full set
+      if (newT === targets.value) {
+        recomputeAll()
+      } else {
+        updateCanvas()
+      }
+    })
+
     function onKeyUp(e) {
       if (e.key === 'Shift') {
         state.shiftKeyPressed = false
@@ -1205,6 +1221,7 @@ export default {
       updateCanvas,
       busy,
       isVueImmediateRefreshEnabled,
+      isInteracting,
       mouseMode,
       themeName,
       redshiftGradient,
