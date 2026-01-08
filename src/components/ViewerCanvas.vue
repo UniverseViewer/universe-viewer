@@ -33,7 +33,7 @@
 
 <script>
 /*
- * Copyright (C) 2008-2025 Mathieu Abati <mathieu.abati@gmail.com>
+ * Copyright (C) 2008-2026 Mathieu Abati <mathieu.abati@gmail.com>
  * Copyright (C) 2008 Julie Fontaine
  *
  * This program is free software; you can redistribute it and/or
