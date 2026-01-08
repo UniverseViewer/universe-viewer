@@ -78,6 +78,7 @@ function updateChart() {
   chartInstance.value.data.labels = getLabels()
   chartInstance.value.data.datasets[0].data = redshiftDistribution.value
   chartInstance.value.data.datasets[1].data = selectionRedshiftDistribution.value
+  chartInstance.value.data.datasets[1].hidden = selectedCount.value === 0
   chartInstance.value.update()
 }
 
@@ -127,6 +128,29 @@ watch(dialog, (val) => {
                     }
                   }
                 }
+              },
+              onClick: (event, elements) => {
+                if (elements.length > 0) {
+                  const element = elements[0]
+                  // Only react to clicks on the Target Count dataset (index 0)
+                  if (element.datasetIndex === 0) {
+                    const index = element.index
+                    const count = resolution.value
+                    const min = minRedshift.value
+                    const max = maxRedshift.value
+                    const step = (max - min) / count
+                    const rangeStart = min + index * step
+                    // Ensure the last bin covers up to max (floating point safety)
+                    const rangeEnd = (index === count - 1) ? max + 0.0001 : rangeStart + step
+                    let mode = 'replace'
+                    if (event.native.shiftKey) mode = 'additive'
+                    else if (event.native.ctrlKey) mode = 'intersection'
+                    store.selectTargetsByRedshiftRange(rangeStart, rangeEnd, mode)
+                  }
+                }
+              },
+              onHover: (event, chartElement) => {
+                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
               }
             }
           })

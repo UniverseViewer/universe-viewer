@@ -281,6 +281,37 @@ export const useCatalogStore = defineStore('catalog', () => {
     sharedBuffer.value = buffer
   }
 
+  function selectTargetsByRedshiftRange(min, max, mode = 'replace') {
+    if (!targets.value) return
+
+    const tList = targets.value
+    const len = tList.length
+    const newSelected = []
+
+    for (let i = 0; i < len; i++) {
+      const t = tList[i]
+      const r = t.getRedshift()
+      const inRange = r >= min && r < max
+      const wasSelected = t.isSelected ? t.isSelected() : false
+
+      let shouldBeSelected = false
+
+      if (mode === 'replace') {
+        shouldBeSelected = inRange
+      } else if (mode === 'additive') {
+        shouldBeSelected = wasSelected || inRange
+      } else if (mode === 'intersection') {
+        shouldBeSelected = wasSelected && inRange
+      }
+
+      if (t.setSelected) t.setSelected(shouldBeSelected)
+      if (shouldBeSelected) {
+        newSelected.push(t)
+      }
+    }
+    selectedTargets.value = newSelected
+  }
+
   return {
     selectedCount,
     selectedTargets,
@@ -300,6 +331,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     removeSelectedTargets,
     reverseSelectedTargets,
     clearSelectedTargets,
+    selectTargetsByRedshiftRange,
     setTargets,
     setSharedBuffer,
   }
