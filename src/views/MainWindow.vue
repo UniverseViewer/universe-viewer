@@ -301,11 +301,22 @@
                     label="Target point size"
                     v-model="targetPointSize"
                     :max="10"
-                    :min="0.5"
+                    :min="0.1"
                     step="0.1"
+                    hide-details
                   >
                     <template v-slot:append>
-                      {{ targetPointSize.toFixed(1) }}
+                      <v-number-input
+                        v-model="targetPointSize"
+                        :precision="null"
+                        :min="0.1"
+                        :max="10"
+                        :step="0.1"
+                        control-variant="stacked"
+                        density="compact"
+                        hide-details
+                      >
+                      </v-number-input>
                     </template>
                   </v-slider>
                 </v-expansion-panel-text>

@@ -483,7 +483,7 @@ export default {
       const minRed = minRedshift.value
       const maxRed = maxRedshift.value
       const rangeInv = (maxRed - minRed) > 1e-9 ? 1.0 / (maxRed - minRed) : 0
-      
+
       const pointR = themeVal.point.r
       const pointG = themeVal.point.g
       const pointB = themeVal.point.b
