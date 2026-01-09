@@ -33,15 +33,48 @@ export function computeEuclidianScalarProduct(target1, target2) {
 }
 
 /**
- * Compute the apparent angular celestial separation between two targets.
+ * Compute the apparent angular separation between two targets on a chosen reference sky.
  *
  * @param {Target} target1 - First target
  * @param {Target} target2 - Second target
+ * @param {number} sky - The sky to use: Earth sky (0), first target sky (1), second target sky (2)
  * @return {number} The angular separation between the two targets (radians)
  */
-export function computeAngularSeparation(target1, target2) {
-  const cosTheta12 = computeEuclidianScalarProduct(target1, target2)
-  return Math.acos(Math.max(-1, Math.min(1, cosTheta12)))
+
+export function computeAngularSeparation(target1, target2, sky = 0) {
+  let cosTheta
+
+  if (sky === 0) {
+    // Earth sky
+    cosTheta = computeEuclidianScalarProduct(target1, target2)
+  } else {
+    // Choose reference object
+    const ref = (sky === 1) ? target1 : target2
+    const other = (sky === 1) ? target2 : target1
+    const rRef = ref.getPos()
+    const rOther = other.getPos()
+
+    // Direction from ref to other
+    const dx = rOther.x - rRef.x
+    const dy = rOther.y - rRef.y
+    const dz = rOther.z - rRef.z
+    const dLen = Math.sqrt(dx*dx + dy*dy + dz*dz)
+    if (dLen === 0) return 0
+    const ux = dx / dLen
+    const uy = dy / dLen
+    const uz = dz / dLen
+
+    // Direction from ref to Earth
+    const rLen = Math.sqrt(rRef.x*rRef.x + rRef.y*rRef.y + rRef.z*rRef.z)
+    if (rLen === 0) return 0
+    const uTx = -rRef.x / rLen
+    const uTy = -rRef.y / rLen
+    const uTz = -rRef.z / rLen
+    cosTheta = ux*uTx + uy*uTy + uz*uTz
+  }
+
+  cosTheta = Math.max(-1, Math.min(1, cosTheta))
+  return Math.acos(cosTheta)
 }
 
 /**

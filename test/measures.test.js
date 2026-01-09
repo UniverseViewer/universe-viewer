@@ -6,6 +6,17 @@ const createTarget = (tau, ra, dec) => ({
   getAngularDist: () => tau,
   getAscension: () => ra,
   getDeclination: () => dec,
+  getPos: () => {
+      // Simple spherical to cartesian conversion for mocking
+      // x = cos(ra)cos(dec), y = sin(ra)cos(dec), z = sin(dec)
+      // Let's use magnitude 'tau' to be consistent with getAngularDist
+      const r = tau;
+      return {
+          x: r * Math.cos(ra) * Math.cos(dec),
+          y: r * Math.sin(ra) * Math.cos(dec),
+          z: r * Math.sin(dec)
+      }
+  }
 })
 
 describe('Measures Logic', () => {
@@ -56,6 +67,57 @@ describe('Measures Logic', () => {
       // cos(delta) = 1/(2*sqrt(2)) + 1/2 = sqrt(2)/4 + 1/2 = (sqrt(2)+2)/4
       const expectedSeparation = Math.acos((Math.sqrt(2) + 2) / 4)
       expect(computeAngularSeparation(t1, t2)).toBeCloseTo(expectedSeparation, 5)
+    })
+
+    it('should calculate separation from Target 1 perspective (sky=1)', () => {
+      // Earth at origin (implicitly)
+      // Target 1 (Ref) at distance 10 on X axis (RA=0, Dec=0)
+      // Target 2 (Other) at distance 20 on X axis (RA=0, Dec=0)
+      // From T1, Earth is at -X, T2 is at +X. Angle is 180 degrees (PI).
+      const t1 = createTarget(10, 0, 0)
+      const t2 = createTarget(20, 0, 0)
+
+      const separation = computeAngularSeparation(t1, t2, 1)
+      expect(separation).toBeCloseTo(Math.PI, 5)
+    })
+
+    it('should calculate separation from Target 2 perspective (sky=2)', () => {
+      // Earth at origin (implicitly)
+      // Target 1 (Other) at distance 10 on X axis (RA=0, Dec=0)
+      // Target 2 (Ref) at distance 20 on X axis (RA=0, Dec=0)
+      // From T2, Earth is at -X, T1 is at -X. Angle is 0 degrees.
+      const t1 = createTarget(10, 0, 0)
+      const t2 = createTarget(20, 0, 0)
+
+      const separation = computeAngularSeparation(t1, t2, 2)
+      expect(separation).toBeCloseTo(0, 5)
+    })
+
+    it('should calculate 90 degree separation in T1 sky', () => {
+      // Earth at origin (implicitly)
+      // T1 at (10, 0, 0) -> Direction to Earth is (-1, 0, 0)
+      // T2 at (10, 10, 0) -> Direction from T1 to T2 is (0, 10, 0) -> normalized (0, 1, 0)
+      // Angle between (-1, 0, 0) and (0, 1, 0) is 90 degrees (PI/2)
+      // T2 coordinates relative to origin:
+      // dist = sqrt(100+100) = 10*sqrt(2)
+      // ra = PI/4, dec = 0
+      const t1 = createTarget(10, 0, 0)
+      const t2 = createTarget(10 * Math.SQRT2, Math.PI/4, 0)
+
+      const separation = computeAngularSeparation(t1, t2, 1)
+      expect(separation).toBeCloseTo(Math.PI / 2, 5)
+    })
+
+    it('should return 0 if targets are identical when using sky=1 (dLen=0)', () => {
+      const t1 = createTarget(10, 0, 0)
+      const t2 = createTarget(10, 0, 0)
+      expect(computeAngularSeparation(t1, t2, 1)).toBe(0)
+    })
+
+    it('should return 0 if reference target is at origin when using sky=1 (rLen=0)', () => {
+      const t1 = createTarget(0, 0, 0) // At origin
+      const t2 = createTarget(10, 0, 0)
+      expect(computeAngularSeparation(t1, t2, 1)).toBe(0)
     })
   })
 

@@ -72,8 +72,19 @@
         {{ angularDistanceBetween.toFixed(4) }}
       </div>
       <div class="text-caption">
-        <strong>Angular Separation (rad):</strong>
+        <strong>Angular Separation (rad) between</strong>
+      </div>
+      <div class="text-caption ml-4">
+        <strong>1<sup>st</sup> and 2<sup>nd</sup> targets:</strong>
         {{ angularSeparation.toFixed(4) }}
+      </div>
+      <div class="text-caption ml-4">
+        <strong>1<sup>st</sup> target and Earth:</strong>
+        {{ angularSeparation2T.toFixed(4) }}
+      </div>
+      <div class="text-caption ml-4">
+        <strong>2<sup>nd</sup> target and Earth:</strong>
+        {{ angularSeparation1T.toFixed(4) }}
       </div>
     </div>
     <div v-else>
@@ -199,6 +210,24 @@ const angularSeparation = computed(() => {
   selectedTargets.value
   if (selectedCount.value === 2) {
     return computeAngularSeparation(selectedTargets.value[0], selectedTargets.value[1])
+  }
+  return 0
+})
+
+const angularSeparation1T = computed(() => {
+  // Access selectedTargets to trigger re-evaluation when selection is changed
+  selectedTargets.value
+  if (selectedCount.value === 2) {
+    return computeAngularSeparation(selectedTargets.value[0], selectedTargets.value[1], 2)
+  }
+  return 0
+})
+
+const angularSeparation2T = computed(() => {
+  // Access selectedTargets to trigger re-evaluation when selection is changed
+  selectedTargets.value
+  if (selectedCount.value === 2) {
+    return computeAngularSeparation(selectedTargets.value[0], selectedTargets.value[1], 1)
   }
   return 0
 })
