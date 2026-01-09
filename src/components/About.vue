@@ -55,10 +55,7 @@
                     <v-card-text>
                       <div v-if="catalog.author"><strong>Author:</strong> {{ catalog.author }}</div>
                       <div v-if="catalog.link">
-                        <strong>Link:</strong>
-                        <a :href="catalog.link" target="_blank" rel="noopener">{{
-                          catalog.link
-                        }}</a>
+                        <strong>Link:</strong> <a :href="catalog.link" target="_blank" rel="noopener">{{ catalog.link }}</a>
                       </div>
                       <div v-if="catalog.license">
                         <strong>License:</strong> {{ catalog.license }}
