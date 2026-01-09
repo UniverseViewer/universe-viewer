@@ -15,11 +15,10 @@
         <v-window v-model="tab">
           <v-window-item value="software">
             <div class="pa-4">
-              &copy; 2008 - 2025
+              &copy; 2008 - 2026
               <br />
               <br />
-              <strong><a href="mailto:mathieu.abati@gmail.com">Mathieu Abati</a></strong> (2008 -
-              2025)
+              <strong><a href="mailto:mathieu.abati@gmail.com">Mathieu Abati</a></strong> (2008 - 2011, 2025 - 2026)
               <br />
               <strong>Julie Fontaine</strong> (2008)
               <br />
