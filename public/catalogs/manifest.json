@@ -8,6 +8,14 @@
     "link": "https://ui.adsabs.harvard.edu/abs/1993ApJS...87..451H/abstract"
   },
   {
+    "name": "IRAS Point Source Catalog Redshift (PSCz)",
+    "year": 2000,
+    "targets_number": 16119,
+    "file": "vii_221_iraspscz/pscz.gz",
+    "author": "Saunders W., Sutherland W.J., Maddox S.J., Keeble O., Oliver S.J., Rowan-Robinson M., McMahon R.G., Efstathiou G.P., Tadros H., White S.D.M., Frenk C.S., Carraminana A., Hawkins M.R.S.",
+    "link": "https://heasarc.gsfc.nasa.gov/w3browse/all/iraspscz.html"
+  },
+  {
     "name": "2dF QSO Redshifr Survey",
     "year": 2001,
     "targets_number": 22431,

@@ -51,5 +51,7 @@ public/catalogs/twomassrsc/*.fits
 public/catalogs/twomassrsc/*.dat
 public/catalogs/quaia/*.fits
 public/catalogs/quaia/*.dat
+public/catalogs/vii_221_iraspscz/*.fits
+public/catalogs/vii_221_iraspscz/*.dat
 
 sync.sh
