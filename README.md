@@ -62,6 +62,13 @@ Here is a summary of included catalogs.
 - **Date:** 1993.
 - [Website](https://ui.adsabs.harvard.edu/abs/1993ApJS...87..451H/abstract)
 
+### IRAS Point Source Catalog Redshift (PSCz)
+
+- **Authors:** Saunders W., Sutherland W.J., Maddox S.J., Keeble O., Oliver S.J., Rowan-Robinson M., McMahon R.G., Efstathiou G.P., Tadros H., White S.D.M., Frenk C.S., Carraminana A., Hawkins M.R.S.
+- **Date:** 2000.
+- [Website](https://heasarc.gsfc.nasa.gov/w3browse/all/iraspscz.html)
+- [More details here](/public/catalogs/vii_221_iraspscz/README.md)
+
 ### 2dF QSO Redshifr Survey
 
 - **Authors:** Croom et al.
@@ -89,7 +96,7 @@ Here is a summary of included catalogs.
 - [Website](https://heasarc.gsfc.nasa.gov/W3Browse/all/twomassrsc.html)
 - [More details here](/public/catalogs/twomassrsc/README.md)
 
-### SDSS QSO Catalog: DR16Q
+### SDSS QSO Catalog: DR16Q (v3 Superset and v4)
 
 - **Authors:** Lyke et al.
 - **Date:** 2020
@@ -102,6 +109,14 @@ Here is a summary of included catalogs.
 - **Date:** 2023
 - [Website](https://quasars.org/milliquas.htm)
 - [More details here](/public/catalogs/milliquas/README.md)
+
+### Quaia: The Gaia-unWISE Quasar Catalog (G20.0 and G20.5)
+
+- **Authors:** Storey-Fisher Kate, Hogg David W., Rix Hans-Walter, Eilers Anna-Christina, Fabbian Giulio, Blanton Michael, Alonso David
+- **Date:** 2023
+- [Website](https://zenodo.org/records/10403370)
+- [More details here](/public/catalogs/quaia/README.md)
+- **License:** Creative Commons Attribution 4.0 International
 
 ### AGN/QSO Value-Added Catalog for DESI DR1
 
