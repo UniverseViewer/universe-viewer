@@ -38,9 +38,9 @@ export function comovingDist(redshift, kappa, lambda, omega, alpha, precisionEna
   const integrand = (x) => evolutionIntegrand(x, kappa, lambda, omega, alpha)
 
   if (precisionEnabled) {
-    return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, integrand)
-  } else {
     return rombergIntegral.integrate(zInv, 1.0, 6, integrand)
+  } else {
+    return trapezoidalIntegral.integrate(zInv, 1.0, 0.01, integrand)
   }
 }
 

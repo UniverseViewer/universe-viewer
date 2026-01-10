@@ -19,7 +19,7 @@
  */
 
 /**
- * Integral computation (slow, high precision)
+ * Integral computation with trapezoidal rule
  */
 
 /**

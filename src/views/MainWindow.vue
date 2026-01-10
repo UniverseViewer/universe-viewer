@@ -193,7 +193,7 @@
                   </v-number-input>
                   <v-checkbox
                     v-model="precisionEnabled"
-                    label="High precision integration"
+                    label="Romberg's high precision integration"
                     density="compact"
                     hide-details
                     :disabled="isSkyMode"

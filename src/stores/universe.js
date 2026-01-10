@@ -45,7 +45,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const userBeta = ref(0.0) // radians
 
   const viewerCanvas = ref(null)
-  const precisionEnabled = ref(true)
+  const precisionEnabled = ref(false)
   const comovingSpaceFlag = ref(true)
   const pointSize = ref(1.5)
   const viewerMode = ref('universe')
@@ -72,9 +72,9 @@ export const useUniverseStore = defineStore('universe', () => {
       evolutionIntegrand(x, kappa.value, lambda.value, omega.value, alpha.value)
 
     if (precisionEnabled.value) {
-      return trapezoidalIntegral.integrate(0.0, 1.0, 0.001, integrand)
+      return rombergIntegral.integrate(0.0, 1.0, 6, integrand)
     } else {
-      return rombergIntegral.integrate(0.0, 1.0, 10, integrand)
+      return trapezoidalIntegral.integrate(0.0, 1.0, 0.01, integrand)
     }
   })
   const horizonAngularDistance = computed(() => {

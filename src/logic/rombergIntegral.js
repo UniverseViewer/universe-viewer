@@ -19,7 +19,7 @@
  */
 
 /**
- * Integral computation (fast, low precision)
+ * Integral computation with Romberg's method
  */
 
 let width = 0
