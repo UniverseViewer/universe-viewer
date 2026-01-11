@@ -441,6 +441,7 @@ const {
   precisionEnabled,
   pointSize,
   viewerMode,
+  redshiftDistributionOpened,
   constraintError,
 } = storeToRefs(store)
 
@@ -461,7 +462,6 @@ const viewer = ref(null)
 
 // Local State
 const selectedConst = ref('kappa')
-const redshiftDistributionOpened = ref(false)
 const isLoading = ref(false)
 const loadingTitle = ref('')
 const loadingPercentage = ref(0)

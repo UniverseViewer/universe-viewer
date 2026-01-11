@@ -16,6 +16,11 @@
               label="Resolution"
               thumb-label
             ></v-slider>
+            <v-switch
+              v-model="showRedshiftGradient"
+              label="Redshift Gradient"
+              color="success"
+            />
           </div>
         </div>
       </v-card-text>
@@ -50,6 +55,7 @@
 import { computed, ref, watch, shallowRef, onBeforeUnmount, nextTick } from 'vue'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useThemeStore } from '@/stores/theme.js'
+import { useUniverseStore } from '@/stores/universe.js'
 import { Chart, registerables } from 'chart.js'
 import { storeToRefs } from 'pinia'
 
@@ -71,11 +77,44 @@ const dialog = computed({
 
 const store = useCatalogStore()
 const theme = useThemeStore()
+const universe = useUniverseStore()
 const { redshiftDistribution, selectionRedshiftDistribution, selectedCount, resolution, minRedshift, maxRedshift } = storeToRefs(store)
-const { canvasTheme } = storeToRefs(theme)
+const { canvasTheme, redshiftGradient } = storeToRefs(theme)
+const { showRedshiftGradient } = storeToRefs(universe)
 
 const chartCanvas = ref(null)
 const chartInstance = shallowRef(null)
+
+function getBarBackgroundColor(context) {
+  if (!context.chart) return
+
+  if (showRedshiftGradient.value) {
+    const dataIndex = context.dataIndex
+    const dataset = context.dataset
+    const count = dataset.data.length
+    const min = minRedshift.value
+    const max = maxRedshift.value
+    const step = (max - min) / count
+
+    const barRedshift = min + dataIndex * step + step / 2 // Midpoint of the bar's redshift range
+
+    let val = (barRedshift - min) / (max - min)
+    if (val < 0) val = 0
+    if (val > 1) val = 1
+    const lutIdx = (val * 255) | 0
+    const offset = lutIdx * 3
+
+    const r = redshiftGradient.value[offset] * 255
+    const g = redshiftGradient.value[offset + 1] * 255
+    const b = redshiftGradient.value[offset + 2] * 255
+
+    return `rgba(${r}, ${g}, ${b}, 0.8)`
+  } else {
+    // Default dark color if gradient is not shown
+    const c = canvasTheme.value.point
+    return `rgba(${c.r * 255}, ${c.g * 255}, ${c.b * 255}, 0.5)`
+  }
+}
 
 function getLabels() {
   const count = resolution.value
@@ -96,6 +135,7 @@ function updateChart() {
 
   chartInstance.value.data.labels = getLabels()
   chartInstance.value.data.datasets[0].data = redshiftDistribution.value
+  chartInstance.value.data.datasets[0].backgroundColor = getBarBackgroundColor
   chartInstance.value.data.datasets[1].data = selectionRedshiftDistribution.value
   chartInstance.value.data.datasets[1].hidden = selectedCount.value === 0
   chartInstance.value.update()
@@ -117,7 +157,7 @@ watch(dialog, (val) => {
               datasets: [{
                 label: 'Target Count',
                 data: redshiftDistribution.value,
-                backgroundColor: `rgba(${canvasTheme.value.point.r * 255}, ${canvasTheme.value.point.g * 255}, ${canvasTheme.value.point.b * 255}, 0.5)`,
+                backgroundColor: getBarBackgroundColor,
                 borderColor: `rgba(${canvasTheme.value.point.r * 255}, ${canvasTheme.value.point.g * 255}, ${canvasTheme.value.point.b * 255}, 1)`,
                 borderWidth: 1
               },
@@ -184,7 +224,7 @@ watch(dialog, (val) => {
   }
 })
 
-watch([redshiftDistribution, selectionRedshiftDistribution, selectedCount, resolution], () => {
+watch([redshiftDistribution, selectionRedshiftDistribution, selectedCount, resolution, showRedshiftGradient], () => {
   updateChart()
 })
 

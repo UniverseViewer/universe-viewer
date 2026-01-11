@@ -25,7 +25,19 @@
         <span class="text-caption mr-2">Redshift</span>
         <span class="text-caption mr-1">{{ minRedshift ? minRedshift.toFixed(2) : '0.00' }}</span>
         <div :style="gradientStyle" class="mr-1 rounded"></div>
-        <span class="text-caption">{{ maxRedshift ? maxRedshift.toFixed(2) : '0.00' }}</span>
+        <span class="text-caption mr-4">{{ maxRedshift ? maxRedshift.toFixed(2) : '0.00' }}</span>
+        <v-tooltip text="Show Redshift Distribution">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-chart-bar"
+              variant="text"
+              density="compact"
+              size="small"
+              @click="redshiftDistributionOpened = true"
+            ></v-btn>
+          </template>
+        </v-tooltip>
       </v-sheet>
     </div>
   </div>
@@ -93,6 +105,7 @@ export default {
       mouseMode,
       showRefMarks,
       showRedshiftGradient,
+      redshiftDistributionOpened,
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled, isInteracting } = storeToRefs(statusStore)
@@ -1230,6 +1243,7 @@ export default {
       showRedshiftGradient,
       minRedshift,
       maxRedshift,
+      redshiftDistributionOpened,
     }
   },
 }

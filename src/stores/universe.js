@@ -52,6 +52,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const mouseMode = ref('move')
   const showRefMarks = ref(true)
   const showRedshiftGradient = ref(false)
+  const redshiftDistributionOpened = ref(false)
 
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
   const userBetaHours = computed(() => (12 * userBeta.value) / Math.PI)
@@ -183,6 +184,7 @@ export const useUniverseStore = defineStore('universe', () => {
     mouseMode,
     showRefMarks,
     showRedshiftGradient,
+    redshiftDistributionOpened,
     // Setters
     setCosmoParams,
     setUserRa1,

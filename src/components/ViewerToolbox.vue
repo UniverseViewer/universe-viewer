@@ -42,6 +42,14 @@
       rounded="0"
     ></v-btn>
     <v-btn
+      icon="mdi-chart-bar"
+      variant="text"
+      :color="redshiftDistributionOpened ? 'primary' : undefined"
+      @click="redshiftDistributionOpened = true"
+      title="Show Redshift Distribution"
+      rounded="0"
+    ></v-btn>
+    <v-btn
       icon="mdi-image-filter-center-focus"
       variant="text"
       @click="$emit('resetView')"
@@ -57,7 +65,7 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 
 const store = useUniverseStore()
-const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient } = storeToRefs(store)
+const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient, redshiftDistributionOpened } = storeToRefs(store)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
