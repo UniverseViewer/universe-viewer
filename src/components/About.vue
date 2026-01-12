@@ -1,10 +1,22 @@
 <template>
   <v-dialog v-model="visible" width="auto" scrollable>
     <v-card max-width="800" height="600" max-height="90vh" class="d-flex flex-column">
-      <v-card-title class="d-flex align-center">
-        <v-icon icon="mdi-information" class="mr-2"></v-icon>
-        UniverseViewer {{ version }}
-      </v-card-title>
+      <v-img
+        src="/splash.webp"
+        height="300"
+        cover
+        class="align-start text-white"
+        gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+      >
+        <v-row class="ma-2">
+          <v-col cols="9">
+            <div class="text-h3 font-weight-bold">Universe Viewer</div>
+          </v-col>
+          <v-col cols="3" class="text-right">
+            <div class="text-subtitle-1">{{ version }}</div>
+          </v-col>
+        </v-row>
+      </v-img>
 
       <v-tabs v-model="tab">
         <v-tab value="software">Software</v-tab>
@@ -23,7 +35,7 @@
               <strong>Julie Fontaine</strong> (2008)
               <br />
               <br />
-              Special thanks to <strong>Roland Triay</strong>
+              Special thanks to <strong><a href="mailto:roland.triay@cpt.univ-mrs.fr">Roland Triay</a></strong>
               <br />
               <br />
               Based on
