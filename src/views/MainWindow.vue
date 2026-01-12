@@ -12,7 +12,7 @@
               <!-- CATALOG -->
               <v-expansion-panel title="Catalog" value="catalog">
                 <v-expansion-panel-text>
-                  <CatalogBrowser v-model="catalogFile" />
+                  <CatalogBrowser v-model="catalogFile" v-model:opened="catalogBrowserOpened" />
                   or<br /><br />
                   <div class="d-flex align-center">
                     <v-file-input
@@ -442,11 +442,12 @@ const {
   pointSize,
   viewerMode,
   redshiftDistributionOpened,
+  aboutOpened,
   constraintError,
 } = storeToRefs(store)
 
 const catalogStore = useCatalogStore()
-const { targets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
+const { catalogFile, browsedFile, targets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
 
 const statusStore = useStatusStore()
 const { busy } = storeToRefs(statusStore)
@@ -465,6 +466,7 @@ const selectedConst = ref('kappa')
 const isLoading = ref(false)
 const loadingTitle = ref('')
 const loadingPercentage = ref(0)
+const catalogBrowserOpened = ref(false)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -542,11 +544,9 @@ onMounted(() => {
 })
 
 // File Loading
-const catalogFile = ref(undefined)
-const browsedFile = ref(null)
 const catalogSubsetPercent = ref(100)
-function onFileChange(event) {
-  const file = event.target.files[0]
+
+function loadUserCatalog(file) {
   if (!file) return
   statusStore.increment()
   isLoading.value = true
@@ -583,9 +583,21 @@ function onFileChange(event) {
     isLoading.value = false
   }
 
-  catalogFile.value = undefined
   reader.readAsText(file)
 }
+
+function onFileChange(event) {
+  const file = event.target.files[0]
+  if (file) {
+    loadUserCatalog(file)
+  }
+}
+
+watch(browsedFile, (newFile) => {
+  if (newFile) {
+    loadUserCatalog(newFile)
+  }
+})
 
 // Help
 const helpOpened = ref(false)
@@ -595,8 +607,6 @@ function openHelp(tab = 'controls') {
   helpOpened.value = true
   helpTab.value = tab
 }
-
-const aboutOpened = ref(false)
 
 // Logic Updates
 
@@ -611,7 +621,6 @@ function resetView() {
 watch(catalogFile, async (newVal) => {
   if (newVal === undefined || newVal === null) return
   statusStore.increment()
-  browsedFile.value = null
   isLoading.value = true
 
   loadingTitle.value = 'Downloading catalog...'

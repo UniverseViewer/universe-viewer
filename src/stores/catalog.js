@@ -18,10 +18,12 @@
  */
 
 import { defineStore } from 'pinia'
-import { computed, shallowRef } from 'vue'
+import { watch, computed, shallowRef } from 'vue'
 import Target, { STRIDE, OFFSET_REDSHIFT, OFFSET_RA, OFFSET_DEC } from '@/logic/target.js'
 
 export const useCatalogStore = defineStore('catalog', () => {
+  const catalogFile = shallowRef(undefined)
+  const browsedFile = shallowRef(null)
   const selectedTargets = shallowRef([])
   const targets = shallowRef(null)
   const subsetTargets = shallowRef(null)
@@ -29,6 +31,16 @@ export const useCatalogStore = defineStore('catalog', () => {
   const minRedshift = shallowRef(0.0)
   const maxRedshift = shallowRef(0.0)
   const resolution = shallowRef(10)
+
+  watch(catalogFile, (newVal) => {
+    if (newVal === undefined || newVal === null) return
+    browsedFile.value = null
+  })
+
+  watch(browsedFile, (newVal) => {
+    if (newVal === undefined || newVal === null) return
+    catalogFile.value = undefined
+  })
 
   // Computed from selectedTargets array length
   const selectedCount = computed(() => selectedTargets.value.length)
@@ -313,6 +325,8 @@ export const useCatalogStore = defineStore('catalog', () => {
   }
 
   return {
+    catalogFile,
+    browsedFile,
     selectedCount,
     selectedTargets,
     targets,

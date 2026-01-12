@@ -5,6 +5,7 @@
     :items="catalogs"
     item-value="file"
     v-model="internalValue"
+    v-model:menu="menuOpened"
     label="Load catalog"
     density="compact"
     prepend-icon="mdi-library-shelves"
@@ -31,20 +32,26 @@
  * MA 02110-1301, USA.
  */
 
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 
 export default {
   name: 'CatalogBrowser',
 
   props: {
-    modelValue: { type: String, default: null },   // parent → child
+    modelValue: { type: String, default: null },
     disabled: { type: Boolean, default: false },
+    opened: { type: Boolean, default: false },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'update:opened'],
 
   setup(props, { emit }) {
     let catalogs = ref([])
     const internalValue = ref(props.modelValue)
+
+    const menuOpened = computed({
+      get: () => props.opened,
+      set: (val) => emit('update:opened', val)
+    })
 
     function catalogProps (catalog) {
       return {
@@ -78,6 +85,7 @@ export default {
       catalogs,
       catalogProps,
       internalValue,
+      menuOpened,
     }
   },
 }

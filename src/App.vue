@@ -1,5 +1,6 @@
 <template>
   <MainWindow />
+  <SplashScreen />
 </template>
 
 <script setup>
@@ -23,6 +24,7 @@
  */
 
 import MainWindow from './views/MainWindow.vue'
+import SplashScreen from './components/SplashScreen.vue'
 import { storeToRefs } from 'pinia'
 import { useStatusStore } from '@/stores/status.js'
 import { useUniverseStore } from '@/stores/universe.js'
