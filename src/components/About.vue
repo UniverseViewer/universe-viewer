@@ -10,10 +10,18 @@
       >
         <v-row class="ma-2">
           <v-col cols="9">
-            <div class="text-h3 font-weight-bold">Universe Viewer</div>
+            <div class="text-h3 font-weight-bold d-flex align-center">
+              <img
+                src="/logo.webp"
+                alt="Logo"
+                class="me-3"
+                style="height: 1em; width: auto; display: block;"
+              />
+              <span style="line-height: 1;">Universe Viewer</span>
+            </div>
           </v-col>
           <v-col cols="3" class="text-right">
-            <div class="text-subtitle-1">{{ version }}</div>
+            <div class="text-subtitle-1"><strong>{{ version }}</strong></div>
           </v-col>
         </v-row>
       </v-img>
