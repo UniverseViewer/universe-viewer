@@ -75,15 +75,15 @@
         <strong>Angular Separation (rad) between</strong>
       </div>
       <div class="text-caption ml-4">
-        <strong>1<sup>st</sup> and 2<sup>nd</sup> targets:</strong>
+        <strong>1<sup>st</sup> and 2<sup>nd</sup> targets from Earth:</strong>
         {{ angularSeparation.toFixed(4) }}
       </div>
       <div class="text-caption ml-4">
-        <strong>1<sup>st</sup> target and Earth:</strong>
+        <strong>1<sup>st</sup> target and Earth from 2<sup>nd</sup> target:</strong>
         {{ angularSeparation2T.toFixed(4) }}
       </div>
       <div class="text-caption ml-4">
-        <strong>2<sup>nd</sup> target and Earth:</strong>
+        <strong>2<sup>nd</sup> target and Earth from 1<sup>st</sup> target:</strong>
         {{ angularSeparation1T.toFixed(4) }}
       </div>
     </div>
