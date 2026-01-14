@@ -17,16 +17,44 @@
  * MA 02110-1301, USA.
  */
 
+/**
+ * Round a number to a specific number of decimal places.
+ *
+ * @param {number} n - The number to round.
+ * @param {number} digits - The number of decimal places.
+ * @returns {number} The rounded number.
+ */
 function roundTo(n, digits) {
   const factor = Math.pow(10, digits)
   return Math.round(n * factor) / factor
 }
 
+/**
+ * Compute the sum of the cosmological parameters according to the Friedmann equation constraint.
+ *
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @returns {number} The sum lambda - kappa + omega + alpha.
+ */
 export function getSumConsts(lambda, omega, kappa, alpha) {
   return lambda - kappa + omega + alpha
 }
 
-const CONSTRAINT_BROKEN_PREFIX = "Cosmological constraint broken:\n"
+const CONSTRAINT_BROKEN_PREFIX = 'Cosmological constraint broken:\n'
+
+/**
+ * Validate the cosmological parameters.
+ * Throws an error if any constraint is broken.
+ *
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} [comovingSpaceFlag] - Whether comoving space is enabled.
+ * @throws {Error} If a constraint is broken.
+ */
 export function validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFlag) {
   if (roundTo(getSumConsts(lambda, omega, kappa, alpha), 5) !== 1.0) {
     throw new Error(CONSTRAINT_BROKEN_PREFIX + 'lambda - kappa + omega + alpha = 1.0 not verified!')
@@ -48,6 +76,16 @@ export function validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFl
   }
 }
 
+/**
+ * Check if the cosmological parameters are valid.
+ *
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} [comovingSpaceFlag] - Whether comoving space is enabled.
+ * @returns {boolean} True if the parameters are valid, false otherwise.
+ */
 export function isCosmoParamsValid(lambda, omega, kappa, alpha, comovingSpaceFlag) {
   try {
     validateCosmoParams(lambda, omega, kappa, alpha, comovingSpaceFlag)

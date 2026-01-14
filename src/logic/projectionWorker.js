@@ -53,6 +53,21 @@ self.onmessage = function (e) {
 
 /**
  * Calculate angular distance for a chunk of targets.
+ *
+ * @param {Object} data - The task data.
+ * @param {SharedArrayBuffer} data.buffer - The shared buffer.
+ * @param {number} data.start - Start index.
+ * @param {number} data.end - End index.
+ * @param {number} data.kappa - Curvature.
+ * @param {number} data.lambda - Lambda.
+ * @param {number} data.omega - Omega.
+ * @param {number} data.alpha - Alpha.
+ * @param {boolean} data.precisionEnabled - Precision flag.
+ * @param {number} data.stride - Buffer stride.
+ * @param {number} data.offsetRedshift - Redshift offset.
+ * @param {number} data.offsetAngDist - Angular distance offset.
+ * @param {number} data.id - Task ID for progress reporting.
+ * @returns {boolean} Always true on success.
  */
 function calcAngularDist(data) {
   const {
@@ -90,8 +105,30 @@ function calcAngularDist(data) {
   return true
 }
 
-/*
+/**
  * Calculate positions for a chunk of targets.
+ *
+ * @param {Object} data - The task data.
+ * @param {SharedArrayBuffer} data.buffer - The shared buffer.
+ * @param {number} data.start - Start index.
+ * @param {number} data.end - End index.
+ * @param {boolean} data.comovingSpaceFlag - Comoving flag.
+ * @param {number} data.kappa - Curvature.
+ * @param {number} data.lambda - Lambda.
+ * @param {number} data.omega - Omega.
+ * @param {number} data.alpha - Alpha.
+ * @param {boolean} data.precisionEnabled - Precision flag.
+ * @param {number} data.stride - Buffer stride.
+ * @param {number} data.offsetAngDist - Angular distance offset.
+ * @param {number} data.offsetRA - RA offset.
+ * @param {number} data.offsetDec - Dec offset.
+ * @param {number} data.offsetRedshift - Redshift offset.
+ * @param {number} data.offsetPosX - X offset.
+ * @param {number} data.offsetPosY - Y offset.
+ * @param {number} data.offsetPosZ - Z offset.
+ * @param {number} data.offsetPosT - T offset.
+ * @param {number} data.id - Task ID for progress reporting.
+ * @returns {boolean} Always true on success.
  */
 function calcPos(data) {
   const {
@@ -154,8 +191,26 @@ function calcPos(data) {
   return true
 }
 
-/*
+/**
  * Calculate projections for a chunk of targets.
+ *
+ * @param {Object} data - The task data.
+ * @param {SharedArrayBuffer} data.buffer - The shared buffer.
+ * @param {number} data.start - Start index.
+ * @param {number} data.end - End index.
+ * @param {number} data.view - Projection view index.
+ * @param {number} data.RA1 - Right Ascension 1.
+ * @param {number} data.Dec1 - Declination 1.
+ * @param {number} data.Beta - Beta angle.
+ * @param {number} data.stride - Buffer stride.
+ * @param {number} data.offsetPosX - X offset.
+ * @param {number} data.offsetPosY - Y offset.
+ * @param {number} data.offsetPosZ - Z offset.
+ * @param {number} data.offsetPosT - T offset.
+ * @param {number} data.offsetProjX - Projected X offset.
+ * @param {number} data.offsetProjY - Projected Y offset.
+ * @param {number} data.id - Task ID for progress reporting.
+ * @returns {boolean} Always true on success.
  */
 function calcProj(data) {
   const {

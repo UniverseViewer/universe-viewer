@@ -23,12 +23,12 @@
  */
 
 /**
- * Numerical integration using fixed step trapezoidal rule
+ * Numerical integration using fixed step trapezoidal rule.
  * @param {number} limitA - start of interval
  * @param {number} limitB - end of interval
  * @param {number} stepH - step size
  * @param {function} funcToIntegrate - the function to integrate
- * @returns {number}
+ * @returns {number} The estimated integral value.
  */
 export function integrate(limitA, limitB, stepH, funcToIntegrate) {
   if (limitA === limitB) return 0

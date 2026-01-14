@@ -22,7 +22,17 @@
  * Manages a pool of Web Workers for parallel computation.
  */
 
+/**
+ * Worker Pool Manager.
+ * Manages a pool of Web Workers for parallel computation.
+ */
 class WorkerPool {
+  /**
+   * Create a worker pool.
+   *
+   * @param {class} workerClass - The Worker class to instantiate.
+   * @param {number} [maxWorkers=null] - Maximum number of workers. Defaults to hardware concurrency.
+   */
   constructor(workerClass, maxWorkers = null) {
     this.workerClass = workerClass
     this.maxWorkers = maxWorkers || Math.max(1, navigator.hardwareConcurrency || 4)
@@ -34,7 +44,9 @@ class WorkerPool {
   }
 
   /**
-   * Initialize the worker pool.
+   * Initialize the worker pool by creating and starting workers.
+   *
+   * @returns {Promise<void>}
    */
   async init() {
     if (this.initialized) return
@@ -61,10 +73,11 @@ class WorkerPool {
 
   /**
    * Execute a task on an available worker.
+   *
    * @param {string} type - Task type (e.g., 'calcAngularDist', 'calcPos', 'calcProj').
-   * @param {object} data - Task data.
-   * @param {function} onProgress - Optional callback for progress updates.
-   * @returns {Promise} Promise that resolves with the result.
+   * @param {object} data - Task data to be sent to the worker.
+   * @param {function} [onProgress=null] - Optional callback for progress updates.
+   * @returns {Promise<any>} Promise that resolves with the task result.
    */
   executeTask(type, data, onProgress = null) {
     return new Promise((resolve, reject) => {
@@ -87,9 +100,10 @@ class WorkerPool {
   }
 
   /**
-   * Execute multiple tasks in parallel.
-   * @param {Array} tasks - Array of {type, data, onProgress} objects.
-   * @returns {Promise<Array>} Promise that resolves with array of results.
+   * Execute multiple tasks in parallel across the pool.
+   *
+   * @param {Array<Object>} tasks - Array of task objects {type, data, onProgress}.
+   * @returns {Promise<Array<any>>} Promise that resolves with an array of results.
    */
   async executeParallel(tasks) {
     const promises = tasks.map((task) => this.executeTask(task.type, task.data, task.onProgress))
@@ -98,6 +112,9 @@ class WorkerPool {
 
   /**
    * Assign a task to an available worker.
+   *
+   * @param {Object} task - The task object.
+   * @private
    */
   assignTask(task) {
     const worker = this.availableWorkers.pop()
@@ -111,7 +128,11 @@ class WorkerPool {
   }
 
   /**
-   * Handle message from worker.
+   * Handle messages received from workers (results or progress).
+   *
+   * @param {Worker} worker - The worker that sent the message.
+   * @param {MessageEvent} event - The message event.
+   * @private
    */
   handleWorkerMessage(worker, event) {
     const { id, result, error, progress } = event.data
@@ -142,7 +163,11 @@ class WorkerPool {
   }
 
   /**
-   * Handle worker error.
+   * Handle worker errors.
+   *
+   * @param {Worker} worker - The worker that errored.
+   * @param {ErrorEvent} error - The error event.
+   * @private
    */
   handleWorkerError(worker, error) {
     console.error('Worker error:', error)
@@ -159,7 +184,7 @@ class WorkerPool {
   }
 
   /**
-   * Terminate all workers.
+   * Terminate all workers in the pool and clear queues.
    */
   terminate() {
     this.workers.forEach((worker) => worker.terminate())
@@ -170,7 +195,9 @@ class WorkerPool {
   }
 
   /**
-   * Get number of workers.
+   * Get the total number of workers in the pool.
+   *
+   * @returns {number} The worker count.
    */
   getWorkerCount() {
     return this.maxWorkers
@@ -184,7 +211,9 @@ let projectionWorkerPool = null
 import ProjectionWorker from './projectionWorker.js?worker'
 
 /**
- * Get or create the projection worker pool.
+ * Get or create the singleton projection worker pool instance.
+ *
+ * @returns {Promise<WorkerPool>}
  */
 export async function getProjectionWorkerPool() {
   if (!projectionWorkerPool) {
@@ -195,7 +224,7 @@ export async function getProjectionWorkerPool() {
 }
 
 /**
- * Terminate the projection worker pool.
+ * Terminate the singleton projection worker pool.
  */
 export function terminateProjectionWorkerPool() {
   if (projectionWorkerPool) {

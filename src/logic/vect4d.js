@@ -18,32 +18,66 @@
  * MA 02110-1301, USA.
  */
 
+/**
+ * Represents a 4D vector.
+ */
 export default class Vect4d {
+  /**
+   * Create a 4D vector.
+   *
+   * @param {number} [x=0] - X coordinate.
+   * @param {number} [y=0] - Y coordinate.
+   * @param {number} [z=0] - Z coordinate.
+   * @param {number} [t=0] - T coordinate.
+   */
   constructor(x = 0, y = 0, z = 0, t = 0) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.t = t;
+    this.x = x
+    this.y = y
+    this.z = z
+    this.t = t
   }
 
-  // Accessors
-  getX() { return this.x; }
-  getY() { return this.y; }
-  getZ() { return this.z; }
-  getT() { return this.t; }
+  /** @returns {number} The X coordinate. */
+  getX() {
+    return this.x
+  }
+  /** @returns {number} The Y coordinate. */
+  getY() {
+    return this.y
+  }
+  /** @returns {number} The Z coordinate. */
+  getZ() {
+    return this.z
+  }
+  /** @returns {number} The T coordinate. */
+  getT() {
+    return this.t
+  }
 
-  setX(v) { this.x = v; }
-  setY(v) { this.y = v; }
-  setZ(v) { this.z = v; }
-  setT(v) { this.t = v; }
+  /** @param {number} v - The new X coordinate. */
+  setX(v) {
+    this.x = v
+  }
+  /** @param {number} v - The new Y coordinate. */
+  setY(v) {
+    this.y = v
+  }
+  /** @param {number} v - The new Z coordinate. */
+  setZ(v) {
+    this.z = v
+  }
+  /** @param {number} v - The new T coordinate. */
+  setT(v) {
+    this.t = v
+  }
 
-  // Dot product
+  /**
+   * Compute the dot product with another 4D vector.
+   *
+   * @param {Vect4d} v - The other vector.
+   * @returns {number} The dot product.
+   */
   dotProd4d(v) {
-    return (
-      this.x * v.x +
-      this.y * v.y +
-      this.z * v.z +
-      this.t * v.t
-    );
+    return this.x * v.x + this.y * v.y + this.z * v.z + this.t * v.t
   }
 }

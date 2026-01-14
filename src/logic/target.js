@@ -19,19 +19,44 @@
  */
 
 // Data layout constants for SharedArrayBuffer
+/** @type {number} Offset of redshift in SharedArrayBuffer. */
 export const OFFSET_REDSHIFT = 0
+/** @type {number} Offset of Right Ascension in SharedArrayBuffer. */
 export const OFFSET_RA = 1
+/** @type {number} Offset of Declination in SharedArrayBuffer. */
 export const OFFSET_DEC = 2
+/** @type {number} Offset of dimensionless angular distance in SharedArrayBuffer. */
 export const OFFSET_ANG_DIST = 3
+/** @type {number} Offset of position X in SharedArrayBuffer. */
 export const OFFSET_POS_X = 4
+/** @type {number} Offset of position Y in SharedArrayBuffer. */
 export const OFFSET_POS_Y = 5
+/** @type {number} Offset of position Z in SharedArrayBuffer. */
 export const OFFSET_POS_Z = 6
+/** @type {number} Offset of position T in SharedArrayBuffer. */
 export const OFFSET_POS_T = 7
+/** @type {number} Offset of projection X in SharedArrayBuffer. */
 export const OFFSET_PROJ_X = 8
+/** @type {number} Offset of projection Y in SharedArrayBuffer. */
 export const OFFSET_PROJ_Y = 9
+/** @type {number} Total elements per target in SharedArrayBuffer. */
 export const STRIDE = 10
 
+/**
+ * Represents an astronomical target (quasar, AGN, galaxy, etc.).
+ * Can be backed by a regular object or a SharedArrayBuffer for performance.
+ */
 export default class Target {
+  /**
+   * Create a Target.
+   *
+   * @param {Object} [options={}] - Creation options.
+   * @param {Float64Array} [options.bufferView=null] - View on a SharedArrayBuffer for high performance.
+   * @param {number} [options.index=0] - Index of the target within the buffer.
+   * @param {number} [options.ascension=0] - Right Ascension (radians).
+   * @param {number} [options.declination=0] - Declination (radians).
+   * @param {number} [options.redshift=0] - Redshift.
+   */
   constructor({
     // Buffer mode arguments
     bufferView = null,
@@ -53,19 +78,24 @@ export default class Target {
     }
   }
 
+  /** @returns {number} The Right Ascension (radians). */
   getAscension() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_RA] : this.ascension
   }
+  /** @returns {number} The Declination (radians). */
   getDeclination() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_DEC] : this.declination
   }
+  /** @returns {number} The Redshift. */
   getRedshift() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_REDSHIFT] : this.redshift
   }
+  /** @returns {number} The dimensionless angular distance. */
   getAngularDist() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_ANG_DIST] : this.angularDistance
   }
 
+  /** @returns {Object|Vect4d} The 4D position. */
   getPos() {
     if (this.isBufferBacked) {
       const x = this.view[this.offset + OFFSET_POS_X]
@@ -86,34 +116,42 @@ export default class Target {
       return this.pos
     }
   }
+  /** @returns {number} The projected X coordinate. */
   getx() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_PROJ_X] : this.x
   }
+  /** @returns {number} The projected Y coordinate. */
   gety() {
     return this.isBufferBacked ? this.view[this.offset + OFFSET_PROJ_Y] : this.y
   }
 
+  /** @returns {boolean} True if the target is selected. */
   isSelected() {
     return this.selected
   }
 
+  /** @param {number} v - The new Right Ascension (radians). */
   setAscension(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_RA] = v
     else this.ascension = v
   }
+  /** @param {number} v - The new Declination (radians). */
   setDeclination(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_DEC] = v
     else this.declination = v
   }
+  /** @param {number} v - The new Redshift. */
   setRedshift(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_REDSHIFT] = v
     else this.redshift = v
   }
+  /** @param {number} v - The new dimensionless angular distance. */
   setAngularDist(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_ANG_DIST] = v
     else this.angularDistance = v
   }
 
+  /** @param {Vect4d|Object} v - The new 4D position. */
   setPos(v) {
     if (this.isBufferBacked) {
       this.view[this.offset + OFFSET_POS_X] = v.x || v.getX()
@@ -124,15 +162,18 @@ export default class Target {
       this.pos = v
     }
   }
+  /** @param {number} v - The new projected X coordinate. */
   setx(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_PROJ_X] = v
     else this.x = v
   }
+  /** @param {number} v - The new projected Y coordinate. */
   sety(v) {
     if (this.isBufferBacked) this.view[this.offset + OFFSET_PROJ_Y] = v
     else this.y = v
   }
 
+  /** @param {boolean} v - Selection state. */
   setSelected(v) {
     this.selected = v
   }

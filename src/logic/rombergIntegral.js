@@ -24,16 +24,26 @@
 
 let width = 0
 
+/**
+ * Scaling helper function for the integrand.
+ *
+ * @param {number} x - Normalized x coordinate [0, 1].
+ * @param {number} limitA - The interval start.
+ * @param {function} funcToIntegrate - The function to integrate.
+ * @returns {number} The function value at the scaled coordinate.
+ */
 function ff(x, limitA, funcToIntegrate) {
   return funcToIntegrate(limitA + width * x)
 }
 
 /**
- * Fast integration using recursive refinement (Romberg-like)
- * @param {number} limitA - interval start
- * @param {number} limitB - interval end
- * @param {number} n - number of refinement steps
- * @param {function} funcToIntegrate - the function to integrate
+ * Fast numerical integration using Romberg's method.
+ *
+ * @param {number} limitA - The interval start.
+ * @param {number} limitB - The interval end.
+ * @param {number} n - The number of refinement steps (order).
+ * @param {function} funcToIntegrate - The function to integrate.
+ * @returns {number} The estimated integral value.
  */
 export function integrate(limitA, limitB, n, funcToIntegrate) {
   const maximum = 15

@@ -31,7 +31,15 @@ import { useCatalogStore } from '@/stores/catalog.js'
 const PARALLEL_THRESHOLD = 300000
 
 /**
- * Calculate comoving distance.
+ * Calculate the dimensionless comoving distance for a given redshift.
+ *
+ * @param {number} redshift - The target redshift.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision (Romberg) or fast (trapezoidal) integration.
+ * @returns {number} The dimensionless comoving distance.
  */
 export function comovingDist(redshift, kappa, lambda, omega, alpha, precisionEnabled) {
   const zInv = 1.0 / (1.0 + redshift)
@@ -45,7 +53,15 @@ export function comovingDist(redshift, kappa, lambda, omega, alpha, precisionEna
 }
 
 /**
- * Compute angular distance.
+ * Compute the dimensionless angular distance for a given redshift.
+ *
+ * @param {number} redshift - The target redshift.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @returns {number} The dimensionless angular distance.
  */
 export function computeAngularDist(redshift, kappa, lambda, omega, alpha, precisionEnabled) {
   let multiplier
@@ -57,7 +73,19 @@ export function computeAngularDist(redshift, kappa, lambda, omega, alpha, precis
 }
 
 /**
- * Compute position.
+ * Compute the 4D position of a target.
+ *
+ * @param {boolean} comovingSpaceFlag - Whether to compute in comoving space.
+ * @param {number} angularDist - The computed angular distance.
+ * @param {number} ascension - Right Ascension (radians).
+ * @param {number} declination - Declination (radians).
+ * @param {number} redshift - Redshift.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @returns {Vect4d} The computed 4D position.
  */
 export function computePos(
   comovingSpaceFlag,
@@ -117,7 +145,15 @@ export function computePos(
 }
 
 /**
- * Compute projection
+ * Compute the 2D projection of a 4D position onto a specific view plane.
+ *
+ * @param {Vect4d} pos - The 4D position.
+ * @param {number} view - The view index (1 to 6).
+ * @param {Vect4d} E0 - First projection vector.
+ * @param {Vect4d} E1 - Second projection vector.
+ * @param {Vect4d} E2 - Third projection vector.
+ * @param {Vect4d} E3 - Fourth projection vector.
+ * @returns {Object} An object with {x, y} projected coordinates.
  */
 export function computeProj(pos, view, E0, E1, E2, E3) {
   const p = new Vect4d(pos.x, pos.y, pos.z, pos.t)
@@ -157,7 +193,15 @@ export function computeProj(pos, view, E0, E1, E2, E3) {
 }
 
 /**
- * Compute angular distance for all targets.
+ * Calculate the dimensionless angular distance for an array of targets.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @returns {boolean} True if targets were processed, false otherwise.
  */
 export function calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, precisionEnabled) {
   if (!targets) return false
@@ -171,7 +215,16 @@ export function calcTargetsAngularDist(targets, kappa, lambda, omega, alpha, pre
 }
 
 /**
- * Compute position for all targets.
+ * Calculate the 4D position for an array of targets.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {boolean} comovingSpaceFlag - Whether to compute in comoving space.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @returns {boolean} True if targets were processed, false otherwise.
  */
 export function calcTargetsPos(
   targets,
@@ -204,7 +257,12 @@ export function calcTargetsPos(
 }
 
 /**
- * Compute projection vectors.
+ * Calculate the projection vectors E0, E1, E2, E3 for a given camera orientation.
+ *
+ * @param {number} RA1 - Center Right Ascension (radians).
+ * @param {number} Dec1 - Center Declination (radians).
+ * @param {number} Beta - Rotation angle (radians).
+ * @returns {Object} An object containing {E0, E1, E2, E3} Vect4d vectors.
  */
 export function calcProjVects(RA1, Dec1, Beta) {
   const E0 = new Vect4d()
@@ -272,7 +330,13 @@ export function calcProjVects(RA1, Dec1, Beta) {
 }
 
 /**
- * Compute projection for all targets.
+ * Calculate the 2D projection for an array of targets.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} view - The view index (1 to 6).
+ * @param {number} RA1 - Center Right Ascension (radians).
+ * @param {number} Dec1 - Center Declination (radians).
+ * @param {number} Beta - Rotation angle (radians).
  */
 export function calcTargetsProj(targets, view, RA1, Dec1, Beta) {
   if (!targets) return
@@ -311,7 +375,12 @@ import {
 } from '@/logic/target.js'
 
 /**
- * Helper to split targets into chunks for parallel processing.
+ * Split a set of targets into roughly equal chunks for parallel processing.
+ *
+ * @param {number} totalTargets - Total number of targets.
+ * @param {number} numChunks - Desired number of chunks.
+ * @returns {Array<Object>} Array of chunk objects {start, end, count}.
+ * @private
  */
 function splitIntoChunks(totalTargets, numChunks) {
   const chunks = []
@@ -334,6 +403,16 @@ function splitIntoChunks(totalTargets, numChunks) {
 
 /**
  * Parallel version of calcTargetsAngularDist().
+ * Computes angular distances using a worker pool and SharedArrayBuffer.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @param {SharedArrayBuffer} [sharedBuffer=null] - Optional pre-allocated shared buffer.
+ * @returns {Promise<boolean>} Resolves to true on success.
  */
 export async function calcTargetsAngularDistParallel(
   targets,
@@ -415,6 +494,17 @@ export async function calcTargetsAngularDistParallel(
 
 /**
  * Parallel version of calcTargetsPos().
+ * Computes 4D positions using a worker pool and SharedArrayBuffer.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {boolean} comovingSpaceFlag - Whether to compute in comoving space.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
+ * @param {SharedArrayBuffer} [sharedBuffer=null] - Optional pre-allocated shared buffer.
+ * @returns {Promise<boolean>} Resolves to true on success.
  */
 export async function calcTargetsPosParallel(
   targets,
@@ -509,15 +599,17 @@ export async function calcTargetsPosParallel(
 
 /**
  * Parallel version of calcTargetsProj().
+ * Computes 2D projections using a worker pool and SharedArrayBuffer.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} view - The view index (1 to 6).
+ * @param {number} RA1 - Center Right Ascension (radians).
+ * @param {number} Dec1 - Center Declination (radians).
+ * @param {number} Beta - Rotation angle (radians).
+ * @param {SharedArrayBuffer} [sharedBuffer=null] - Optional pre-allocated shared buffer.
+ * @returns {Promise<void>}
  */
-export async function calcTargetsProjParallel(
-  targets,
-  view,
-  RA1,
-  Dec1,
-  Beta,
-  sharedBuffer = null,
-) {
+export async function calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, sharedBuffer = null) {
   if (!targets || targets.length === 0) return
 
   try {
@@ -590,7 +682,20 @@ export async function calcTargetsProjParallel(
 }
 
 /**
- * Compute angular distance, position and projection for all targets, with parallelization if relevant.
+ * Update angular distance, position, and projection for all targets.
+ * Automatically chooses between parallel and single-threaded execution based on dataset size.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} view - The view index (1 to 6).
+ * @param {number} RA1 - Center Right Ascension (radians).
+ * @param {number} Dec1 - Center Declination (radians).
+ * @param {number} Beta - Rotation angle (radians).
+ * @param {boolean} comovingSpaceFlag - Whether to compute in comoving space.
+ * @param {number} kappa - Curvature parameter.
+ * @param {number} lambda - Cosmological constant.
+ * @param {number} omega - Matter density parameter.
+ * @param {number} alpha - Radiation density parameter.
+ * @param {boolean} precisionEnabled - Whether to use high precision integration.
  */
 export async function updateAll(
   targets,
@@ -643,14 +748,7 @@ export async function updateAll(
       statusStore.setStatusMessage('Computing projection [3/3]')
       statusStore.setProgress(0)
       statusStore.projComputationStart()
-      await calcTargetsProjParallel(
-        targets,
-        view,
-        RA1,
-        Dec1,
-        Beta,
-        buffer,
-      )
+      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, buffer)
       statusStore.projComputationEnd()
 
       statusStore.setStatusMessage('Ready')
@@ -675,7 +773,14 @@ export async function updateAll(
 }
 
 /**
- * Compute projection for all targets, with parallelization if relevant.
+ * Update the 2D projection for all targets (e.g., when the camera moves).
+ * Automatically chooses between parallel and single-threaded execution based on dataset size.
+ *
+ * @param {Array<Target>} targets - The targets to update.
+ * @param {number} view - The view index (1 to 6).
+ * @param {number} RA1 - Center Right Ascension (radians).
+ * @param {number} Dec1 - Center Declination (radians).
+ * @param {number} Beta - Rotation angle (radians).
  */
 export async function updateView(targets, view, RA1, Dec1, Beta) {
   const statusStore = useStatusStore()
@@ -689,14 +794,7 @@ export async function updateView(targets, view, RA1, Dec1, Beta) {
 
       statusStore.setStatusMessage('Computing projection')
       statusStore.setProgress(0)
-      await calcTargetsProjParallel(
-        targets,
-        view,
-        RA1,
-        Dec1,
-        Beta,
-        buffer,
-      )
+      await calcTargetsProjParallel(targets, view, RA1, Dec1, Beta, buffer)
 
       statusStore.setStatusMessage('Ready')
       statusStore.setProgress(100)
