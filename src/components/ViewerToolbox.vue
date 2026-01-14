@@ -2,7 +2,7 @@
   <v-sheet
     :class="['d-flex', xs ? 'flex-row' : 'flex-column', 'toolbox-sheet']"
     elevation="2"
-    rounded="!xs && !xm"
+    :rounded="mdAndUp"
     color="surface"
     :width="xs ? '100%' : undefined"
   >
@@ -71,7 +71,7 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useDisplay } from 'vuetify'
 
-const { xs, xm } = useDisplay()
+const { xs, mdAndUp } = useDisplay()
 
 const store = useUniverseStore()
 const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient, redshiftDistributionOpened } =
