@@ -1,5 +1,11 @@
 <template>
-  <v-sheet class="d-flex flex-column" elevation="2" rounded color="surface">
+  <v-sheet
+    :class="['d-flex', xs ? 'flex-row' : 'flex-column', 'toolbox-sheet']"
+    elevation="2"
+    rounded="!xs && !xm"
+    color="surface"
+    :width="xs ? '100%' : undefined"
+  >
     <v-btn
       icon="mdi-cursor-move"
       variant="text"
@@ -16,7 +22,7 @@
       title="Selection Mode"
       rounded="0"
     ></v-btn>
-    <v-divider></v-divider>
+    <v-divider :vertical="xs"></v-divider>
     <v-btn
       icon="mdi-telescope"
       variant="text"
@@ -63,9 +69,13 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
+import { useDisplay } from 'vuetify'
+
+const { xs, xm } = useDisplay()
 
 const store = useUniverseStore()
-const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient, redshiftDistributionOpened } = storeToRefs(store)
+const { mouseMode, viewerMode, showRefMarks, showRedshiftGradient, redshiftDistributionOpened } =
+  storeToRefs(store)
 
 const isSkyMode = computed(() => viewerMode.value === 'sky')
 
@@ -83,4 +93,21 @@ function toggleRedshiftGradient() {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.toolbox-sheet {
+  overflow: auto;
+}
+/* Desktop/Vertical limits */
+.toolbox-sheet.flex-column {
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/* Mobile Landscape Vertical limits */
+@media (max-width: 960px) and (orientation: landscape) {
+  .toolbox-sheet.flex-column {
+    max-height: 100vh;
+    height: 100%;
+  }
+}
+</style>

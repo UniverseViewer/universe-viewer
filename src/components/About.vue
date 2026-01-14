@@ -1,11 +1,14 @@
 <template>
-  <v-dialog v-model="visible" width="auto" scrollable>
+  <v-dialog v-model="visible" width="auto" scrollable :fullscreen="isMobile">
     <v-card max-width="800" height="600" max-height="90vh" class="d-flex flex-column">
+      <v-card-title class="d-flex align-center d-md-none mb-2">
+        <v-icon icon="mdi-information" class="mr-2"></v-icon>
+        UniverseViewer {{ version }}
+      </v-card-title>
       <v-img
         src="/splash.webp"
-        height="300"
+        class="align-start text-white splash-image d-none d-md-block"
         cover
-        class="align-start text-white"
         gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
       >
         <v-row class="ma-2">
@@ -15,13 +18,15 @@
                 src="/logo.webp"
                 alt="Logo"
                 class="me-3"
-                style="height: 1em; width: auto; display: block;"
+                style="height: 1em; width: auto; display: block"
               />
-              <span style="line-height: 1;">Universe Viewer</span>
+              <span style="line-height: 1">Universe Viewer</span>
             </div>
           </v-col>
           <v-col cols="3" class="text-right">
-            <div class="text-subtitle-1"><strong>{{ version }}</strong></div>
+            <div class="text-subtitle-1">
+              <strong>{{ version }}</strong>
+            </div>
           </v-col>
         </v-row>
       </v-img>
@@ -31,7 +36,7 @@
         <v-tab value="catalogs">Catalogs</v-tab>
       </v-tabs>
 
-      <v-card-text style="height: 400px">
+      <v-card-text class="content">
         <v-window v-model="tab">
           <v-window-item value="software">
             <div class="pa-4">
@@ -74,7 +79,10 @@
                     <v-card-text>
                       <div v-if="catalog.author"><strong>Author:</strong> {{ catalog.author }}</div>
                       <div v-if="catalog.link">
-                        <strong>Link:</strong> <a :href="catalog.link" target="_blank" rel="noopener">{{ catalog.link }}</a>
+                        <strong>Link:</strong>
+                        <a :href="catalog.link" target="_blank" rel="noopener">{{
+                          catalog.link
+                        }}</a>
                       </div>
                       <div v-if="catalog.license">
                         <strong>License:</strong> {{ catalog.license }}
@@ -116,9 +124,10 @@
  * MA 02110-1301, USA.
  */
 
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
+import { useDisplay } from 'vuetify'
 
 export default {
   name: 'AboutDialog',
@@ -131,6 +140,8 @@ export default {
   setup(props, { emit }) {
     const store = useUniverseStore()
     const { version } = storeToRefs(store)
+    const { mobile } = useDisplay()
+    const isMobile = computed(() => mobile.value)
 
     const visible = ref(props.modelValue)
     const tab = ref('software')
@@ -161,9 +172,24 @@ export default {
       visible,
       tab,
       catalogs,
+      isMobile,
     }
   },
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.splash-image {
+  height: 300px;
+}
+.content {
+  height: 400px;
+}
+
+/* Landscape mobile */
+@media (max-width: 960px) and (orientation: landscape) {
+  .content {
+    height: 300px;
+  }
+}
+</style>

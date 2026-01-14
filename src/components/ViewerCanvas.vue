@@ -1,5 +1,13 @@
 <template>
-  <div ref="root" :class="['viewer-root', (busy && !isInteracting && !isVueImmediateRefreshEnabled) ? 'busy' : '', mouseMode, constraintError ? 'constraint-error' : '']">
+  <div
+    ref="root"
+    :class="[
+      'viewer-root',
+      busy && !isInteracting && !isVueImmediateRefreshEnabled ? 'busy' : '',
+      mouseMode,
+      constraintError ? 'constraint-error' : '',
+    ]"
+  >
     <!-- Three.js canvas will be appended here -->
     <div ref="overlay" class="overlay"></div>
 
@@ -26,18 +34,20 @@
         <span class="text-caption mr-1">{{ minRedshift ? minRedshift.toFixed(2) : '0.00' }}</span>
         <div :style="gradientStyle" class="mr-1 rounded"></div>
         <span class="text-caption mr-4">{{ maxRedshift ? maxRedshift.toFixed(2) : '0.00' }}</span>
-        <v-tooltip text="Show Redshift Distribution">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-chart-bar"
-              variant="text"
-              density="compact"
-              size="small"
-              @click="redshiftDistributionOpened = true"
-            ></v-btn>
-          </template>
-        </v-tooltip>
+        <div class="d-none d-md-block">
+          <v-tooltip text="Show Redshift Distribution">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-chart-bar"
+                variant="text"
+                density="compact"
+                size="small"
+                @click="redshiftDistributionOpened = true"
+              ></v-btn>
+            </template>
+          </v-tooltip>
+        </div>
       </v-sheet>
     </div>
   </div>
@@ -150,6 +160,8 @@ export default {
       material: null,
       refGroup: null,
       highlightScale: 1.0,
+      touchDistStart: 0,
+      touchZoomStart: 0,
     })
 
     const modeName = computed(() => {
@@ -173,7 +185,7 @@ export default {
         background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`,
         width: '120px',
         height: '12px',
-        border: darkMode.value ? '1px solid #555' : '1px solid #ccc'
+        border: darkMode.value ? '1px solid #555' : '1px solid #ccc',
       }
     })
 
@@ -495,7 +507,7 @@ export default {
       const showGradient = showRedshiftGradient.value
       const minRed = minRedshift.value
       const maxRed = maxRedshift.value
-      const rangeInv = (maxRed - minRed) > 1e-9 ? 1.0 / (maxRed - minRed) : 0
+      const rangeInv = maxRed - minRed > 1e-9 ? 1.0 / (maxRed - minRed) : 0
 
       const pointR = themeVal.point.r
       const pointG = themeVal.point.g
@@ -545,7 +557,9 @@ export default {
     }
 
     function populatePoints() {
-      if (constraintError.value) { return } // Exit early if constraint error is active
+      if (constraintError.value) {
+        return
+      } // Exit early if constraint error is active
       const t = activeTargets.value || []
       const N = t.length
 
@@ -588,7 +602,7 @@ export default {
       const showGradient = showRedshiftGradient.value
       const minRed = minRedshift.value
       const maxRed = maxRedshift.value
-      const rangeInv = (maxRed - minRed) > 1e-9 ? 1.0 / (maxRed - minRed) : 0
+      const rangeInv = maxRed - minRed > 1e-9 ? 1.0 / (maxRed - minRed) : 0
 
       const pointR = themeVal.point.r
       const pointG = themeVal.point.g
@@ -689,7 +703,9 @@ export default {
     }
 
     function drawReferenceMarks() {
-      if (constraintError.value) { return } // Exit early if constraint error is active
+      if (constraintError.value) {
+        return
+      } // Exit early if constraint error is active
       while (state.refGroup.children.length) state.refGroup.remove(state.refGroup.children[0])
       if (!showRefMarks.value) return
       if (!Number.isFinite(horizonAngularDistance.value)) return
@@ -855,7 +871,8 @@ export default {
     }
 
     function updateCanvas() {
-      if (constraintError.value) { // If there's an error, don't update with data
+      if (constraintError.value) {
+        // If there's an error, don't update with data
         clearCanvasContent() // Ensure canvas is empty
         return
       }
@@ -989,11 +1006,7 @@ export default {
       }
     }
 
-    function onMouseUp(e) {
-      state.isDragging = false
-      if (e.button !== 0) return
-      if (!state.isSelecting) return
-
+    function commitSelection() {
       statusStore.runBusyTask(() => {
         const rect = root.value.getBoundingClientRect()
         const p1 = pixelToWorld(rect.left + state.selectX1, rect.top + state.selectY1)
@@ -1131,6 +1144,120 @@ export default {
       })
     }
 
+    function onMouseUp(e) {
+      state.isDragging = false
+      if (e.button !== 0) return
+      if (!state.isSelecting) return
+      commitSelection()
+    }
+
+    function onTouchStart(e) {
+      if (e.touches.length === 1) {
+        // 1 finger: dragging or selecting
+        const t = e.touches[0]
+        state.lastTouchX = t.clientX
+        state.lastTouchY = t.clientY
+
+        if (mouseMode.value === 'move') {
+          state.isDragging = true
+          state.mouseX = t.clientX
+          state.mouseY = t.clientY
+        } else if (mouseMode.value === 'select') {
+          const { pixelX, pixelY } = pixelToWorld(t.clientX, t.clientY)
+          state.selectX1 = pixelX
+          state.selectY1 = pixelY
+          state.selectX2 = pixelX
+          state.selectY2 = pixelY
+          state.isSelecting = true
+        }
+      } else if (e.touches.length === 2) {
+        // 2 fingers: pinch zoom
+        e.preventDefault()
+        const dx = e.touches[0].clientX - e.touches[1].clientX
+        const dy = e.touches[0].clientY - e.touches[1].clientY
+        state.touchDistStart = Math.sqrt(dx * dx + dy * dy)
+        state.touchZoomStart = state.zoom
+        state.isDragging = false
+        state.isSelecting = false
+
+        // Midpoint for zoom
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        state.mouseX = midX
+        state.mouseY = midY
+      }
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 1 && (state.isDragging || state.isSelecting)) {
+        e.preventDefault()
+        const t = e.touches[0]
+
+        if (state.isSelecting) {
+          const rect = root.value.getBoundingClientRect()
+          const localX = t.clientX - rect.left
+          const localY = t.clientY - rect.top
+          state.selectX2 = localX
+          state.selectY2 = localY
+          render()
+        } else if (state.isDragging) {
+          const worldCoords = pixelToWorld(t.clientX, t.clientY)
+
+          const prev = pixelToWorld(state.mouseX, state.mouseY)
+          const curr = worldCoords
+
+          const offsetX = prev.worldX - curr.worldX
+          const offsetY = prev.worldY - curr.worldY
+          state.posX += offsetX
+          state.posY += offsetY
+
+          state.mouseX = t.clientX
+          state.mouseY = t.clientY
+          render()
+        }
+      } else if (e.touches.length === 2) {
+        e.preventDefault()
+        const dx = e.touches[0].clientX - e.touches[1].clientX
+        const dy = e.touches[0].clientY - e.touches[1].clientY
+        const dist = Math.sqrt(dx * dx + dy * dy)
+
+        if (state.touchDistStart > 0) {
+          const scale = dist / state.touchDistStart
+
+          // Midpoint
+          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+
+          const before = pixelToWorld(midX, midY)
+
+          state.zoom = state.touchZoomStart * scale
+          if (state.zoom < 1e-4) state.zoom = 1e-4
+          state.zoomChanged = true
+
+          updateCameraBounds()
+          const after = pixelToWorld(midX, midY)
+
+          state.posX += before.worldX - after.worldX
+          state.posY += before.worldY - after.worldY
+
+          render()
+        }
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (state.isDragging) {
+        state.isDragging = false
+      }
+      if (state.isSelecting) {
+        commitSelection()
+      }
+
+      if (e.touches.length === 0) {
+        state.touchDistStart = 0
+      }
+    }
+
     function handlePressedKeys() {
       if (state.shiftKeyPressed) {
         state.selectionType = 'additive'
@@ -1178,6 +1305,9 @@ export default {
       dom.addEventListener('wheel', onWheel, { passive: false })
       dom.addEventListener('contextmenu', onContextMenu)
       dom.addEventListener('mousedown', onMouseDown)
+      dom.addEventListener('touchstart', onTouchStart, { passive: false })
+      dom.addEventListener('touchmove', onTouchMove, { passive: false })
+      dom.addEventListener('touchend', onTouchEnd, { passive: false })
       window.addEventListener('mousemove', onMouseMove)
       window.addEventListener('mouseup', onMouseUp)
       window.addEventListener('keyup', onKeyUp)
@@ -1205,6 +1335,9 @@ export default {
         dom.removeEventListener('wheel', onWheel)
         dom.removeEventListener('contextmenu', onContextMenu)
         dom.removeEventListener('mousedown', onMouseDown)
+        dom.removeEventListener('touchstart', onTouchStart)
+        dom.removeEventListener('touchmove', onTouchMove)
+        dom.removeEventListener('touchend', onTouchEnd)
       }
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
@@ -1346,5 +1479,20 @@ export default {
 }
 .redshift-legend .v-sheet {
   pointer-events: auto;
+}
+
+@media (max-width: 600px), (max-width: 960px) and (orientation: landscape) {
+  .redshift-legend {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    transform: none;
+  }
+  .redshift-legend .v-sheet {
+    width: 100%;
+    border-radius: 0 !important;
+    justify-content: center;
+  }
 }
 </style>

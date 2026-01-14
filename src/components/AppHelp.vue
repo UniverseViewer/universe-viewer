@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="visible" width="auto">
+  <v-dialog v-model="visible" width="auto" :fullscreen="isMobile">
     <v-card max-width="600" prepend-icon="mdi-information" title="Help">
       <v-tabs v-model="currentTab">
         <v-tab value="controls">Controls</v-tab>
@@ -58,7 +58,8 @@
  * MA 02110-1301, USA.
  */
 
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useDisplay } from 'vuetify'
 
 export default {
   name: 'AppHelp',
@@ -72,6 +73,8 @@ export default {
   setup(props, { emit }) {
     const visible = ref(props.modelValue)
     const currentTab = ref(props.tab || 'controls')
+    const { mobile } = useDisplay()
+    const isMobile = computed(() => mobile.value)
 
     // Sync with parent
     watch(visible, (value) => {
@@ -95,6 +98,7 @@ export default {
     return {
       visible,
       currentTab,
+      isMobile,
     }
   },
 }

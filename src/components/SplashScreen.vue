@@ -5,29 +5,31 @@
     persistent
     @click:outside="hideSplash"
     class="splash-dialog"
+    :fullscreen="isMobile"
   >
     <v-card>
       <v-img
         src="/splash.webp"
-        height="400"
+        class="align-start text-white splash-image"
         cover
-        class="align-start text-white"
         gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
       >
         <v-row class="ma-2">
           <v-col cols="9">
-          <div class="text-h3 font-weight-bold d-flex align-center">
-            <img
-              src="/logo.webp"
-              alt="Logo"
-              class="me-3"
-              style="height: 1em; width: auto; display: block;"
-            />
-            <span style="line-height: 1;">Universe Viewer</span>
-          </div>
+            <div class="text-h4 font-weight-bold d-flex align-center">
+              <img
+                src="/logo.webp"
+                alt="Logo"
+                class="me-3"
+                style="height: 1em; width: auto; display: block"
+              />
+              <span style="line-height: 1">Universe Viewer</span>
+            </div>
           </v-col>
           <v-col cols="3" class="text-right">
-            <div class="text-subtitle-1"><strong>{{ version }}</strong></div>
+            <div class="text-subtitle-1">
+              <strong>{{ version }}</strong>
+            </div>
           </v-col>
         </v-row>
       </v-img>
@@ -44,11 +46,7 @@
             >
               Load catalog
             </v-btn>
-            <CatalogBrowser
-              v-else
-              v-model="catalogFile"
-              v-model:opened="showCatalogBrowser"
-            />
+            <CatalogBrowser v-else v-model="catalogFile" v-model:opened="showCatalogBrowser" />
           </div>
           <div class="w-100">
             <v-btn
@@ -76,7 +74,7 @@
             About
           </v-btn>
           <v-row class="w-100 mt-2">
-            <v-col cols="6">
+            <v-col cols="12" sm="6">
               <v-switch
                 v-model="darkMode"
                 prepend-icon="mdi-theme-light-dark"
@@ -86,7 +84,7 @@
                 density="compact"
               />
             </v-col>
-            <v-col cols="6" class="text-right">
+            <v-col cols="12" sm="6" class="text-right">
               <v-btn @click="hideSplash">Close</v-btn>
             </v-col>
           </v-row>
@@ -97,12 +95,13 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useThemeStore } from '@/stores/theme.js'
 import { storeToRefs } from 'pinia'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
+import { useDisplay } from 'vuetify'
 
 const universeStore = useUniverseStore()
 const catalogStore = useCatalogStore()
@@ -110,6 +109,8 @@ const themeStore = useThemeStore()
 const { version, aboutOpened } = storeToRefs(universeStore)
 const { catalogFile, browsedFile } = storeToRefs(catalogStore)
 const { darkMode } = storeToRefs(themeStore)
+const { mobile } = useDisplay()
+const isMobile = computed(() => mobile.value)
 
 const dialog = ref(true)
 const showCatalogBrowser = ref(false)
@@ -140,5 +141,22 @@ watch([catalogFile, browsedFile, aboutOpened], () => {
 <style scoped>
 .splash-dialog {
   user-select: none;
+}
+.splash-image {
+  height: 400px;
+}
+
+/* Portrait mobile: reduce image height by half (approx 200px) */
+@media (max-width: 600px) and (orientation: portrait) {
+  .splash-image {
+    height: 200px;
+  }
+}
+
+/* Landscape mobile: limit image height to title height only */
+@media (max-width: 960px) and (orientation: landscape) {
+  .splash-image {
+    height: 60px;
+  }
 }
 </style>

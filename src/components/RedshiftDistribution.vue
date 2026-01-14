@@ -1,13 +1,16 @@
 <template>
-  <v-dialog v-model="dialog" max-width="800px" scrollable>
+  <v-dialog v-model="dialog" max-width="800px" scrollable :fullscreen="isMobile">
     <v-card>
       <v-card-title>Redshift Distribution</v-card-title>
-      <v-card-text style="height: 70vh;">
+      <v-card-text :class="{ 'pa-0': isMobileLandscape }" class="chart-container">
         <div class="fill-height d-flex flex-column flex-nowrap">
-          <div class="flex-grow-1 w-100" style="position: relative; min-height: 0;">
+          <div class="flex-grow-1 w-100" style="position: relative; min-height: 0">
             <canvas ref="chartCanvas"></canvas>
           </div>
-          <div class="flex-shrink-0 w-100 pt-4">
+          <div
+            class="flex-shrink-0 w-100 pt-4"
+            :class="{ 'd-flex align-center pt-1 px-2': isMobileLandscape }"
+          >
             <v-slider
               v-model="resolution"
               :min="5"
@@ -15,17 +18,21 @@
               :step="1"
               label="Resolution"
               thumb-label
+              :hide-details="isMobileLandscape"
+              :density="isMobileLandscape ? 'compact' : 'default'"
+              :class="{ 'flex-grow-1 mr-4': isMobileLandscape }"
             ></v-slider>
             <v-switch
               v-model="showRedshiftGradient"
               label="Redshift Gradient"
               color="success"
+              :hide-details="isMobileLandscape"
+              :density="isMobileLandscape ? 'compact' : 'default'"
             />
           </div>
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
         <v-btn text @click="dialog = false">OK</v-btn>
       </v-card-actions>
     </v-card>
@@ -58,8 +65,13 @@ import { useThemeStore } from '@/stores/theme.js'
 import { useUniverseStore } from '@/stores/universe.js'
 import { Chart, registerables } from 'chart.js'
 import { storeToRefs } from 'pinia'
+import { useDisplay } from 'vuetify'
 
 Chart.register(...registerables)
+
+const { mobile, width, height } = useDisplay()
+const isMobile = computed(() => mobile.value)
+const isMobileLandscape = computed(() => mobile.value && width.value > height.value)
 
 const props = defineProps({
   modelValue: {
@@ -78,7 +90,14 @@ const dialog = computed({
 const store = useCatalogStore()
 const theme = useThemeStore()
 const universe = useUniverseStore()
-const { redshiftDistribution, selectionRedshiftDistribution, selectedCount, resolution, minRedshift, maxRedshift } = storeToRefs(store)
+const {
+  redshiftDistribution,
+  selectionRedshiftDistribution,
+  selectedCount,
+  resolution,
+  minRedshift,
+  maxRedshift,
+} = storeToRefs(store)
 const { canvasTheme, redshiftGradient } = storeToRefs(theme)
 const { showRedshiftGradient } = storeToRefs(universe)
 
@@ -154,39 +173,40 @@ watch(dialog, (val) => {
             type: 'bar',
             data: {
               labels: getLabels(),
-              datasets: [{
-                label: 'Target Count',
-                data: redshiftDistribution.value,
-                backgroundColor: getBarBackgroundColor,
-                borderColor: `rgba(${canvasTheme.value.point.r * 255}, ${canvasTheme.value.point.g * 255}, ${canvasTheme.value.point.b * 255}, 1)`,
-                borderWidth: 1
-              },
-              {
-                hidden: selectedCount.value === 0,
-                label: 'Selected Count',
-                data: selectionRedshiftDistribution.value,
-                backgroundColor: `rgba(${canvasTheme.value.selectedPoint.r * 255}, ${canvasTheme.value.selectedPoint.g * 255}, ${canvasTheme.value.selectedPoint.b * 255}, 0.5)`,
-                borderColor: `rgba(${canvasTheme.value.selectedPoint.r * 255}, ${canvasTheme.value.selectedPoint.g * 255}, ${canvasTheme.value.selectedPoint.b * 255}, 1)`,
-                borderWidth: 1
-              }
-              ]
+              datasets: [
+                {
+                  label: 'Target Count',
+                  data: redshiftDistribution.value,
+                  backgroundColor: getBarBackgroundColor,
+                  borderColor: `rgba(${canvasTheme.value.point.r * 255}, ${canvasTheme.value.point.g * 255}, ${canvasTheme.value.point.b * 255}, 1)`,
+                  borderWidth: 1,
+                },
+                {
+                  hidden: selectedCount.value === 0,
+                  label: 'Selected Count',
+                  data: selectionRedshiftDistribution.value,
+                  backgroundColor: `rgba(${canvasTheme.value.selectedPoint.r * 255}, ${canvasTheme.value.selectedPoint.g * 255}, ${canvasTheme.value.selectedPoint.b * 255}, 0.5)`,
+                  borderColor: `rgba(${canvasTheme.value.selectedPoint.r * 255}, ${canvasTheme.value.selectedPoint.g * 255}, ${canvasTheme.value.selectedPoint.b * 255}, 1)`,
+                  borderWidth: 1,
+                },
+              ],
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
               scales: {
                 y: {
-                  beginAtZero: true
-                }
+                  beginAtZero: true,
+                },
               },
               plugins: {
                 legend: {
                   labels: {
                     filter: (legendItem, chartData) => {
-                      return !chartData.datasets[legendItem.datasetIndex].hidden;
-                    }
-                  }
-                }
+                      return !chartData.datasets[legendItem.datasetIndex].hidden
+                    },
+                  },
+                },
               },
               onClick: (event, elements) => {
                 if (elements.length > 0) {
@@ -200,7 +220,7 @@ watch(dialog, (val) => {
                     const step = (max - min) / count
                     const rangeStart = min + index * step
                     // Ensure the last bin covers up to max (floating point safety)
-                    const rangeEnd = (index === count - 1) ? max + 0.0001 : rangeStart + step
+                    const rangeEnd = index === count - 1 ? max + 0.0001 : rangeStart + step
                     let mode = 'replace'
                     if (event.native.shiftKey) mode = 'additive'
                     else if (event.native.ctrlKey) mode = 'intersection'
@@ -210,8 +230,8 @@ watch(dialog, (val) => {
               },
               onHover: (event, chartElement) => {
                 event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default'
-              }
-            }
+              },
+            },
           })
         }
       }, 100)
@@ -224,9 +244,18 @@ watch(dialog, (val) => {
   }
 })
 
-watch([redshiftDistribution, selectionRedshiftDistribution, selectedCount, resolution, showRedshiftGradient], () => {
-  updateChart()
-})
+watch(
+  [
+    redshiftDistribution,
+    selectionRedshiftDistribution,
+    selectedCount,
+    resolution,
+    showRedshiftGradient,
+  ],
+  () => {
+    updateChart()
+  },
+)
 
 onBeforeUnmount(() => {
   if (chartInstance.value) {
@@ -234,5 +263,15 @@ onBeforeUnmount(() => {
     chartInstance.value = null
   }
 })
-
 </script>
+
+<style scoped>
+.chart-container {
+  height: 70vh;
+}
+@media (max-width: 960px) and (orientation: landscape) {
+  .chart-container {
+    height: calc(100vh - 130px) !important;
+  }
+}
+</style>

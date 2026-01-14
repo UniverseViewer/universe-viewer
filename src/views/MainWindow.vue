@@ -5,363 +5,433 @@
     <RedshiftDistribution v-model="redshiftDistributionOpened" />
     <v-main>
       <v-container fluid class="fill-height pa-0 ma-0">
-        <v-row no-gutters style="height: calc(100vh - 32px)">
+        <v-row no-gutters style="height: 100dvh">
           <!-- LEFT SIDEBAR -->
-          <v-col cols="3" class="pa-2 bg_surface left-panel">
-            <v-expansion-panels multiple v-model="opened_panels">
-              <!-- CATALOG -->
-              <v-expansion-panel title="Catalog" value="catalog">
-                <v-expansion-panel-text>
-                  <CatalogBrowser v-model="catalogFile" v-model:opened="catalogBrowserOpened" />
-                  or<br /><br />
-                  <div class="d-flex align-center">
-                    <v-file-input
-                      v-model="browsedFile"
-                      label="Browse catalog file"
-                      accept=".dat,.txt"
-                      @change="onFileChange"
-                      prepend-icon="mdi-file-upload"
-                      density="compact"
-                      hide-details
-                      class="flex-grow-1"
-                    ></v-file-input>
-                    <v-icon-btn
-                      @click="openHelp('data_format')"
-                      hide-overlay
-                      icon="mdi-help"
-                      class="ml-2"
-                      variant="text"
-                      density="compact"
-                      size="small"
-                    ></v-icon-btn>
-                  </div>
-                  <br /><br />
-                  <v-number-input
-                    v-model="catalogSubsetPercent"
-                    label="Subset load percentage"
-                    prepend-icon="mdi-set-split"
-                    :precision="null"
-                    :step="1"
-                    :min="1"
-                    :max="100"
-                    control-variant="split"
-                    density="compact"
-                  >
-                    <template v-slot:append> % </template>
-                  </v-number-input>
-                  <br />
-                  <div class="d-flex align-center justify-space-between text-caption">
-                    <span>Current data set: {{ targets ? targets.length.toLocaleString() : 0 }} targets</span>
-                    <v-btn
-                      icon="mdi-download"
-                      variant="text"
-                      density="compact"
-                      size="small"
-                      @click="downloadCatalog"
-                      title="Export catalog"
-                      :disabled="!targets || targets.length === 0"
-                    ></v-btn>
-                  </div>
-                  <div v-if="targets && targets.length" class="text-caption d-flex align-center justify-space-between">
-                    <span>Redshift range: {{ minRedshift.toLocaleString() }} to {{ maxRedshift.toLocaleString() }}</span>
-                    <v-tooltip text="Show Redshift Distribution">
-                      <template #activator="{ props }">
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-chart-bar"
-                          variant="text"
-                          density="compact"
-                          size="small"
-                          @click="redshiftDistributionOpened = true"
-                        ></v-btn>
-                      </template>
-                    </v-tooltip>
-                  </div>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
+          <v-col
+            v-show="isSidebarOpen"
+            cols="12"
+            :sm="isSidebarOpen ? 6 : 0"
+            :md="isSidebarOpen ? 3 : 0"
+            class="bg-surface left-panel order-last order-sm-first"
+            ref="leftPanel"
+          >
+            <!-- Mobile Portrait StatusBar -->
+            <div
+              v-if="xs && busy"
+              class="sidebar-statusbar bg-surface"
+              style="position: sticky; top: 0; z-index: 20"
+            >
+              <StatusBar />
+            </div>
 
-              <!-- COSMOLOGICAL PARAMETERS -->
-              <v-expansion-panel title="Cosmological parameters" value="parameters">
-                <v-expansion-panel-text>
-                  <v-radio-group v-model="selectedConst" density="compact" :disabled="isSkyMode">
-                    <v-row>
-                      <v-col cols="2" class="border-e">
-                        <v-tooltip text="Lambda as derived parameter">
-                          <template #activator="{ props }">
-                            <v-radio value="lambda" v-bind="props"></v-radio>
-                          </template>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col cols="10">
-                        <v-number-input
-                          v-model="lambda"
-                          :disabled="selectedConst === 'lambda' || isSkyMode"
-                          label="Lambda"
-                          :precision="null"
-                          :step="0.05"
-                          :min="0"
-                          control-variant="split"
-                          density="compact"
-                        ></v-number-input>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="2" class="border-e">
-                        <v-tooltip text="Omega as derived parameter">
-                          <template #activator="{ props }">
-                            <v-radio value="omega" v-bind="props"></v-radio>
-                          </template>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col cols="10">
-                        <v-number-input
-                          v-model="omega"
-                          :disabled="selectedConst === 'omega' || isSkyMode"
-                          label="Omega"
-                          :precision="null"
-                          :step="0.05"
-                          :min="Number.EPSILON"
-                          control-variant="split"
-                          density="compact"
-                        ></v-number-input>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="2" class="border-e">
-                        <v-tooltip text="Kappa as derived parameter">
-                          <template #activator="{ props }">
-                            <v-radio value="kappa" v-bind="props"></v-radio>
-                          </template>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col cols="10">
-                        <v-number-input
-                          v-model="kappa"
-                          :disabled="selectedConst === 'kappa' || isSkyMode"
-                          label="Kappa"
-                          :precision="null"
-                          :step="0.05"
-                          control-variant="split"
-                          density="compact"
-                        ></v-number-input>
-                      </v-col>
-                    </v-row>
-                    <v-row>
-                      <v-col cols="2" class="border-e">
-                        <v-tooltip text="Alpha as derived parameter">
-                          <template #activator="{ props }">
-                            <v-radio value="alpha" v-bind="props"></v-radio>
-                          </template>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col cols="10">
-                        <v-number-input
-                          v-model="alpha"
-                          :disabled="selectedConst === 'alpha' || isSkyMode"
-                          label="Alpha"
-                          :precision="null"
-                          :step="0.05"
-                          :min="Number.EPSILON"
-                          control-variant="split"
-                          density="compact"
-                        ></v-number-input>
-                      </v-col>
-                    </v-row>
-                  </v-radio-group>
-                  <div class="d-flex justify-space-between text-caption">
-                    <span>Sum: {{ sumConsts.toFixed(5) }}</span>
-                    <span
-                      :class="{
-                        'text-error': constraintError !== null,
-                        'text-success': constraintError === null,
-                      }"
-                    >
-                      {{ constraintError === null ? 'Valid' : 'Invalid' }}
-                    </span>
-                  </div>
-                  <br />
-                  <v-number-input
-                    v-model="h0"
-                    label="Hubble constant"
-                    :precision="null"
-                    :step="0.05"
-                    :min="Number.EPSILON"
-                    control-variant="split"
-                    density="compact"
-                  >
-                    <template v-slot:append> km&nbsp;s<sup>-1</sup>&nbsp;Mpc<sup>-1</sup> </template>
-                  </v-number-input>
-                  <v-checkbox
-                    v-model="precisionEnabled"
-                    label="Romberg's high precision integration"
-                    density="compact"
-                    hide-details
-                    :disabled="isSkyMode"
-                  ></v-checkbox>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-
-              <!-- VIEW SETTINGS -->
-              <v-expansion-panel title="View settings" value="view">
-                <v-expansion-panel-text>
-                  <v-switch
-                    v-model="comovingSpaceFlag"
-                    label="Comoving space"
-                    color="success"
-                    density="compact"
-                    :disabled="isSkyMode"
-                  ></v-switch>
-                  <v-divider class="my-3"></v-divider>
-                  <div class="text-subtitle-2 mb-2">Projection</div>
-                  <v-btn-toggle v-model="view" mandatory class="mb-4 views" :disabled="isSkyMode">
-                    <v-btn :value="4">Front 1</v-btn>
-                    <v-btn :value="5">Front 2</v-btn>
-                    <v-btn :value="6">Front 3</v-btn>
-                    <v-btn :value="1">Edge 1</v-btn>
-                    <v-btn :value="2">Edge 2</v-btn>
-                    <v-btn :value="3">Edge 3</v-btn>
-                  </v-btn-toggle>
-                  <v-slider
-                    v-model="pendingRa1"
-                    :min="0"
-                    :max="24"
-                    :step="0.1"
-                    hide-details
-                    density="compact"
-                    :disabled="isSkyMode"
-                    @start="statusStore.setInteracting(true)"
-                    @end="statusStore.setInteracting(false); ra1 = pendingRa1"
-                  ></v-slider>
-                  <v-number-input
-                    v-model="pendingRa1"
-                    @update:model-value="ra1 = pendingRa1"
-                    label="RA1"
-                    :precision="null"
-                    :min="0"
-                    :max="24"
-                    :step="1"
-                    control-variant="split"
-                    density="compact"
-                    :disabled="isSkyMode"
-                  >
-                    <template v-slot:append> h </template>
-                  </v-number-input>
-                  <v-slider
-                    v-model="pendingDec1"
-                    :min="-90"
-                    :max="90"
-                    :step="1"
-                    hide-details
-                    density="compact"
-                    :disabled="isSkyMode"
-                    @start="statusStore.setInteracting(true)"
-                    @end="statusStore.setInteracting(false); dec1 = pendingDec1"
-                  ></v-slider>
-                  <v-number-input
-                    v-model="pendingDec1"
-                    @update:model-value="dec1 = pendingDec1"
-                    label="Dec1"
-                    :precision="null"
-                    :min="-90"
-                    :max="90"
-                    :step="1"
-                    control-variant="split"
-                    density="compact"
-                    :disabled="isSkyMode"
-                  >
-                    <template v-slot:append> ° </template>
-                  </v-number-input>
-                  <v-slider
-                    v-model="pendingBeta"
-                    :min="0"
-                    :max="24"
-                    :step="0.1"
-                    hide-details
-                    density="compact"
-                    :disabled="isSkyMode"
-                    @start="statusStore.setInteracting(true)"
-                    @end="statusStore.setInteracting(false); beta = pendingBeta"
-                  ></v-slider>
-                  <v-number-input
-                    v-model="pendingBeta"
-                    @update:model-value="beta = pendingBeta"
-                    label="Beta"
-                    :precision="null"
-                    :min="0"
-                    :max="24"
-                    :step="1"
-                    control-variant="split"
-                    density="compact"
-                    :disabled="isSkyMode"
-                  >
-                    <template v-slot:append> h </template>
-                  </v-number-input>
-                  <v-divider class="my-3"></v-divider>
-                  <v-slider
-                    label="Target point size"
-                    v-model="targetPointSize"
-                    :max="10"
-                    :min="0.1"
-                    step="0.1"
-                    hide-details
-                  >
-                    <template v-slot:append>
-                      <v-number-input
-                        v-model="targetPointSize"
-                        :precision="null"
-                        :min="0.1"
-                        :max="10"
-                        :step="0.1"
-                        control-variant="stacked"
+            <div class="sidebar-content pa-2">
+              <!-- Mobile-only SelectionInfo -->
+              <div v-if="constraintError === null" class="d-md-none mb-2">
+                <SelectionInfo />
+              </div>
+              <v-expansion-panels multiple v-model="opened_panels">
+                <!-- CATALOG -->
+                <v-expansion-panel title="Catalog" value="catalog">
+                  <v-expansion-panel-text>
+                    <CatalogBrowser v-model="catalogFile" v-model:opened="catalogBrowserOpened" />
+                    or<br /><br />
+                    <div class="d-flex align-center">
+                      <v-file-input
+                        v-model="browsedFile"
+                        label="Browse catalog file"
+                        accept=".dat,.txt"
+                        @change="onFileChange"
+                        prepend-icon="mdi-file-upload"
                         density="compact"
                         hide-details
+                        class="flex-grow-1"
+                      ></v-file-input>
+                      <v-icon-btn
+                        @click="openHelp('data_format')"
+                        hide-overlay
+                        icon="mdi-help"
+                        class="ml-2"
+                        variant="text"
+                        density="compact"
+                        size="small"
+                      ></v-icon-btn>
+                    </div>
+                    <br /><br />
+                    <v-number-input
+                      v-model="catalogSubsetPercent"
+                      label="Subset load percentage"
+                      prepend-icon="mdi-set-split"
+                      :precision="null"
+                      :step="1"
+                      :min="1"
+                      :max="100"
+                      control-variant="split"
+                      density="compact"
+                    >
+                      <template v-slot:append> % </template>
+                    </v-number-input>
+                    <br />
+                    <div class="d-flex align-center justify-space-between text-caption">
+                      <span>
+                        Current data set:
+                        {{ targets ? targets.length.toLocaleString() : 0 }} targets
+                      </span>
+                      <v-btn
+                        icon="mdi-download"
+                        variant="text"
+                        density="compact"
+                        size="small"
+                        @click="downloadCatalog"
+                        title="Export catalog"
+                        :disabled="!targets || targets.length === 0"
+                      ></v-btn>
+                    </div>
+                    <div
+                      v-if="targets && targets.length"
+                      class="text-caption d-flex align-center justify-space-between"
+                    >
+                      <span>
+                        Redshift range: {{ minRedshift.toLocaleString() }} to
+                        {{ maxRedshift.toLocaleString() }}
+                      </span>
+                      <v-tooltip text="Show Redshift Distribution">
+                        <template #activator="{ props }">
+                          <v-btn
+                            v-bind="props"
+                            icon="mdi-chart-bar"
+                            variant="text"
+                            density="compact"
+                            size="small"
+                            @click="redshiftDistributionOpened = true"
+                          ></v-btn>
+                        </template>
+                      </v-tooltip>
+                    </div>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+
+                <!-- COSMOLOGICAL PARAMETERS -->
+                <v-expansion-panel title="Cosmological parameters" value="parameters">
+                  <v-expansion-panel-text>
+                    <v-radio-group v-model="selectedConst" density="compact" :disabled="isSkyMode">
+                      <v-row>
+                        <v-col cols="2" class="border-e">
+                          <v-tooltip text="Lambda as derived parameter">
+                            <template #activator="{ props }">
+                              <v-radio value="lambda" v-bind="props"></v-radio>
+                            </template>
+                          </v-tooltip>
+                        </v-col>
+                        <v-col cols="10">
+                          <v-number-input
+                            v-model="lambda"
+                            :disabled="selectedConst === 'lambda' || isSkyMode"
+                            label="Lambda"
+                            :precision="null"
+                            :step="0.05"
+                            :min="0"
+                            control-variant="split"
+                            density="compact"
+                          ></v-number-input>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="2" class="border-e">
+                          <v-tooltip text="Omega as derived parameter">
+                            <template #activator="{ props }">
+                              <v-radio value="omega" v-bind="props"></v-radio>
+                            </template>
+                          </v-tooltip>
+                        </v-col>
+                        <v-col cols="10">
+                          <v-number-input
+                            v-model="omega"
+                            :disabled="selectedConst === 'omega' || isSkyMode"
+                            label="Omega"
+                            :precision="null"
+                            :step="0.05"
+                            :min="Number.EPSILON"
+                            control-variant="split"
+                            density="compact"
+                          ></v-number-input>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="2" class="border-e">
+                          <v-tooltip text="Kappa as derived parameter">
+                            <template #activator="{ props }">
+                              <v-radio value="kappa" v-bind="props"></v-radio>
+                            </template>
+                          </v-tooltip>
+                        </v-col>
+                        <v-col cols="10">
+                          <v-number-input
+                            v-model="kappa"
+                            :disabled="selectedConst === 'kappa' || isSkyMode"
+                            label="Kappa"
+                            :precision="null"
+                            :step="0.05"
+                            control-variant="split"
+                            density="compact"
+                          ></v-number-input>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="2" class="border-e">
+                          <v-tooltip text="Alpha as derived parameter">
+                            <template #activator="{ props }">
+                              <v-radio value="alpha" v-bind="props"></v-radio>
+                            </template>
+                          </v-tooltip>
+                        </v-col>
+                        <v-col cols="10">
+                          <v-number-input
+                            v-model="alpha"
+                            :disabled="selectedConst === 'alpha' || isSkyMode"
+                            label="Alpha"
+                            :precision="null"
+                            :step="0.05"
+                            :min="Number.EPSILON"
+                            control-variant="split"
+                            density="compact"
+                          ></v-number-input>
+                        </v-col>
+                      </v-row>
+                    </v-radio-group>
+                    <div class="d-flex justify-space-between text-caption">
+                      <span>Sum: {{ sumConsts.toFixed(5) }}</span>
+                      <span
+                        :class="{
+                          'text-error': constraintError !== null,
+                          'text-success': constraintError === null,
+                        }"
                       >
-                      </v-number-input>
-                    </template>
-                  </v-slider>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
-            <v-container>
-              <v-switch
-                v-model="darkMode"
-                prepend-icon="mdi-theme-light-dark"
-                label="Dark mode theme"
-                color="success"
-              />
-              <v-btn @click="openHelp()" icon="mdi-help"> </v-btn>
-              <v-btn @click="aboutOpened = true" icon="mdi-information"> </v-btn>
-              <v-btn
-                icon="mdi-github"
-                variant="elevated"
-                :color="$vuetify.theme.current.dark ? 'surface' : 'white'"
-                href="https://github.com/UniverseViewer/universe-viewer"
-                target="_blank"
-                rel="noopener"
-              ></v-btn>
-            </v-container>
+                        {{ constraintError === null ? 'Valid' : 'Invalid' }}
+                      </span>
+                    </div>
+                    <br />
+                    <v-number-input
+                      v-model="h0"
+                      label="Hubble constant"
+                      :precision="null"
+                      :step="0.05"
+                      :min="Number.EPSILON"
+                      control-variant="split"
+                      density="compact"
+                    >
+                      <template v-slot:append>
+                        km&nbsp;s<sup>-1</sup>&nbsp;Mpc<sup>-1</sup>
+                      </template>
+                    </v-number-input>
+                    <v-checkbox
+                      v-model="precisionEnabled"
+                      label="Romberg's high precision integration"
+                      density="compact"
+                      hide-details
+                      :disabled="isSkyMode"
+                    ></v-checkbox>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+
+                <!-- VIEW SETTINGS -->
+                <v-expansion-panel title="View settings" value="view">
+                  <v-expansion-panel-text>
+                    <v-switch
+                      v-model="comovingSpaceFlag"
+                      label="Comoving space"
+                      color="success"
+                      density="compact"
+                      :disabled="isSkyMode"
+                    ></v-switch>
+                    <v-divider class="my-3"></v-divider>
+                    <div class="text-subtitle-2 mb-2">Projection</div>
+                    <v-btn-toggle v-model="view" mandatory class="mb-4 views" :disabled="isSkyMode">
+                      <v-btn :value="4">Front 1</v-btn>
+                      <v-btn :value="5">Front 2</v-btn>
+                      <v-btn :value="6">Front 3</v-btn>
+                      <v-btn :value="1">Edge 1</v-btn>
+                      <v-btn :value="2">Edge 2</v-btn>
+                      <v-btn :value="3">Edge 3</v-btn>
+                    </v-btn-toggle>
+                    <v-slider
+                      v-model="pendingRa1"
+                      :min="0"
+                      :max="24"
+                      :step="0.1"
+                      hide-details
+                      density="compact"
+                      :disabled="isSkyMode"
+                      @start="statusStore.setInteracting(true)"
+                      @end="applyRa1()"
+                    ></v-slider>
+                    <v-number-input
+                      v-model="pendingRa1"
+                      @update:model-value="ra1 = pendingRa1"
+                      label="RA1"
+                      :precision="null"
+                      :min="0"
+                      :max="24"
+                      :step="1"
+                      control-variant="split"
+                      density="compact"
+                      :disabled="isSkyMode"
+                    >
+                      <template v-slot:append> h </template>
+                    </v-number-input>
+                    <v-slider
+                      v-model="pendingDec1"
+                      :min="-90"
+                      :max="90"
+                      :step="1"
+                      hide-details
+                      density="compact"
+                      :disabled="isSkyMode"
+                      @start="statusStore.setInteracting(true)"
+                      @end="applyDec1()"
+                    ></v-slider>
+                    <v-number-input
+                      v-model="pendingDec1"
+                      @update:model-value="dec1 = pendingDec1"
+                      label="Dec1"
+                      :precision="null"
+                      :min="-90"
+                      :max="90"
+                      :step="1"
+                      control-variant="split"
+                      density="compact"
+                      :disabled="isSkyMode"
+                    >
+                      <template v-slot:append> ° </template>
+                    </v-number-input>
+                    <v-slider
+                      v-model="pendingBeta"
+                      :min="0"
+                      :max="24"
+                      :step="0.1"
+                      hide-details
+                      density="compact"
+                      :disabled="isSkyMode"
+                      @start="statusStore.setInteracting(true)"
+                      @end="applyBeta()"
+                    ></v-slider>
+                    <v-number-input
+                      v-model="pendingBeta"
+                      @update:model-value="beta = pendingBeta"
+                      label="Beta"
+                      :precision="null"
+                      :min="0"
+                      :max="24"
+                      :step="1"
+                      control-variant="split"
+                      density="compact"
+                      :disabled="isSkyMode"
+                    >
+                      <template v-slot:append> h </template>
+                    </v-number-input>
+                    <v-divider class="my-3"></v-divider>
+                    <v-slider
+                      label="Target point size"
+                      v-model="targetPointSize"
+                      :max="10"
+                      :min="0.1"
+                      step="0.1"
+                      hide-details
+                    >
+                      <template v-slot:append>
+                        <v-number-input
+                          v-model="targetPointSize"
+                          :precision="null"
+                          :min="0.1"
+                          :max="10"
+                          :step="0.1"
+                          control-variant="stacked"
+                          density="compact"
+                          hide-details
+                        >
+                        </v-number-input>
+                      </template>
+                    </v-slider>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
+              <v-container>
+                <v-switch
+                  v-model="darkMode"
+                  prepend-icon="mdi-theme-light-dark"
+                  label="Dark mode theme"
+                  color="success"
+                />
+                <v-btn @click="openHelp()" icon="mdi-help"> </v-btn>
+                <v-btn @click="aboutOpened = true" icon="mdi-information"> </v-btn>
+                <v-btn
+                  icon="mdi-github"
+                  variant="elevated"
+                  :color="$vuetify.theme.current.dark ? 'surface' : 'white'"
+                  href="https://github.com/UniverseViewer/universe-viewer"
+                  target="_blank"
+                  rel="noopener"
+                ></v-btn>
+              </v-container>
+            </div>
           </v-col>
 
           <!-- MAIN VIEWER -->
-          <v-col cols="9" class="pa-0 viewer-col" style="height: 100%; position: relative">
+          <v-col
+            cols="12"
+            :sm="isSidebarOpen ? 6 : 12"
+            :md="isSidebarOpen ? 9 : 12"
+            class="pa-0 viewer-col"
+            :class="{
+              expanded: !isSidebarOpen,
+              'd-flex': mobile,
+              'flex-column': xs,
+              'flex-row': mobile && !xs,
+            }"
+            style="height: 100%; position: relative"
+          >
             <ViewerCanvas
               ref="viewer"
               @update-mouse-coords="onMouseCoordsUpdate"
+              class="flex-grow-1"
+              style="min-height: 0; min-width: 0"
             />
 
-            <!-- RIGHT SIDEBAR (OVERLAY) -->
-            <div v-if="constraintError === null" class="right-sidebar">
+            <!-- RIGHT (OVERLAY / FLEX ITEM) -->
+            <div
+              v-if="constraintError === null"
+              :class="mobile ? (xs ? 'order-first w-100' : 'order-last h-100') : 'right-sidebar'"
+            >
               <ViewerToolbox @resetView="resetView" />
             </div>
-            <div v-if="constraintError === null" class="bottom-right-info">
+            <div v-if="constraintError === null" class="bottom-right-info d-none d-md-block">
               <SelectionInfo />
             </div>
-            <div v-if="constraintError === null" class="bottom-left-info">
+            <div v-if="constraintError === null" class="bottom-left-info d-none d-md-block">
               <SkyCoordinates
                 :visible="isSkyMode && mouseRa !== null && mouseDec !== null"
                 :mouse-ra="mouseRa || 0"
                 :mouse-dec="mouseDec || 0"
               />
+            </div>
+
+            <!-- Sidebar Toggle Button -->
+            <v-btn
+              :icon="sidebarIcon"
+              class="sidebar-toggle"
+              size="x-small"
+              variant="flat"
+              rounded="lg"
+              color="surface"
+              @click="toggleSidebar"
+            ></v-btn>
+
+            <!-- PC/Landscape StatusBar -->
+            <div v-if="!mobile" class="viewer-statusbar bg-surface">
+              <StatusBar />
+            </div>
+            <!-- Mobile Landscape StatusBar -->
+            <div v-else-if="busy && !xs" class="viewer-statusbar bg-surface">
+              <StatusBar />
             </div>
           </v-col>
         </v-row>
@@ -378,7 +448,6 @@
       <LoadingPopup v-if="isLoading" :title="loadingTitle" :percentage="loadingPercentage" />
 
       <!-- BOTTOM INFO BAR -->
-      <StatusBar />
     </v-main>
   </v-app>
 </template>
@@ -474,7 +543,12 @@ const mouseRa = ref(0)
 const mouseDec = ref(0)
 
 function downloadCatalog() {
-  let filename = (browsedFile.value === null) ? ((catalogFile.value === undefined) ? '' : catalogFile.value) : browsedFile.value.name
+  let filename =
+    browsedFile.value === null
+      ? catalogFile.value === undefined
+        ? ''
+        : catalogFile.value
+      : browsedFile.value.name
   filename = filename.replace(/\.[^/.]+$/, '')
   filename += '.dat'
   catalogStore.save(filename)
@@ -526,6 +600,21 @@ watch(pendingDec1, (val) => {
 watch(pendingBeta, (val) => {
   beta.value = val
 })
+
+function applyRa1() {
+  statusStore.setInteracting(false)
+  ra1.value = pendingRa1.value
+}
+
+function applyDec1() {
+  statusStore.setInteracting(false)
+  dec1.value = pendingDec1.value
+}
+
+function applyBeta() {
+  statusStore.setInteracting(false)
+  beta.value = pendingBeta.value
+}
 
 // Computed
 const sumConsts = computed(() => getSumConsts(lambda.value, omega.value, kappa.value, alpha.value))
@@ -616,6 +705,38 @@ function resetView() {
   }
 }
 
+// Mobile sidebar scroll logic
+import { useDisplay } from 'vuetify'
+const { mobile, xs } = useDisplay()
+const leftPanel = ref(null)
+const { selectedCount } = storeToRefs(catalogStore)
+
+// Sidebar toggle
+const isSidebarOpen = ref(true)
+
+const sidebarIcon = computed(() => {
+  if (xs.value) {
+    // Portrait (Bottom)
+    return isSidebarOpen.value ? 'mdi-chevron-down' : 'mdi-chevron-up'
+  } else {
+    // PC/Landscape/Tablet (Left)
+    return isSidebarOpen.value ? 'mdi-chevron-left' : 'mdi-chevron-right'
+  }
+})
+
+function toggleSidebar() {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
+
+watch(selectedCount, (newVal) => {
+  if (newVal > 0 && mobile.value) {
+    // Scroll to top to see the selection info
+    if (leftPanel.value && leftPanel.value.$el) {
+      leftPanel.value.$el.scrollTop = 0
+    }
+  }
+})
+
 // Watchers
 
 watch(catalogFile, async (newVal) => {
@@ -656,7 +777,7 @@ watch(catalogFile, async (newVal) => {
 
     statusStore.runBusyTask(() => {
       catalogStore.load(content, catalogSubsetPercent.value)
-    }, "Loading catalog")
+    }, 'Loading catalog')
   } catch (err) {
     statusStore.setInfoMessage(`Error: ${err.message}`)
   } finally {
@@ -695,10 +816,29 @@ watch([lambda, omega, kappa, alpha, comovingSpaceFlag], async (newVals, oldVals)
 <style scoped>
 .left-panel {
   overflow-y: auto;
-  height: calc(100vh - 32px);
+  height: 100dvh;
+  z-index: 25;
 }
 .viewer-col {
   background: black;
+}
+@media (max-width: 600px) {
+  .left-panel {
+    height: 50% !important;
+  }
+  .viewer-col {
+    height: 50% !important;
+  }
+  .right-sidebar {
+    top: 0 !important;
+    right: 0 !important;
+  }
+}
+@media (max-width: 960px) and (orientation: landscape) {
+  .right-sidebar {
+    top: 0 !important;
+    right: 0 !important;
+  }
 }
 .views {
   display: flex !important;
@@ -726,5 +866,32 @@ watch([lambda, omega, kappa, alpha, comovingSpaceFlag], async (newVals, oldVals)
   bottom: 10px;
   left: 10px;
   z-index: 10;
+}
+.sidebar-toggle {
+  position: absolute;
+  z-index: 20;
+}
+@media (max-width: 600px) {
+  .sidebar-toggle {
+    bottom: -10px;
+    right: 10px;
+  }
+}
+@media (min-width: 601px) {
+  .sidebar-toggle {
+    top: 50%;
+    transform: translateY(-50%);
+    left: -10px;
+  }
+}
+.viewer-col.expanded {
+  height: 100% !important;
+}
+.viewer-statusbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 15;
 }
 </style>
