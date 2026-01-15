@@ -511,6 +511,7 @@ const {
   pointSize,
   viewerMode,
   redshiftDistributionOpened,
+  helpOpened,
   aboutOpened,
   constraintError,
 } = storeToRefs(store)
@@ -689,10 +690,9 @@ watch(browsedFile, (newFile) => {
 })
 
 // Help
-const helpOpened = ref(false)
 const helpTab = ref(undefined)
 
-function openHelp(tab = 'controls') {
+function openHelp(tab = 'overview') {
   helpOpened.value = true
   helpTab.value = tab
 }

@@ -65,14 +65,26 @@
               @change="onFileChange"
             />
           </div>
-          <v-btn
-            variant="text"
-            prepend-icon="mdi-information"
-            class="text-none justify-start px-0"
-            @click="aboutOpened = true"
-          >
-            About
-          </v-btn>
+          <div class="w-100">
+            <v-btn
+              variant="text"
+              prepend-icon="mdi-help"
+              class="text-none justify-start px-0"
+              @click="helpOpened = true"
+            >
+              Help
+            </v-btn>
+          </div>
+          <div class="w-100">
+            <v-btn
+              variant="text"
+              prepend-icon="mdi-information"
+              class="text-none justify-start px-0"
+              @click="aboutOpened = true"
+            >
+              About
+            </v-btn>
+          </div>
           <v-row class="w-100 mt-2">
             <v-col cols="12" sm="6">
               <v-switch
@@ -106,7 +118,7 @@ import { useDisplay } from 'vuetify'
 const universeStore = useUniverseStore()
 const catalogStore = useCatalogStore()
 const themeStore = useThemeStore()
-const { version, aboutOpened } = storeToRefs(universeStore)
+const { version, helpOpened, aboutOpened } = storeToRefs(universeStore)
 const { catalogFile, browsedFile } = storeToRefs(catalogStore)
 const { darkMode } = storeToRefs(themeStore)
 const { mobile } = useDisplay()
@@ -133,7 +145,7 @@ const onFileChange = (event) => {
   }
 }
 
-watch([catalogFile, browsedFile, aboutOpened], () => {
+watch([catalogFile, browsedFile, helpOpened, aboutOpened], () => {
   hideSplash()
 })
 </script>

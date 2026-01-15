@@ -53,6 +53,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const showRefMarks = ref(true)
   const showRedshiftGradient = ref(false)
   const redshiftDistributionOpened = ref(false)
+  const helpOpened = ref(false)
   const aboutOpened = ref(false)
 
   const userDec1Deg = computed(() => (180 * userDec1.value) / Math.PI)
@@ -186,6 +187,7 @@ export const useUniverseStore = defineStore('universe', () => {
     showRefMarks,
     showRedshiftGradient,
     redshiftDistributionOpened,
+    helpOpened,
     aboutOpened,
     // Setters
     setCosmoParams,
