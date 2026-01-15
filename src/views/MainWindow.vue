@@ -371,16 +371,15 @@
             cols="12"
             :sm="isSidebarOpen ? 6 : 12"
             :md="isSidebarOpen ? 9 : 12"
-            class="pa-0 viewer-col"
+            class="pa-0 viewer-col d-flex"
             :class="{
               expanded: !isSidebarOpen,
-              'd-flex': mobile,
-              'flex-column': xs,
+              'flex-column': !mobile || xs,
               'flex-row': mobile && !xs,
             }"
             style="height: 100%; position: relative"
           >
-            <div class="d-flex flex-column h-100 w-100">
+            <div class="d-flex flex-column flex-grow-1" style="min-width: 0; min-height: 0">
               <!-- Mobile RedshiftLegend/StatusBar -->
               <RedshiftLegend v-if="mobile" class="order-0" />
               <div v-if="mobile && busy" class="bg-surface w-100 order-1">
