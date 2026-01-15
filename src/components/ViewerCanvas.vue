@@ -28,28 +28,7 @@
     </div>
 
     <!-- Redshift Gradient Legend -->
-    <div v-if="showRedshiftGradient" class="redshift-legend">
-      <v-sheet class="d-flex align-center px-4 py-1" elevation="2" rounded color="surface">
-        <span class="text-caption mr-2">Redshift</span>
-        <span class="text-caption mr-1">{{ minRedshift ? minRedshift.toFixed(2) : '0.00' }}</span>
-        <div :style="gradientStyle" class="mr-1 rounded"></div>
-        <span class="text-caption mr-4">{{ maxRedshift ? maxRedshift.toFixed(2) : '0.00' }}</span>
-        <div class="d-none d-md-block">
-          <v-tooltip text="Show Redshift Distribution">
-            <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-chart-bar"
-                variant="text"
-                density="compact"
-                size="small"
-                @click="redshiftDistributionOpened = true"
-              ></v-btn>
-            </template>
-          </v-tooltip>
-        </div>
-      </v-sheet>
-    </div>
+    <RedshiftLegend />
   </div>
 </template>
 
@@ -84,10 +63,11 @@ import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 import { useThemeStore } from '@/stores/theme.js'
 import { watch } from 'vue'
+import RedshiftLegend from './RedshiftLegend.vue'
 
 export default {
   name: 'ViewerCanvas',
-
+  components: { RedshiftLegend },
   emits: ['update-mouse-coords'],
 
   setup(props, { expose, emit }) {
@@ -115,12 +95,12 @@ export default {
       mouseMode,
       showRefMarks,
       showRedshiftGradient,
-      redshiftDistributionOpened,
       constraintError,
     } = storeToRefs(universeStore)
     const { busy, isVueImmediateRefreshEnabled, isInteracting } = storeToRefs(statusStore)
-    const { targets, subsetTargets, selectedTargets, minRedshift, maxRedshift } = storeToRefs(catalogStore)
-    const { canvasTheme: theme, themeName, darkMode, redshiftGradient } = storeToRefs(themeStore)
+    const { targets, subsetTargets, selectedTargets, minRedshift, maxRedshift } =
+      storeToRefs(catalogStore)
+    const { canvasTheme: theme, themeName, redshiftGradient } = storeToRefs(themeStore)
 
     const activeTargets = computed(() => {
       if (isInteracting.value && !isVueImmediateRefreshEnabled.value) {
@@ -173,20 +153,6 @@ export default {
         value = 'Sky view'
       }
       return value
-    })
-
-    const gradientStyle = computed(() => {
-      const t = theme.value
-      const c1 = t.redshiftNear
-      const c2 = t.redshiftFar
-      const color1 = `rgb(${Math.round(c1.r * 255)}, ${Math.round(c1.g * 255)}, ${Math.round(c1.b * 255)})`
-      const color2 = `rgb(${Math.round(c2.r * 255)}, ${Math.round(c2.g * 255)}, ${Math.round(c2.b * 255)})`
-      return {
-        background: `linear-gradient(90deg, ${color1} 0%, ${color2} 100%)`,
-        width: '120px',
-        height: '12px',
-        border: darkMode.value ? '1px solid #555' : '1px solid #ccc',
-      }
     })
 
     const selectionStyle = computed(() => {
@@ -1372,11 +1338,6 @@ export default {
       themeName,
       redshiftGradient,
       constraintError,
-      gradientStyle,
-      showRedshiftGradient,
-      minRedshift,
-      maxRedshift,
-      redshiftDistributionOpened,
     }
   },
 }
@@ -1467,32 +1428,5 @@ export default {
   white-space: pre-wrap; /* Preserve newlines and spaces */
   font-family: monospace;
   font-size: 1.1em;
-}
-
-.redshift-legend {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
-  pointer-events: none;
-}
-.redshift-legend .v-sheet {
-  pointer-events: auto;
-}
-
-@media (max-width: 600px), (max-width: 960px) and (orientation: landscape) {
-  .redshift-legend {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    transform: none;
-  }
-  .redshift-legend .v-sheet {
-    width: 100%;
-    border-radius: 0 !important;
-    justify-content: center;
-  }
 }
 </style>
