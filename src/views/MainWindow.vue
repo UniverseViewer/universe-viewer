@@ -15,15 +15,6 @@
             class="bg-surface left-panel order-last order-sm-first"
             ref="leftPanel"
           >
-            <!-- Mobile Portrait StatusBar -->
-            <div
-              v-if="xs && busy"
-              class="sidebar-statusbar bg-surface"
-              style="position: sticky; top: 0; z-index: 20"
-            >
-              <StatusBar />
-            </div>
-
             <div class="sidebar-content pa-2">
               <!-- Mobile-only SelectionInfo -->
               <div v-if="constraintError === null" class="d-md-none mb-2">
@@ -392,9 +383,14 @@
             <ViewerCanvas
               ref="viewer"
               @update-mouse-coords="onMouseCoordsUpdate"
-              class="flex-grow-1"
+              class="flex-grow-1 order-1"
               style="min-height: 0; min-width: 0"
             />
+
+            <!-- Mobile Portrait StatusBar -->
+            <div v-if="xs && busy" class="bg-surface w-100 order-0">
+              <StatusBar />
+            </div>
 
             <!-- RIGHT (OVERLAY / FLEX ITEM) -->
             <div
