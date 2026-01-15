@@ -380,16 +380,22 @@
             }"
             style="height: 100%; position: relative"
           >
-            <ViewerCanvas
-              ref="viewer"
-              @update-mouse-coords="onMouseCoordsUpdate"
-              class="flex-grow-1 order-1"
-              style="min-height: 0; min-width: 0"
-            />
+            <div class="d-flex flex-column h-100 w-100">
+              <!-- Mobile RedshiftLegend/StatusBar -->
+              <RedshiftLegend v-if="mobile" class="order-0" />
+              <div v-if="mobile && busy" class="bg-surface w-100 order-1">
+                <StatusBar />
+              </div>
 
-            <!-- Mobile Portrait StatusBar -->
-            <div v-if="xs && busy" class="bg-surface w-100 order-0">
-              <StatusBar />
+              <ViewerCanvas
+                ref="viewer"
+                @update-mouse-coords="onMouseCoordsUpdate"
+                class="flex-grow-1 order-2"
+                style="min-height: 0; min-width: 0"
+              />
+
+              <!-- Desktop RedshiftLegend (Absolute) -->
+              <RedshiftLegend v-if="!mobile" />
             </div>
 
             <!-- RIGHT (OVERLAY / FLEX ITEM) -->
@@ -421,12 +427,8 @@
               @click="toggleSidebar"
             ></v-btn>
 
-            <!-- PC/Landscape StatusBar -->
+            <!-- PC StatusBar (Absolute Bottom) -->
             <div v-if="!mobile" class="viewer-statusbar bg-surface">
-              <StatusBar />
-            </div>
-            <!-- Mobile Landscape StatusBar -->
-            <div v-else-if="busy && !xs" class="viewer-statusbar bg-surface">
               <StatusBar />
             </div>
           </v-col>
@@ -485,6 +487,7 @@ import StatusBar from '@/components/StatusBar.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'
 import SkyCoordinates from '@/components/SkyCoordinates.vue'
 import LoadingPopup from '@/components/LoadingPopup.vue'
+import RedshiftLegend from '@/components/RedshiftLegend.vue'
 
 import { getSumConsts } from '@/logic/paramsConstraints.js'
 

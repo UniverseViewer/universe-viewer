@@ -87,9 +87,9 @@ const gradientStyle = computed(() => {
 
 @media (max-width: 600px), (max-width: 960px) and (orientation: landscape) {
   .redshift-legend {
+    position: relative;
     top: auto;
-    bottom: 0;
-    left: 0;
+    left: auto;
     width: 100%;
     transform: none;
   }

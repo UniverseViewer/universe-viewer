@@ -26,9 +26,6 @@
         <pre class="error-message-details">{{ constraintError }}</pre>
       </div>
     </div>
-
-    <!-- Redshift Gradient Legend -->
-    <RedshiftLegend />
   </div>
 </template>
 
@@ -63,11 +60,9 @@ import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 import { useThemeStore } from '@/stores/theme.js'
 import { watch } from 'vue'
-import RedshiftLegend from './RedshiftLegend.vue'
 
 export default {
   name: 'ViewerCanvas',
-  components: { RedshiftLegend },
   emits: ['update-mouse-coords'],
 
   setup(props, { expose, emit }) {
