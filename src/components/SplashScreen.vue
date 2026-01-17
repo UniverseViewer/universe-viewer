@@ -2,7 +2,6 @@
   <v-dialog
     v-model="dialog"
     max-width="800"
-    persistent
     @click:outside="hideSplash"
     class="splash-dialog"
     :fullscreen="isMobile"
