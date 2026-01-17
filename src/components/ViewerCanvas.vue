@@ -674,7 +674,7 @@ export default {
       if (state.mode === state.UNIVERSE_MODE) {
         if (view.value > 3) {
           // Front views
-          const step = Math.PI / 100
+          const step = Math.PI / 1000
           let radius
           if (comovingSpaceFlag.value === false) {
             // Reference space
@@ -710,7 +710,7 @@ export default {
           }
         } else {
           // Edge views
-          const step = Math.PI / 100
+          const step = Math.PI / 1000
           // Use the actual horizon distance as the limit
           const maxDist = horizonAngularDistance.value
           // Calculate Y-scale factor for comoving space
