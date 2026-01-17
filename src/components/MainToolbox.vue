@@ -411,7 +411,7 @@ import { getSumConsts } from '@/logic/paramsConstraints.js'
 const { mobile } = useDisplay()
 
 defineOptions({
-  name: 'MainToolbar',
+  name: 'MainToolbox',
 })
 
 // Stores

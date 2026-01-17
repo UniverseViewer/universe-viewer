@@ -15,7 +15,7 @@
             class="bg-surface left-panel order-last order-sm-first"
             ref="leftPanel"
           >
-            <MainToolbar @open-help="openHelp" />
+            <MainToolbox @open-help="openHelp" />
           </v-col>
 
           <!-- MAIN VIEWER -->
@@ -126,7 +126,7 @@ import ViewerCanvas from '@/components/ViewerCanvas.vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useStatusStore } from '@/stores/status.js'
 
-import MainToolbar from '@/components/MainToolbar.vue'
+import MainToolbox from '@/components/MainToolbox.vue'
 import About from '@/components/About.vue'
 import AppHelp from '@/components/AppHelp.vue'
 import RedshiftDistribution from '@/components/RedshiftDistribution.vue'
