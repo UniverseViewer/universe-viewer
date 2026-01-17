@@ -66,6 +66,13 @@
                 rel="noopener"
                 >GNU GENERAL PUBLIC LICENSE, version 2</a
               >.
+              <br />
+              <br />
+              Visit the
+              <a href="https://github.com/UniverseViewer/universe-viewer">
+                <v-icon icon="mdi-github"></v-icon>
+                GitHub page
+              </a>
             </div>
           </v-window-item>
 
