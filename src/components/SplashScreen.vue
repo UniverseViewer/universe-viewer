@@ -16,7 +16,7 @@
       >
         <v-row class="ma-2">
           <v-col cols="9">
-            <div class="text-h4 font-weight-bold d-flex align-center">
+            <div class="text-h3 mt-8 ml-6 font-weight-bold d-flex align-center">
               <img
                 src="/logo.webp"
                 alt="Logo"
