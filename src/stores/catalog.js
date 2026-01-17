@@ -265,6 +265,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
 
     // Update the store with the new buffer and the new array of targets
+    subsetTargets.value = []
     sharedBuffer.value = newBuffer;
     targets.value = newTargetsArray;
     selectedTargets.value = [];
