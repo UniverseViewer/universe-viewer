@@ -18,7 +18,7 @@
             <MainToolbox @open-help="openHelp" />
           </v-col>
 
-          <!-- MAIN VIEWER -->
+          <!-- VIEWER -->
           <v-col
             cols="12"
             :sm="isSidebarOpen ? 6 : 12"
@@ -31,10 +31,10 @@
             }"
             style="height: 100%; position: relative"
           >
-            <div class="d-flex flex-column flex-grow-1" style="min-width: 0; min-height: 0">
+            <div class="d-flex flex-column flex-grow-1 canvas-wrapper" style="min-width: 0; min-height: 0">
               <!-- Mobile RedshiftLegend/StatusBar -->
               <RedshiftLegend v-if="mobile" class="order-0" />
-              <div v-if="mobile && busy" class="bg-surface w-100 order-1">
+              <div v-if="mobile && busy" class="bg-surface w-100 order-1 mobile-status-bar-overlay">
                 <StatusBar />
               </div>
 
@@ -277,5 +277,15 @@ function toggleSidebar() {
   left: 0;
   width: 100%;
   z-index: 15;
+}
+.canvas-wrapper {
+  position: relative;
+}
+.mobile-status-bar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
 </style>
