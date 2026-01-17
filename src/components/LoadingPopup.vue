@@ -14,6 +14,10 @@
 </template>
 
 <script setup>
+defineOptions({
+  name: 'LoadingPopup',
+})
+
 defineProps({
   title: {
     type: String,

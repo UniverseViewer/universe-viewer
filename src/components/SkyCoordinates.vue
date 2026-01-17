@@ -19,6 +19,10 @@
 <script setup>
 import { formatRa, formatDec } from '@/tools/coordinates.js'
 
+defineOptions({
+  name: 'SkyCoordinates',
+})
+
 defineProps({
   visible: {
     type: Boolean,

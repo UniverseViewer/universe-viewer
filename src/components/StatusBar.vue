@@ -47,6 +47,10 @@ import { useUniverseStore } from '@/stores/universe.js'
 import { useStatusStore } from '@/stores/status.js'
 import { useDisplay } from 'vuetify'
 
+defineOptions({
+  name: 'StatusBar',
+})
+
 const { mobile } = useDisplay()
 
 const universeStore = useUniverseStore()

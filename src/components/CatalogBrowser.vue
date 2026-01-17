@@ -12,7 +12,7 @@
   ></v-select>
 </template>
 
-<script>
+<script setup>
 /*
  * Copyright (C) 2025 Mathieu Abati <mathieu.abati@gmail.com>
  *
@@ -34,61 +34,53 @@
 
 import { onMounted, ref, watch, computed } from 'vue'
 
-export default {
+defineOptions({
   name: 'CatalogBrowser',
+})
 
-  props: {
-    modelValue: { type: String, default: null },
-    disabled: { type: Boolean, default: false },
-    opened: { type: Boolean, default: false },
-  },
-  emits: ['update:modelValue', 'update:opened'],
+const props = defineProps({
+  modelValue: { type: String, default: null },
+  disabled: { type: Boolean, default: false },
+  opened: { type: Boolean, default: false },
+})
 
-  setup(props, { emit }) {
-    let catalogs = ref([])
-    const internalValue = ref(props.modelValue)
+const emit = defineEmits(['update:modelValue', 'update:opened'])
 
-    const menuOpened = computed({
-      get: () => props.opened,
-      set: (val) => emit('update:opened', val)
-    })
+let catalogs = ref([])
+const internalValue = ref(props.modelValue)
 
-    function catalogProps (catalog) {
-      return {
-        title: catalog.name,
-        subtitle: catalog.targets_number.toLocaleString() + " targets, " + catalog.year,
-      }
-    }
+const menuOpened = computed({
+  get: () => props.opened,
+  set: (val) => emit('update:opened', val),
+})
 
-    // Sync internalValue with parent
-    watch(internalValue, value => {
-      emit('update:modelValue', value)
-    })
-    // Sync parent with internalValue (parent updates)
-    watch(
-      () => props.modelValue,
-      value => {
-        internalValue.value = value
-      }
-    )
-
-    onMounted(() => {
-      fetch('/catalogs/manifest.json')
-        .then(response => response.json())
-          .then(data => {
-            catalogs.value = data
-          })
-        .catch(err => console.error('Fetch error:', err))
-    })
-
-    return {
-      catalogs,
-      catalogProps,
-      internalValue,
-      menuOpened,
-    }
-  },
+function catalogProps(catalog) {
+  return {
+    title: catalog.name,
+    subtitle: catalog.targets_number.toLocaleString() + ' targets, ' + catalog.year,
+  }
 }
+
+// Sync internalValue with parent
+watch(internalValue, (value) => {
+  emit('update:modelValue', value)
+})
+// Sync parent with internalValue (parent updates)
+watch(
+  () => props.modelValue,
+  (value) => {
+    internalValue.value = value
+  },
+)
+
+onMounted(() => {
+  fetch('/catalogs/manifest.json')
+    .then((response) => response.json())
+    .then((data) => {
+      catalogs.value = data
+    })
+    .catch((err) => console.error('Fetch error:', err))
+})
 </script>
 
 <style scoped>

@@ -71,6 +71,10 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useDisplay } from 'vuetify'
 
+defineOptions({
+  name: 'ViewerToolbox',
+})
+
 const { xs, mdAndUp } = useDisplay()
 
 const store = useUniverseStore()

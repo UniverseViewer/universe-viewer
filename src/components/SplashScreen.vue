@@ -115,6 +115,10 @@ import { storeToRefs } from 'pinia'
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import { useDisplay } from 'vuetify'
 
+defineOptions({
+  name: 'SplashScreen',
+})
+
 const universeStore = useUniverseStore()
 const catalogStore = useCatalogStore()
 const themeStore = useThemeStore()

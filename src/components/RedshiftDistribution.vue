@@ -67,6 +67,10 @@ import { Chart, registerables } from 'chart.js'
 import { storeToRefs } from 'pinia'
 import { useDisplay } from 'vuetify'
 
+defineOptions({
+  name: 'RedshiftDistribution',
+})
+
 Chart.register(...registerables)
 
 const { mobile, width, height } = useDisplay()

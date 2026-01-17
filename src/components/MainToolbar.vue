@@ -410,6 +410,10 @@ import { getSumConsts } from '@/logic/paramsConstraints.js'
 
 const { mobile } = useDisplay()
 
+defineOptions({
+  name: 'MainToolbar',
+})
+
 // Stores
 const store = useUniverseStore()
 const {

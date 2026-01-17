@@ -49,6 +49,10 @@ import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useThemeStore } from '@/stores/theme.js'
 
+defineOptions({
+  name: 'RedshiftLegend',
+})
+
 const universeStore = useUniverseStore()
 const catalogStore = useCatalogStore()
 const themeStore = useThemeStore()

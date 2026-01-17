@@ -104,7 +104,7 @@
   </v-dialog>
 </template>
 
-<script>
+<script setup>
 /*
  * Copyright (C) 2025 Mathieu Abati <mathieu.abati@gmail.com>
  *
@@ -129,53 +129,45 @@ import { storeToRefs } from 'pinia'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useDisplay } from 'vuetify'
 
-export default {
+defineOptions({
   name: 'AboutDialog',
+})
 
-  props: {
-    modelValue: { type: Boolean, default: false },
-  },
-  emits: ['update:modelValue'],
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+})
 
-  setup(props, { emit }) {
-    const store = useUniverseStore()
-    const { version } = storeToRefs(store)
-    const { mobile } = useDisplay()
-    const isMobile = computed(() => mobile.value)
+const emit = defineEmits(['update:modelValue'])
 
-    const visible = ref(props.modelValue)
-    const tab = ref('software')
-    const catalogs = ref([])
+const store = useUniverseStore()
+const { version } = storeToRefs(store)
+const { mobile } = useDisplay()
+const isMobile = computed(() => mobile.value)
 
-    onMounted(() => {
-      fetch('/catalogs/manifest.json')
-        .then((response) => response.json())
-        .then((data) => {
-          catalogs.value = data
-        })
-        .catch((err) => console.error('Fetch error:', err))
+const visible = ref(props.modelValue)
+const tab = ref('software')
+const catalogs = ref([])
+
+onMounted(() => {
+  fetch('/catalogs/manifest.json')
+    .then((response) => response.json())
+    .then((data) => {
+      catalogs.value = data
     })
+    .catch((err) => console.error('Fetch error:', err))
+})
 
-    // Sync with parent
-    watch(visible, (value) => {
-      emit('update:modelValue', value)
-    })
-    // Sync parent (parent updates)
-    watch(
-      () => props.modelValue,
-      (value) => {
-        visible.value = value
-      },
-    )
-    return {
-      version,
-      visible,
-      tab,
-      catalogs,
-      isMobile,
-    }
+// Sync with parent
+watch(visible, (value) => {
+  emit('update:modelValue', value)
+})
+// Sync parent (parent updates)
+watch(
+  () => props.modelValue,
+  (value) => {
+    visible.value = value
   },
-}
+)
 </script>
 
 <style scoped>

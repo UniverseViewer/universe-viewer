@@ -156,6 +156,10 @@ import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useStatusStore } from '@/stores/status.js'
 
+defineOptions({
+  name: 'SelectionInfo',
+})
+
 const store = useUniverseStore()
 const catalogStore = useCatalogStore()
 const statusStore = useStatusStore()

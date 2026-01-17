@@ -256,7 +256,7 @@
   </v-dialog>
 </template>
 
-<script>
+<script setup>
 /*
  * Copyright (C) 2025 Mathieu Abati <mathieu.abati@gmail.com>
  *
@@ -279,47 +279,40 @@
 import { ref, watch, computed } from 'vue'
 import { useDisplay } from 'vuetify'
 
-export default {
+defineOptions({
   name: 'AppHelp',
+})
 
-  props: {
-    modelValue: { type: Boolean, default: false },
-    tab: { type: String, default: undefined },
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+  tab: { type: String, default: undefined },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const visible = ref(props.modelValue)
+const currentTab = ref(props.tab || 'overview')
+const { mobile } = useDisplay()
+const isMobile = computed(() => mobile.value)
+
+// Sync with parent
+watch(visible, (value) => {
+  emit('update:modelValue', value)
+})
+// Sync parent (parent updates)
+watch(
+  () => props.modelValue,
+  (value) => {
+    visible.value = value
   },
-  emits: ['update:modelValue'],
+)
 
-  setup(props, { emit }) {
-    const visible = ref(props.modelValue)
-    const currentTab = ref(props.tab || 'overview')
-    const { mobile } = useDisplay()
-    const isMobile = computed(() => mobile.value)
-
-    // Sync with parent
-    watch(visible, (value) => {
-      emit('update:modelValue', value)
-    })
-    // Sync parent (parent updates)
-    watch(
-      () => props.modelValue,
-      (value) => {
-        visible.value = value
-      },
-    )
-
-    watch(
-      () => props.tab,
-      (val) => {
-        currentTab.value = val || 'overview'
-      },
-    )
-
-    return {
-      visible,
-      currentTab,
-      isMobile,
-    }
+watch(
+  () => props.tab,
+  (val) => {
+    currentTab.value = val || 'overview'
   },
-}
+)
 </script>
 
 <style scoped>

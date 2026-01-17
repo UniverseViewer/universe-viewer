@@ -136,6 +136,10 @@ import SelectionInfo from '@/components/SelectionInfo.vue'
 import SkyCoordinates from '@/components/SkyCoordinates.vue'
 import RedshiftLegend from '@/components/RedshiftLegend.vue'
 
+defineOptions({
+  name: 'MainWindow',
+})
+
 // Stores setup
 const store = useUniverseStore()
 const {
