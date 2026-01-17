@@ -74,7 +74,7 @@
                 GitHub page
               </a>
               <br />
-              Read the <a href="https://mathieu-abati.com/en/projects/universe-viewer">implementation details</a> on author website
+              Read the <a href="https://mathieu-abati.com/en/projects/universe-viewer">implementation details</a> on the author's website
             </div>
           </v-window-item>
 
