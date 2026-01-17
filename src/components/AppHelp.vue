@@ -9,9 +9,6 @@
         <v-tab value="cosmology">Cosmology</v-tab>
         <v-tab value="data_format">Data format</v-tab>
       </v-tabs>
-
-      <v-divider></v-divider>
-
       <v-card-text class="pa-0" style="height: 500px">
         <v-window v-model="currentTab" class="pa-4">
           <!-- OVERVIEW TAB -->
@@ -319,5 +316,9 @@ watch(
 .text-mono {
   font-family: 'Roboto Mono', monospace;
   font-size: 0.85rem;
+}
+
+:deep(.v-tabs) {
+  flex: 0 0 auto !important;
 }
 </style>
