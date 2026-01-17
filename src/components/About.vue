@@ -1,34 +1,33 @@
 <template>
   <v-dialog v-model="visible" width="auto" scrollable :fullscreen="isMobile">
-    <v-card max-width="800" height="600" max-height="90vh" class="d-flex flex-column">
-      <v-card-title class="d-flex align-center d-md-none mb-2">
+    <v-card max-width="800">
+      <v-card-title class="align-center d-md-none mb-2">
         <v-icon icon="mdi-information" class="mr-2"></v-icon>
         UniverseViewer {{ version }}
       </v-card-title>
       <v-img
         src="/splash.webp"
-        class="align-start text-white splash-image d-none d-md-block"
+        class="text-white splash-image d-none d-md-block"
         cover
         gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
       >
-        <v-row class="ma-2">
-          <v-col cols="9">
-            <div class="text-h3 font-weight-bold d-flex align-center">
-              <img
-                src="/logo.webp"
-                alt="Logo"
-                class="me-3"
-                style="height: 1em; width: auto; display: block"
-              />
-              <span style="line-height: 1">Universe Viewer</span>
-            </div>
-          </v-col>
-          <v-col cols="3" class="text-right">
-            <div class="text-subtitle-1">
-              <strong>{{ version }}</strong>
-            </div>
-          </v-col>
-        </v-row>
+        <div
+          class="d-flex justify-space-between align-end pa-4"
+          style="position: absolute; bottom: 0; left: 0; right: 0"
+        >
+          <div class="text-h3 font-weight-bold d-flex align-center">
+            <img
+              src="/logo.webp"
+              alt="Logo"
+              class="me-3"
+              style="height: 1em; width: auto; display: block"
+            />
+            <span style="line-height: 1">Universe Viewer</span>
+          </div>
+          <div class="text-subtitle-1 text-right">
+            <strong>{{ version }}</strong>
+          </div>
+        </div>
       </v-img>
 
       <v-tabs v-model="tab">
@@ -44,6 +43,7 @@
               <br />
               <br />
               <strong><a href="mailto:mathieu.abati@gmail.com">Mathieu Abati</a></strong> (2008 - 2011, 2025 - 2026)
+              - <a href="https://mathieu-abati.com/en">website</a>
               <br />
               <strong>Julie Fontaine</strong> (2008)
               <br />
@@ -73,6 +73,8 @@
                 <v-icon icon="mdi-github"></v-icon>
                 GitHub page
               </a>
+              <br />
+              Read the <a href="https://mathieu-abati.com/en/projects/universe-viewer">implementation details</a> on author website
             </div>
           </v-window-item>
 
@@ -179,16 +181,10 @@ watch(
 
 <style scoped>
 .splash-image {
-  height: 300px;
-}
-.content {
-  height: 400px;
+  height: 200px;
 }
 
-/* Landscape mobile */
-@media (max-width: 960px) and (orientation: landscape) {
-  .content {
-    height: 300px;
-  }
+:deep(.v-tabs) {
+  flex: 0 0 auto !important;
 }
 </style>
