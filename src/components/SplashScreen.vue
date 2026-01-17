@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import { useUniverseStore } from '@/stores/universe.js'
 import { useCatalogStore } from '@/stores/catalog.js'
 import { useThemeStore } from '@/stores/theme.js'
@@ -149,9 +149,21 @@ const onFileChange = (event) => {
   }
 }
 
-watch([catalogFile, browsedFile, helpOpened, aboutOpened], () => {
-  hideSplash()
-})
+watch([catalogFile, browsedFile, helpOpened, aboutOpened], (newValues, oldValues) => {
+  const isCatalogRelatedChange = newValues[0] !== oldValues[0] || newValues[1] !== oldValues[1];
+
+  if (isCatalogRelatedChange) {
+    // Explicitly close the CatalogBrowser menu first
+    showCatalogBrowser.value = false;
+    // Then wait for the DOM update cycle before hiding the dialog
+    nextTick(() => {
+      hideSplash();
+    });
+  } else {
+    // For other changes (help/about opened), hide directly
+    hideSplash();
+  }
+});
 </script>
 
 <style scoped>
