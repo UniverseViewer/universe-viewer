@@ -103,7 +103,7 @@ function toggleRedshiftGradient() {
 }
 /* Desktop/Vertical limits */
 .toolbox-sheet.flex-column {
-  max-height: 50vh;
+  max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
