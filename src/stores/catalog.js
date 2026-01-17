@@ -214,6 +214,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     const currentTargets = targets.value || [];
     const selectedItems = selectedTargets.value || [];
     const currentBuffer = sharedBuffer.value;
+    let newMinRedshift = Number.MAX_VALUE
+    let newMaxRedshift = 0
 
     // Handle case where SharedArrayBuffer is not available or not used
     if (!currentBuffer) {
@@ -253,12 +255,21 @@ export const useCatalogStore = defineStore('catalog', () => {
       }
       const newTarget = new Target({ bufferView: newFloat64View, index: i });
       newTargetsArray.push(newTarget);
+      const redshift = newTarget.getRedshift()
+      if (redshift > newMaxRedshift) {
+        newMaxRedshift = redshift
+      }
+      if (redshift < newMinRedshift) {
+        newMinRedshift = redshift
+      }
     }
 
     // Update the store with the new buffer and the new array of targets
     sharedBuffer.value = newBuffer;
     targets.value = newTargetsArray;
     selectedTargets.value = [];
+    minRedshift.value = newMinRedshift
+    maxRedshift.value = newMaxRedshift
   }
 
   function reverseSelectedTargets() {
