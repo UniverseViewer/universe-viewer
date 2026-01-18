@@ -1109,13 +1109,6 @@ function onMouseMove(e) {
 
         x = ra
         y = dec
-
-        if (skyProjectionCoordinates.value === 'galactic') {
-          // Convert RA and Dec to galactic coordinates (default equatorial)
-          const { l, b } = equatorialToGalactic(x, y)
-          x = l
-          y = b
-        }
       }
     } else {
       if (x < 0 || x > 2 * Math.PI || y < -Math.PI / 2 || y > Math.PI / 2) {
@@ -1123,6 +1116,13 @@ function onMouseMove(e) {
         y = null
       }
     }
+  }
+
+  if (x !== null && y !== null && skyProjectionCoordinates.value === 'galactic') {
+    // Convert RA and Dec to galactic coordinates (default equatorial)
+    const { l, b } = equatorialToGalactic(x, y)
+    x = l
+    y = b
   }
 
   if (state.isSelecting) {
