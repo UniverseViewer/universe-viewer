@@ -37,6 +37,14 @@
           value="mollweide"
         ></v-btn>
       </v-btn-toggle>
+      <v-btn
+        icon="mdi-sphere"
+        variant="text"
+        :color="skyProjectionCoordinates === 'equatorial' ? 'primary' : undefined"
+        @click="toggleProjectionCoordinates"
+        :title="projectionCoordinatesSwitchTitle"
+        rounded="0"
+      ></v-btn>
     </v-container>
   </v-sheet>
 </template>
@@ -44,6 +52,7 @@
 <script setup>
 import { formatRa, formatDec } from '@/tools/coordinates.js'
 import { storeToRefs } from 'pinia'
+import {computed} from 'vue'
 import { useUniverseStore } from '@/stores/universe.js'
 
 defineOptions({
@@ -62,6 +71,24 @@ defineProps({
 })
 
 const universeStore = useUniverseStore()
-const { skyProjectionType } = storeToRefs(universeStore)
+const { skyProjectionType, skyProjectionCoordinates } = storeToRefs(universeStore)
+
+const projectionCoordinatesSwitchTitle = computed(() => {
+  let coordinates
+  if (skyProjectionCoordinates.value === 'equatorial') {
+    coordinates = 'galactic'
+  } else {
+    coordinates = 'equatorial'
+  }
+  return "Switch to " + coordinates + " projection coordinates"
+})
+
+function toggleProjectionCoordinates() {
+  if (skyProjectionCoordinates.value === 'equatorial') {
+    universeStore.setSkyProjectionCoordinates('galactic')
+  } else {
+    universeStore.setSkyProjectionCoordinates('equatorial')
+  }
+}
 
 </script>

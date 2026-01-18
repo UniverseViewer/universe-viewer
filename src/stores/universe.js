@@ -50,6 +50,7 @@ export const useUniverseStore = defineStore('universe', () => {
   const pointSize = ref(1.5)
   const viewerMode = ref('universe')
   const skyProjectionType = ref('equirectangular') // 'equirectangular' or 'mollweide'
+  const skyProjectionCoordinates = ref('equatorial') // 'equatorial' or 'galactic'
   const mouseMode = ref('move')
   const showRefMarks = ref(true)
   const showRedshiftGradient = ref(false)
@@ -154,6 +155,10 @@ export const useUniverseStore = defineStore('universe', () => {
     skyProjectionType.value = type
   }
 
+  function setSkyProjectionCoordinates(coordinates) {
+    skyProjectionCoordinates.value = coordinates
+  }
+
   function setMouseMode(mode) {
     mouseMode.value = mode
   }
@@ -189,6 +194,7 @@ export const useUniverseStore = defineStore('universe', () => {
     pointSize,
     viewerMode,
     skyProjectionType,
+    skyProjectionCoordinates,
     mouseMode,
     showRefMarks,
     showRedshiftGradient,
@@ -207,6 +213,7 @@ export const useUniverseStore = defineStore('universe', () => {
     setPointSize,
     setViewerMode,
     setSkyProjectionType,
+    setSkyProjectionCoordinates,
     setMouseMode,
     setShowRefMarks,
     setShowRedshiftGradient,

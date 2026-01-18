@@ -84,6 +84,7 @@ const {
   horizonAngularDistance,
   viewerMode,
   skyProjectionType,
+  skyProjectionCoordinates,
   userRA1,
   userDec1,
   userBeta,
@@ -151,6 +152,11 @@ const modeName = computed(() => {
       value += ", equirectangular (plate carrée)"
     } else if (skyProjectionType.value === 'mollweide') {
       value += ", Mollweide"
+    }
+    if (skyProjectionCoordinates.value === 'equatorial') {
+      value += ", equatorial coordinates"
+    } else if (skyProjectionCoordinates.value === 'galactic') {
+      value += ", galactic coordinates"
     }
   }
   return value
@@ -249,7 +255,47 @@ function setMode(m) {
   onResize() // Trigger full recalculation of viewSpans and camera bounds
 }
 
+/**
+ * Compute galactic coordinates from equatorial coordinates.
+ * Apply J2000 galactic coordinates rotation matrix.
+ */
+function equatorialToGalactic(ra, dec) {
+  const cosDec = Math.cos(dec)
+
+  const x = cosDec * Math.cos(ra)
+  const y = cosDec * Math.sin(ra)
+  const z = Math.sin(dec)
+
+  const xg =
+    -0.0548755604 * x +
+    -0.8734370902 * y +
+    -0.4838350155 * z
+
+  const yg =
+    0.4941094279 * x +
+    -0.4448296300 * y +
+    0.7469822445 * z
+
+  const zg =
+    -0.8676661490 * x +
+    -0.1980763734 * y +
+    0.4559837762 * z
+
+  const b = Math.asin(zg)
+  let l = Math.atan2(yg, xg)
+  if (l < 0) l += 2 * Math.PI
+
+  return { l, b }
+}
+
 function projectSky(ra, dec) {
+  if (skyProjectionCoordinates.value === 'galactic') {
+    // Convert RA and Dec to galactic coordinates (default equatorial)
+    const { l, b } = equatorialToGalactic(ra, dec)
+    ra = l
+    dec = b
+  }
+
   if (skyProjectionType.value === 'equirectangular') {
     return { x: ra, y: dec }
   }
@@ -408,7 +454,7 @@ watch(viewerMode, (newMode) => {
   }, 'Calculating view')
 })
 
-watch(skyProjectionType, () => {
+watch([skyProjectionType, skyProjectionCoordinates], () => {
   statusStore.runBusyTask(() => {
     if (viewerMode.value === 'sky') {
       setMode(state.SKY_MODE)
@@ -1070,6 +1116,13 @@ function onMouseMove(e) {
         y = null
       }
     }
+  }
+
+  if (skyProjectionCoordinates.value === 'galactic') {
+    // Convert RA and Dec to galactic coordinates (default equatorial)
+    const { l, b } = equatorialToGalactic(x, y)
+    x = l
+    y = b
   }
 
   if (state.isSelecting) {
