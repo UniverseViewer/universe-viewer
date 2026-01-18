@@ -119,10 +119,12 @@
                 Universe vs Sky View
               </div>
               <p class="text-body-2">
-                <strong>Universe View:</strong> Visualizes targets in 3D cosmological space.
+                <strong>Universe View:</strong> Visualizes targets in 3D cosmological space,
+                according to cosmological parameters.
                 <br />
                 <strong>Sky View:</strong> Visualizes targets as seen from Earth, mapped onto the
-                celestial sphere (RA/Dec).
+                celestial sphere (RA/Dec), using equirectangular or Mollweide projection, with
+                equatorial or galactic coordinates.
               </p>
             </div>
 
