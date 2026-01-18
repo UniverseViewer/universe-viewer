@@ -19,24 +19,25 @@
       <v-divider class="my-2"></v-divider>
     </div>
     <v-container class="pa-0 ma-0">
-      <v-btn-toggle v-model="skyProjectionType" mandatory>
-        <v-btn
-          icon="mdi-rectangle-outline"
-          variant="text"
-          title="Equirectangular (plate carrée) projection"
-          rounded="0"
-          size="small"
-          value="equirectangular"
-        ></v-btn>
-        <v-btn
-          icon="mdi-ellipse-outline"
-          variant="text"
-          title="Mollweide projection"
-          rounded="0"
-          size="small"
-          value="mollweide"
-        ></v-btn>
-      </v-btn-toggle>
+      <v-btn
+        icon="mdi-rectangle-outline"
+        variant="text"
+        :color="skyProjectionType === 'equirectangular' ? 'primary' : undefined"
+        @click="universeStore.setSkyProjectionType('equirectangular')"
+        title="Equirectangular (plate carrée) projection"
+        rounded="0"
+        size="small"
+      ></v-btn>
+      <v-btn
+        icon="mdi-ellipse-outline"
+        variant="text"
+        :color="skyProjectionType === 'mollweide' ? 'primary' : undefined"
+        @click="universeStore.setSkyProjectionType('mollweide')"
+        title="Mollweide projection"
+        rounded="0"
+        size="small"
+      ></v-btn>
+      <v-divider vertical class="mx-2"></v-divider>
       <v-btn
         icon="mdi-sphere"
         variant="text"
@@ -44,6 +45,7 @@
         @click="toggleProjectionCoordinates"
         :title="projectionCoordinatesSwitchTitle"
         rounded="0"
+        size="small"
       ></v-btn>
     </v-container>
   </v-sheet>
