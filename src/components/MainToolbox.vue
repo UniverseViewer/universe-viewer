@@ -20,6 +20,10 @@
       ref="scrollArea"
     >
       <div class="sidebar-content pa-2" ref="sidebarContent">
+        <!-- Mobile-only SkyCoordinates -->
+        <div v-if="constraintError === null" class="d-md-none mb-2">
+          <SkyCoordinates v-if="isSkyMode" />
+        </div>
         <!-- Mobile-only SelectionInfo -->
         <div v-if="constraintError === null" class="d-md-none mb-2">
           <SelectionInfo />
@@ -400,6 +404,7 @@ import { VIconBtn } from 'vuetify/labs/VIconBtn'
 
 import CatalogBrowser from '@/components/CatalogBrowser.vue'
 import SelectionInfo from '@/components/SelectionInfo.vue'
+import SkyCoordinates from '@/components/SkyCoordinates.vue'
 import LoadingPopup from '@/components/LoadingPopup.vue'
 
 import { useUniverseStore } from '@/stores/universe.js'

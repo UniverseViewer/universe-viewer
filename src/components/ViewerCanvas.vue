@@ -83,6 +83,7 @@ const {
   comovingSpaceFlag,
   horizonAngularDistance,
   viewerMode,
+  skyProjectionType,
   userRA1,
   userDec1,
   userBeta,
@@ -146,6 +147,11 @@ const modeName = computed(() => {
     value += comovingSpaceFlag.value ? 'comoving space' : 'reference space'
   } else {
     value = 'Sky view'
+    if (skyProjectionType.value === 'equirectangular') {
+      value += ", equirectangular (plate carrée)"
+    } else if (skyProjectionType.value === 'mollweide') {
+      value += ", Mollweide"
+    }
   }
   return value
 })
@@ -218,19 +224,54 @@ function setMode(m) {
     state.posY = 0 // Center of -1 to 1
     state.zoom = 0.5
   } else if (m === state.SKY_MODE) {
-    state.xMin = 0
-    state.yMin = -Math.PI / 2
-    state.xMax = 2 * Math.PI
-    state.yMax = Math.PI / 2
-    state.posX = Math.PI // Center of 0 to 2*PI
-    state.posY = 0 // Center of -Math.PI/2 to Math.PI/2
-    state.zoom = 1
+    if (skyProjectionType.value === 'mollweide') {
+      const R = Math.SQRT2
+      state.xMin = -2 * R
+      state.xMax = 2 * R
+      state.yMin = -R
+      state.yMax = R
+      state.posX = 0
+      state.posY = 0
+      state.zoom = 0.75
+    } else {
+      state.xMin = 0
+      state.yMin = -Math.PI / 2
+      state.xMax = 2 * Math.PI
+      state.yMax = Math.PI / 2
+      state.posX = Math.PI // Center of 0 to 2*PI
+      state.posY = 0 // Center of -Math.PI/2 to Math.PI/2
+      state.zoom = 0.8
+    }
   } else {
     return
   }
   state.mode = m
   onResize() // Trigger full recalculation of viewSpans and camera bounds
 }
+
+function projectSky(ra, dec) {
+  if (skyProjectionType.value === 'equirectangular') {
+    return { x: ra, y: dec }
+  }
+
+  // Mollweide projection
+  // λ = π - ra  (center at RA = 180°)
+  const lambda = Math.PI - ra
+  const phi = dec
+
+  // Solve: 2θ + sin(2θ) = π sin(phi)
+  let theta = phi
+  for (let i = 0; i < 5; i++) {
+    const f = 2 * theta + Math.sin(2 * theta) - Math.PI * Math.sin(phi)
+    const fp = 2 + 2 * Math.cos(2 * theta)
+    theta -= f / fp
+  }
+
+  const x = (2 * Math.SQRT2 / Math.PI) * lambda * Math.cos(theta)
+  const y = Math.SQRT2 * Math.sin(theta)
+  return { x, y }
+}
+
 function pixelToWorld(clientX, clientY) {
   const rect = root.value.getBoundingClientRect()
   const localX = clientX - rect.left
@@ -359,6 +400,17 @@ function initThree() {
 watch(viewerMode, (newMode) => {
   statusStore.runBusyTask(() => {
     if (newMode === 'sky') {
+      setMode(state.SKY_MODE)
+    } else {
+      setMode(state.UNIVERSE_MODE)
+    }
+    updateCanvas()
+  }, 'Calculating view')
+})
+
+watch(skyProjectionType, () => {
+  statusStore.runBusyTask(() => {
+    if (viewerMode.value === 'sky') {
       setMode(state.SKY_MODE)
     } else {
       setMode(state.UNIVERSE_MODE)
@@ -577,8 +629,12 @@ function populatePoints() {
       const offset = t[i].offset
       let x, y
       if (state.mode === state.SKY_MODE) {
-        x = float64View[offset + OFFSET_RA]
-        y = float64View[offset + OFFSET_DEC]
+        const p = projectSky(
+          float64View[offset + OFFSET_RA],
+          float64View[offset + OFFSET_DEC]
+        )
+        x = p.x
+        y = p.y
       } else {
         x = float64View[offset + OFFSET_PROJ_X]
         y = float64View[offset + OFFSET_PROJ_Y]
@@ -619,8 +675,9 @@ function populatePoints() {
       const ti = t[i]
       let x, y
       if (state.mode === state.SKY_MODE) {
-        x = ti.getAscension()
-        y = ti.getDeclination()
+        const p = projectSky(ti.getAscension(), ti.getDeclination())
+        x = p.x
+        y = p.y
       } else {
         x = ti.getx ? ti.getx() : 0
         y = ti.gety ? ti.gety() : 0
@@ -771,34 +828,67 @@ function drawReferenceMarks() {
   } else {
     // SKY_MODE
     const mat = new THREE.LineBasicMaterial({ color: theme.value.markOutline })
-    // Create outline
-    const borderPts = []
-    borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
-    borderPts.push(new THREE.Vector3(0, Math.PI / 2, 0))
-    borderPts.push(new THREE.Vector3(2 * Math.PI, Math.PI / 2, 0))
-    borderPts.push(new THREE.Vector3(2 * Math.PI, -Math.PI / 2, 0))
-    borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
-    const geomBorder = new THREE.BufferGeometry().setFromPoints(borderPts)
-    state.refGroup.add(new THREE.Line(geomBorder, mat))
-    // Create filled area
-    const shape = new THREE.Shape()
-    shape.moveTo(borderPts[0].x, borderPts[0].y)
-    for (let i = 1; i < borderPts.length; i++) {
-      shape.lineTo(borderPts[i].x, borderPts[i].y)
-    }
-    shape.closePath()
-    const shapeGeom = new THREE.ShapeGeometry(shape)
-    const areaMat = new THREE.MeshBasicMaterial({
-      color: theme.value.horizonBackground,
-    })
-    state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
-    // Create X axis
-    const xPts = []
     const zOffset = 0.01
-    xPts.push(new THREE.Vector3(0, 0, zOffset))
-    xPts.push(new THREE.Vector3(2 * Math.PI, 0, zOffset))
-    const geomX = new THREE.BufferGeometry().setFromPoints(xPts)
-    state.refGroup.add(new THREE.Line(geomX, mat))
+
+    if (skyProjectionType.value === 'mollweide') {
+      const a = 2 * Math.SQRT2
+      const b = Math.SQRT2
+      const shapePts = []
+      const step = Math.PI / 100
+      for (let t = 0; t <= 2 * Math.PI + step; t += step) {
+        shapePts.push(new THREE.Vector3(a * Math.cos(t), b * Math.sin(t), 0))
+      }
+
+      const geomBorder = new THREE.BufferGeometry().setFromPoints(shapePts)
+      state.refGroup.add(new THREE.Line(geomBorder, mat))
+
+      const shape = new THREE.Shape()
+      shape.moveTo(shapePts[0].x, shapePts[0].y)
+      for (let i = 1; i < shapePts.length; i++) {
+        shape.lineTo(shapePts[i].x, shapePts[i].y)
+      }
+      shape.closePath()
+      const shapeGeom = new THREE.ShapeGeometry(shape)
+      const areaMat = new THREE.MeshBasicMaterial({
+        color: theme.value.horizonBackground,
+      })
+      state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
+
+      // Create X axis (Equator)
+      const xPts = []
+      xPts.push(new THREE.Vector3(-a, 0, zOffset))
+      xPts.push(new THREE.Vector3(a, 0, zOffset))
+      const geomX = new THREE.BufferGeometry().setFromPoints(xPts)
+      state.refGroup.add(new THREE.Line(geomX, mat))
+
+    } else { // equirectangular
+      const borderPts = []
+      borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
+      borderPts.push(new THREE.Vector3(0, Math.PI / 2, 0))
+      borderPts.push(new THREE.Vector3(2 * Math.PI, Math.PI / 2, 0))
+      borderPts.push(new THREE.Vector3(2 * Math.PI, -Math.PI / 2, 0))
+      borderPts.push(new THREE.Vector3(0, -Math.PI / 2, 0))
+      const geomBorder = new THREE.BufferGeometry().setFromPoints(borderPts)
+      state.refGroup.add(new THREE.Line(geomBorder, mat))
+      // Create filled area
+      const shape = new THREE.Shape()
+      shape.moveTo(borderPts[0].x, borderPts[0].y)
+      for (let i = 1; i < borderPts.length; i++) {
+        shape.lineTo(borderPts[i].x, borderPts[i].y)
+      }
+      shape.closePath()
+      const shapeGeom = new THREE.ShapeGeometry(shape)
+      const areaMat = new THREE.MeshBasicMaterial({
+        color: theme.value.horizonBackground,
+      })
+      state.refGroup.add(new THREE.Mesh(shapeGeom, areaMat))
+      // Create X axis
+      const xPts = []
+      xPts.push(new THREE.Vector3(0, 0, zOffset))
+      xPts.push(new THREE.Vector3(2 * Math.PI, 0, zOffset))
+      const geomX = new THREE.BufferGeometry().setFromPoints(xPts)
+      state.refGroup.add(new THREE.Line(geomX, mat))
+    }
   }
 }
 
@@ -943,16 +1033,48 @@ function onMouseMove(e) {
   let { worldX: x, worldY: y } = worldCoords
 
   if (state.mode === state.SKY_MODE) {
-    if (x < 0 || x > 2 * Math.PI || y < -Math.PI / 2 || y > Math.PI / 2) {
-      x = null
-      y = null
+    if (skyProjectionType.value === 'mollweide') {
+      const R = Math.SQRT2
+      const eps = 1e-4
+      // Ellipse check: x^2/8 + y^2/2 <= 1
+      if ((x * x) / 8 + (y * y) / 2 > 1.0 + eps) {
+        x = null
+        y = null
+      } else {
+        let y_clamped = y / R
+        if (y_clamped > 1) y_clamped = 1
+        if (y_clamped < -1) y_clamped = -1
+        const theta = Math.asin(y_clamped)
+
+        let val = (2 * theta + Math.sin(2 * theta)) / Math.PI
+        if (val > 1) val = 1
+        if (val < -1) val = -1
+        const dec = Math.asin(val)
+
+        let lambda = 0
+        if (Math.abs(theta) < Math.PI / 2 - 1e-6) {
+          lambda = (Math.PI * x) / (2 * R * Math.cos(theta))
+        }
+
+        // lambda = PI - ra => ra = PI - lambda
+        let ra = Math.PI - lambda
+        if (ra < 0) ra += 2 * Math.PI
+        if (ra >= 2 * Math.PI) ra -= 2 * Math.PI
+
+        x = ra
+        y = dec
+      }
+    } else {
+      if (x < 0 || x > 2 * Math.PI || y < -Math.PI / 2 || y > Math.PI / 2) {
+        x = null
+        y = null
+      }
     }
   }
 
-  emit('update-mouse-coords', { x, y })
-
   if (state.isSelecting) {
     render()
+    emit('update-mouse-coords', { x, y })
   } else if (state.isDragging) {
     const prev = pixelToWorld(state.mouseX, state.mouseY)
     const curr = worldCoords
@@ -963,6 +1085,8 @@ function onMouseMove(e) {
     state.mouseX = e.clientX
     state.mouseY = e.clientY
     render()
+  } else {
+    emit('update-mouse-coords', { x, y })
   }
 }
 
@@ -996,8 +1120,9 @@ function commitSelection() {
           x = ti.getx()
           y = ti.gety()
         } else {
-          x = ti.getAscension()
-          y = ti.getDeclination()
+          const p = projectSky(ti.getAscension(), ti.getDeclination())
+          x = p.x
+          y = p.y
         }
 
         const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2))
@@ -1063,10 +1188,9 @@ function commitSelection() {
           x = ti.getx()
           y = ti.gety()
         } else {
-          const asc = ti.getAscension()
-          const dec = ti.getDeclination()
-          x = asc
-          y = dec
+          const p = projectSky(ti.getAscension(), ti.getDeclination())
+          x = p.x
+          y = p.y
         }
 
         const isInsideRectangle = x > selX1 && x < selX2 && y > selY1 && y < selY2

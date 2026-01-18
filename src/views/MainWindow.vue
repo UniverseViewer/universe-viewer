@@ -61,9 +61,9 @@
             </div>
             <div v-if="constraintError === null" class="bottom-left-info d-none d-md-block">
               <SkyCoordinates
-                :visible="isSkyMode && mouseRa !== null && mouseDec !== null"
-                :mouse-ra="mouseRa || 0"
-                :mouse-dec="mouseDec || 0"
+                v-if="isSkyMode"
+                :mouse-ra="mouseRa"
+                :mouse-dec="mouseDec"
               />
             </div>
 
